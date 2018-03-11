@@ -1,0 +1,260 @@
+#include "applicationcontrol.h"
+
+#include <QDebug>
+#include <QQmlContext>
+#include <QDirIterator>
+#include <QProcess>
+
+ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
+{
+    QObject::connect(&mFileWatcher,
+                     &QFileSystemWatcher::fileChanged,
+                     this,
+                     &ApplicationControl::onFileChanged);
+    QObject::connect(&mFileWatcher,
+                     &QFileSystemWatcher::directoryChanged,
+                     this,
+                     &ApplicationControl::onDirectoryChanged);
+}
+
+ApplicationControl::~ApplicationControl()
+{
+    if (mQuickView)
+        mQuickView->deleteLater();
+    if (mQuickComponent)
+        mQuickComponent->deleteLater();
+}
+
+QStringList ApplicationControl::folderList() const
+{
+    return mFolderList;
+}
+
+void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngine* pEngine)
+{
+    if (!pEngine)
+        return;
+
+    mMainQmlPath = pMainQmlPath;
+    mEngine = pEngine;
+
+    mEngine->rootContext()->setContextProperty("appControl", this);
+
+//    mQuickView = new QQuickView(mEngine, nullptr);
+//    mQuickView->setIcon(QIcon(":/img/appIcon.png"));
+//    mQuickView->setResizeMode(QQuickView::SizeRootObjectToView);
+//    mQuickView->setSource(mMainQmlPath);
+//    mQuickView->show();
+
+    mQuickComponent = new QQmlComponent(mEngine, nullptr);
+    mQuickComponent->loadUrl(mMainQmlPath);
+    mQuickComponent->create();
+}
+
+int ApplicationControl::runCommand(const QString &pCommand)
+{
+    qDebug() << "Executing command " << pCommand;
+    return QProcess::execute(pCommand);
+}
+
+int ApplicationControl::runCommandWithArgs(const QString &pCommand, const QStringList &pArgs)
+{
+    QStringList lArgs;
+    for (const QString& iArg: pArgs)
+    {
+        if (iArg.contains(" "))
+        {
+            lArgs << "\"" + iArg + "\"";
+        }
+        else
+        {
+            lArgs << iArg;
+        }
+    }
+
+    qDebug() << "Executing command " << pCommand << " with args " << lArgs;
+
+    return QProcess::execute(pCommand, lArgs);
+}
+
+QStringList ApplicationControl::listFiles(const QString &pPath)
+{
+    qDebug() << "Looking up files in " << pPath;
+
+    if (pPath.isEmpty())
+        return QStringList();
+
+    QString lActualPath = pPath;
+    lActualPath.remove("file:///");
+
+    QStringList lNameFilters = { "*.qml" };
+    QStringList lFileList;
+
+    QDirIterator it(lActualPath, lNameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QString lPath = it.next();
+        lFileList << lPath.split(lActualPath).last();
+    }
+
+    return lFileList;
+}
+
+inline QString quoted(const QString& pToQuote) { return "\"" + pToQuote + "\""; }
+
+void ApplicationControl::openFileExternally(const QString &pPath)
+{
+    QStringList lSrcPathFields = pPath.split("/");
+    QStringList lDstPathFields;
+
+    for (const QString& iSrcPathField: lSrcPathFields)
+    {
+        if (iSrcPathField.contains(" "))
+        {
+            lDstPathFields << quoted(iSrcPathField);
+        }
+        else
+        {
+            lDstPathFields << iSrcPathField;
+        }
+    }
+
+    QString lCommandArg = pPath;// lDstPathFields.join("/");
+
+    qDebug() << "Opening external file: " << lCommandArg;
+
+    //QProcess::execute("cmd /c" + quoted("start %1").arg(lCommandArg));
+    QProcess::execute("start", {lCommandArg});
+}
+
+bool ApplicationControl::createFolder(QString pPath, QString pFolderName)
+{
+    QString lPath = pPath.replace("file:///", "");
+    QString lFilePath = lPath + "/" + pFolderName;
+
+    QDir dir(lPath);
+    if (!dir.mkpath(lFilePath))
+    {
+        qDebug() << "Failed to create folder " << lFilePath;
+        return false;
+    }
+    return true;
+}
+
+bool ApplicationControl::createFile(QString pPath, QString pFileName)
+{
+    QFile file(pPath + "/" + pFileName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream textStream(&file);
+        textStream << newFileContent();
+    }
+    else
+    {
+        qDebug() << QString("Unable to create file \"%1\"").arg(pPath + "/" + pFileName);
+        return false;
+    }
+    return true;
+}
+
+void ApplicationControl::setFolderList(QStringList folderList)
+{
+    if (mFolderList == folderList)
+        return;
+
+    mFolderList = folderList;
+
+//    // internal handle folder list changed
+//    QSet<QString> lAlreadyWatched = QSet<QString>::fromList(mFileWatcher.directories());
+//    QSet<QString> lNewFolders = QSet<QString>::fromList(mFolderList).subtract(lAlreadyWatched);
+//    for (QString iNewFolder: lNewFolders)
+//    {
+//        QString lFolderPath = iNewFolder.remove("file:///");
+//    }
+
+    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
+    for (QString iNewFolder: mFolderList)
+    {
+        QString lFolderPath = iNewFolder.remove("file:///");
+        setupWatchOnFolder(lFolderPath);
+    }
+
+    emit folderListChanged(mFolderList);
+}
+
+void ApplicationControl::onFileChanged(const QString &pPath)
+{
+    qDebug() << "file changed " << pPath;
+
+    mEngine->trimComponentCache();
+    mEngine->clearComponentCache();
+
+#if 0
+//    mQuickView->hide();
+    mQuickView->setSource(mMainQmlPath);
+//    mQuickView->show();
+#endif
+    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
+    qDebug() << "Still watching files ---------------------------------";
+    qDebug() << mFileWatcher.files();
+    qDebug() << "------------------------------------------------------";
+
+
+    emit fileChanged(pPath);
+}
+
+void ApplicationControl::onDirectoryChanged(const QString &pPath)
+{
+    qDebug() << "directory changed " << pPath;
+
+    mEngine->trimComponentCache();
+    mEngine->clearComponentCache();
+
+    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
+    qDebug() << "Still watching directories ---------------------------";
+    qDebug() << mFileWatcher.directories();
+    qDebug() << "------------------------------------------------------";
+
+
+    emit directoryChanged(pPath);
+}
+
+void ApplicationControl::setupWatchOnFolder(const QString &pPath)
+{
+    qDebug() << "setting up watch on " << pPath;
+    mFileWatcher.addPath(pPath);
+
+    QDirIterator it(pPath, QStringList(), QDir::AllDirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    QStringList lNestedFolderList;
+    while (it.hasNext())
+    {
+        QString lPath = it.next();
+
+        if (!it.fileInfo().isDir())
+            continue;
+
+        qDebug() << "Found nested folder " << lPath;
+        lNestedFolderList << lPath;
+    }
+    mFileWatcher.addPaths(lNestedFolderList);
+
+//    // Iterate over all qml files
+//    QStringList lNameFilters = { "*.qml" };
+//    QStringList lFileList;
+
+//    QDirIterator it(pPath, lNameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+//    while (it.hasNext())
+//    {
+//        QString lPath = it.next();
+//        qDebug() << "adding watchee " << lPath;
+//        lFileList << lPath;
+//    }
+
+//    if (!lFileList.isEmpty())
+    //        mFileWatcher.addPaths(lFileList);
+}
+
+QString ApplicationControl::newFileContent()
+{
+    return "import QtQuick 2.0\n\nItem {\n\n}";
+}

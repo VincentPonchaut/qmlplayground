@@ -1,0 +1,9 @@
+.qmake.stash
+Makefile
+Makefile.Release
+Makefile.Debug
+QmlPlayground.pro.user
+QmlPlayground.pro.user.0b083da
+/debug/*
+/release/*
+*.qmlc

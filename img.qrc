@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/checkerboard.svg</file>
+        <file>img/folder.svg</file>
+        <file>img/appIcon.png</file>
+        <file>img/gear.png</file>
+        <file>img/menu.svg</file>
+        <file>img/trash.svg</file>
+        <file>img/backArrow.svg</file>
+        <file>img/help.svg</file>
+        <file>img/newFile.svg</file>
+        <file>img/newFolder.svg</file>
+    </qresource>
+</RCC>
