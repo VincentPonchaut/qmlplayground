@@ -26,15 +26,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     tools/maskedmousearea.h \
-    applicationcontrol.h
+    applicationcontrol.h \
+    QMLHighlighter.h \
+    SyntaxHighlighter.h
 
 SOURCES += main.cpp \
     tools/maskedmousearea.cpp \
-    applicationcontrol.cpp
+    applicationcontrol.cpp \
+    QMLHighlighter.cpp \
+    SyntaxHighlighter.cpp
 
 RESOURCES += \
-    img.qrc \
-    qml.qrc
+    resources.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -46,3 +49,6 @@ QML_DESIGNER_IMPORT_PATH =
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    resources

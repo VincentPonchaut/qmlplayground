@@ -13,6 +13,10 @@ class ApplicationControl : public QObject
 
     Q_PROPERTY(QStringList folderList READ folderList WRITE setFolderList NOTIFY folderListChanged)
 
+    Q_PROPERTY(QString currentFile READ currentFile WRITE setCurrentFile NOTIFY currentFileChanged)
+    Q_PROPERTY(QString currentFolder READ currentFolder WRITE setCurrentFolder NOTIFY currentFolderChanged)
+
+
 public:
     explicit ApplicationControl(QObject *parent = nullptr);
     ~ApplicationControl();
@@ -29,15 +33,29 @@ public:
     Q_INVOKABLE bool createFolder(QString pPath, QString pFolderName);
     Q_INVOKABLE bool createFile(QString pPath, QString pFileName);
 
+    Q_INVOKABLE void addToFolderList(const QString& pFolderPath);
+    Q_INVOKABLE void removeFromFolderList(const QString& pFolderPath);
+
+    QString currentFile() const;
+
+    QString currentFolder() const;
+
 signals:
     void folderListChanged(QStringList folderList);
     void fileChanged(const QString& pFilePath);
     void directoryChanged(const QString& pDirectoryPath);
+    void currentFileChanged(QString currentFile);
+    void currentFolderChanged(QString currentFolder);
 
 public slots:
     void setFolderList(QStringList folderList);
     void onFileChanged(const QString& pPath);
     void onDirectoryChanged(const QString& pPath);
+    void setCurrentFile(QString currentFile);
+    void setCurrentFolder(QString currentFolder);
+
+protected slots:
+    void onFolderListChanged();
 
 protected:
     void setupWatchOnFolder(const QString& pPath);
@@ -52,6 +70,8 @@ private:
 
     // QProperties
     QStringList mFolderList;
+    QString m_currentFile;
+    QString m_currentFolder;
 
     // External
     QQmlApplicationEngine* mEngine = nullptr;

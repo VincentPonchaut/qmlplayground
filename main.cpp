@@ -10,11 +10,13 @@
 
 #include "tools/maskedmousearea.h"
 #include "applicationcontrol.h"
+#include "SyntaxHighlighter.h"
 
 void registerQmlTypes(QQmlApplicationEngine& pEngine)
 {
     Q_UNUSED(pEngine)
     qmlRegisterType<MaskedMouseArea>("Tools", 1, 0, "MaskedMouseArea");
+    qmlRegisterType<SyntaxHighlighter>("SyntaxHighlighter", 1, 1, "SyntaxHighlighter");
 }
 
 int main(int argc, char *argv[])

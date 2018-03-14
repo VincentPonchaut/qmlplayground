@@ -15,6 +15,12 @@ ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
                      &QFileSystemWatcher::directoryChanged,
                      this,
                      &ApplicationControl::onDirectoryChanged);
+
+    // Self connection
+    QObject::connect(this,
+                     &ApplicationControl::folderListChanged,
+                     this,
+                     &ApplicationControl::onFolderListChanged);
 }
 
 ApplicationControl::~ApplicationControl()
@@ -157,6 +163,34 @@ bool ApplicationControl::createFile(QString pPath, QString pFileName)
     return true;
 }
 
+void ApplicationControl::addToFolderList(const QString &pFolderPath)
+{
+    if (mFolderList.contains(pFolderPath))
+        return;
+
+    mFolderList.append(pFolderPath);
+    emit folderListChanged(mFolderList);
+}
+
+void ApplicationControl::removeFromFolderList(const QString &pFolderPath)
+{
+    if (!mFolderList.contains(pFolderPath))
+        return;
+
+    mFolderList.removeAll(pFolderPath);
+    emit folderListChanged(mFolderList);
+}
+
+QString ApplicationControl::currentFile() const
+{
+    return m_currentFile;
+}
+
+QString ApplicationControl::currentFolder() const
+{
+    return m_currentFolder;
+}
+
 void ApplicationControl::setFolderList(QStringList folderList)
 {
     if (mFolderList == folderList)
@@ -172,12 +206,7 @@ void ApplicationControl::setFolderList(QStringList folderList)
 //        QString lFolderPath = iNewFolder.remove("file:///");
 //    }
 
-    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
-    for (QString iNewFolder: mFolderList)
-    {
-        QString lFolderPath = iNewFolder.remove("file:///");
-        setupWatchOnFolder(lFolderPath);
-    }
+
 
     emit folderListChanged(mFolderList);
 }
@@ -217,6 +246,34 @@ void ApplicationControl::onDirectoryChanged(const QString &pPath)
 
 
     emit directoryChanged(pPath);
+}
+
+void ApplicationControl::setCurrentFile(QString currentFile)
+{
+    if (m_currentFile == currentFile)
+        return;
+
+    m_currentFile = currentFile;
+    emit currentFileChanged(m_currentFile);
+}
+
+void ApplicationControl::setCurrentFolder(QString currentFolder)
+{
+    if (m_currentFolder == currentFolder)
+        return;
+
+    m_currentFolder = currentFolder;
+    emit currentFolderChanged(m_currentFolder);
+}
+
+void ApplicationControl::onFolderListChanged()
+{
+    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
+    for (QString iNewFolder: mFolderList)
+    {
+        QString lFolderPath = iNewFolder.remove("file:///");
+        setupWatchOnFolder(lFolderPath);
+    }
 }
 
 void ApplicationControl::setupWatchOnFolder(const QString &pPath)
