@@ -1,5 +1,34 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>ContentPage.qml</file>
+        <file>FolderSelectorPane.qml</file>
+        <file>IconButton.qml</file>
+        <file>MainToolBar.qml</file>
+        <file>OptionsPane.qml</file>
+        <file>QuickEditor.qml</file>
+        <file>img/appIcon.png</file>
+        <file>img/asd.svg</file>
+        <file>img/backArrow.svg</file>
+        <file>img/checkerboard.svg</file>
+        <file>img/code.svg</file>
+        <file>img/edit.svg</file>
+        <file>img/folder.svg</file>
+        <file>img/folderOpen.svg</file>
+        <file>img/gear.png</file>
+        <file>img/help.svg</file>
+        <file>img/menu.svg</file>
+        <file>img/newFile.svg</file>
+        <file>img/newFolder.svg</file>
+        <file>img/trash.svg</file>
+        <file>palettes/BasePalette.qml</file>
+        <file>palettes/CutePalette.qml</file>
+        <file>palettes/DarkPalette.qml</file>
+        <file>palettes/LightPalette.qml</file>
+        <file>palettes/PaletteLoader.qml</file>
+        <file>resources/dictionaries/javascript.txt</file>
+        <file>resources/dictionaries/keywords.txt</file>
+        <file>resources/dictionaries/properties.txt</file>
+        <file>resources/dictionaries/qml.txt</file>
     </qresource>
 </RCC>

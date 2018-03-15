@@ -54,7 +54,11 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
 
     mQuickComponent = new QQmlComponent(mEngine, nullptr);
     mQuickComponent->loadUrl(mMainQmlPath);
-    mQuickComponent->create();
+
+    if (!mQuickComponent->create())
+    {
+        qDebug() << mQuickComponent->errorString();
+    }
 }
 
 int ApplicationControl::runCommand(const QString &pCommand)

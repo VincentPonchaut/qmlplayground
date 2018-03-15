@@ -5,11 +5,11 @@ import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
 
-//Page {
-ApplicationWindow { visible: true
+ApplicationWindow {
     id: root
     width: 1200
     height: 800
+    visible: true
 
     // -----------------------------------------------------------------------------
     // Data
@@ -92,120 +92,6 @@ ApplicationWindow { visible: true
             Material.theme: Material.Dark
         }
 
-//        Pane {
-//            id: optionsPane
-//            width: parent.width
-
-//            anchors.top: parent.top
-//            anchors.left: parent.left
-//            anchors.right: parent.right
-
-//            Material.theme: Material.Dark
-//            background: Rectangle { color: "#1d1d1d" }
-
-//            Row {
-//                id: contentPageHeader
-//                spacing: 20
-
-//                width: parent.width * 0.85
-//                anchors.horizontalCenter: parent.horizontalCenter
-
-//                Label {
-//                    id: filterFilesLabel
-//                    text: "Filter files: "
-//                    anchors.verticalCenter: parent.verticalCenter
-//                }
-//                TextField {
-//                    id: fileFilterTextField
-//                    anchors.baseline: filterFilesLabel.baseline
-//                    placeholderText: "Enter search text..."
-//                    selectByMouse: true
-//                }
-
-//                CheckBox {
-//                    id: showContentBackgroundCheckBox
-//                    text: "Background"
-//                }
-
-//                Column {
-//                    id: sizeRatioColumn
-//                    height: parent.height
-
-//                    Row {
-//                        height: parent.height * 0.5
-//                        Label {
-//                            text: "Width "
-//                            anchors.verticalCenter: parent.verticalCenter
-//                        }
-//                        Slider {
-//                            id: xRatioSlider
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            from: 0
-//                            to: 100
-//                            stepSize: 5
-//                        }
-//                        Label {
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            text: "%1\%".arg(Math.floor(xRatioSlider.value))
-//                        }
-//                    }
-//                    Row {
-//                        height: parent.height * 0.5
-//                        Label {
-//                            text: "Height"
-//                            anchors.verticalCenter: parent.verticalCenter
-//                        }
-//                        Slider {
-//                            id: yRatioSlider
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            from: 0
-//                            to: 100
-//                            stepSize: 5
-//                        }
-//                        Label {
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            text: "%1\%".arg(Math.floor(yRatioSlider.value))
-//                        }
-//                    }
-//                }
-//            } // end contentPageHeader
-
-//            states: [
-//                State {
-//                    name: "open"
-//                    PropertyChanges {
-//                        target: optionsPane
-//                        y: 0
-//                    }
-//                },
-//                State {
-//                    name: "closed"
-
-//                    PropertyChanges {
-//                        target: optionsPane
-//                        y: -optionsPane.height
-//                    }
-//                    AnchorChanges {
-//                        target: optionsPane
-//                        anchors.top: undefined //remove myItem's left anchor
-//                    }
-//                }
-//            ]
-//            state: "closed"
-
-//            transitions: Transition {
-//                from: "open"
-//                to: "closed"
-//                reversible: true
-
-//                NumberAnimation { properties: "y"; easing.type: Easing.InOutQuad }
-//            }
-
-//            function toggle() {
-//                state = (state == "open" ? "closed" : "open");
-//            }
-//        }
-
         Row {
             id: contentRow
 
@@ -227,7 +113,7 @@ ApplicationWindow { visible: true
                 id: quickEditor
                 height: parent.height
                 Behavior on width {
-                    NumberAnimation { duration: 500 }
+                    NumberAnimation { easing.type: Easing.OutCubic; duration: 500 }
                 }
             }
         }
@@ -451,7 +337,7 @@ ApplicationWindow { visible: true
 
     Shortcut {
         id: shortcutFolderSelectorPane
-        sequence: "Tab"
+        sequence: "Ctrl+Tab"
         context: Qt.ApplicationShortcut
         onActivated: folderSelectorPane.toggle()
     }
@@ -480,7 +366,7 @@ ApplicationWindow { visible: true
     }
     Shortcut {
         id: quickEditorToggleShortcut
-        sequence: "Shift+Tab"
+        sequence: "Ctrl+E"
         context: Qt.ApplicationShortcut
         onActivated: {
             quickEditor.toggle()
