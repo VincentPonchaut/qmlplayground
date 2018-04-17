@@ -105,23 +105,6 @@ Pane {
                 color: Material.accent
             }
         }
-        
-        ToolButton {
-            id: newFolderButton
-            
-            visible: folderSectionTitlePane.hovered
-            anchors.right: parent.right
-            
-            onClicked: folderCreationPopup.open()
-            
-            Image {
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 5
-                source: "qrc:///img/newFolder.svg"
-                mipmap: true
-            }
-        }
     }
     
     Pane {
@@ -293,11 +276,11 @@ Pane {
 
                         fillMode: Image.PreserveAspectFit
                         smooth: true
-                        source: "qrc:///img/trash.svg"
+                        source: "qrc:///img/eye_off.svg"
                     }
 
                     ToolTip.visible: hovered
-                    ToolTip.text: "Remove folder"
+                    ToolTip.text: "Stop watching folder"
 
                     onClicked: appControl.removeFromFolderList(section)
                 }
@@ -372,15 +355,96 @@ Pane {
         id: addFolderButton
         width: 60
         height: width
-        text: "+"
+//        text: checked ? "x" : "+"
+
+        Image {
+            id: addFolderButtonImage
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectFit
+            source: "qrc:///img/plus.svg";
+            anchors.margins: 15
+            rotation: addFolderButton.checked ? -45 - 90 : 0
+
+            Behavior on rotation {
+                NumberAnimation {
+                    duration: 200
+                }
+            }
+        }
+
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        onClicked: folderDialog.open()
-        
-        ToolTip.visible: hovered
-        ToolTip.text: "Add another folder"
+//        onClicked: folderDialog.open()
+
+        checkable: true
+        checked: false
     }
-    
+    Column {
+        id: contextualFloatingActionColumn
+
+        anchors.horizontalCenter: addFolderButton.horizontalCenter
+        anchors.bottom: addFolderButton.top
+        visible: addFolderButton.checked
+
+        Behavior on visible {
+
+            NumberAnimation {
+                target: contextualFloatingActionColumn
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 200
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        IconButton {
+            id: createNewFolderButton
+
+            ToolTip.visible: false
+            imageSource: "qrc:///img/newFolder.svg"
+
+            onClicked: {
+                addFolderButton.checked = false
+                folderCreationPopup.open()
+            }
+
+            Pane {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.left
+
+                background: Rectangle { color: Qt.rgba(0,0,0,.6) }
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "Create new folder"
+                }
+            }
+        }
+        IconButton {
+            id: watchAnotherFolderButton
+            ToolTip.visible: false
+            imageSource: "qrc:///img/eye.svg"
+
+            onClicked: {
+                addFolderButton.checked = false
+                folderDialog.open()
+            }
+
+            Pane {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.left
+
+                background: Rectangle { color: Qt.rgba(0,0,0,.6) }
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "Add existing folder"
+                }
+            }
+        }
+    }
+
     states: [
         State {
             name: "open"

@@ -31,5 +31,8 @@
         <file>resources/dictionaries/properties.txt</file>
         <file>resources/dictionaries/qml.txt</file>
         <file>img/save.svg</file>
+        <file>img/eye.svg</file>
+        <file>img/eye_off.svg</file>
+        <file>img/plus.svg</file>
     </qresource>
 </RCC>
