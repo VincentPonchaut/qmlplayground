@@ -6,7 +6,7 @@ QT += \
     core gui qml quick \
     multimedia sql \
     network websockets \
-    xml svg \
+    xml xmlpatterns svg \
     sensors bluetooth nfc \
     positioning location \
     3dcore 3drender 3dinput 3dquick
