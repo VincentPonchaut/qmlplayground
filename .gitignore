@@ -8,3 +8,4 @@ QmlPlayground.pro.user.0b083da
 /release/*
 *.qmlc
 object_script.QmlPlayground.*
+.vscode/
