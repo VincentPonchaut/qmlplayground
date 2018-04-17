@@ -28,7 +28,6 @@ ApplicationWindow {
     Connections { target: appControl; onCurrentFileChanged: root.currentFile = appControl.currentFile; }
 
     property string currentFileContents: readFileContents(root.currentFile)
-    property string currentFileContentsProxy;
 
     Settings {
         id: settings
@@ -352,7 +351,7 @@ ApplicationWindow {
 
             Label {
                 id: baseFolderForFileCreationLabel
-                anchors.baseline: baseFolderLabel.baseline
+//                anchors.baseline: baseFolderLabel.baseline
                 text: fileCreationPopup.folder.replace("file:///","") + "/"
                 font.pointSize: 11
             }
@@ -452,8 +451,6 @@ ApplicationWindow {
         quickEditor.text = vFileContents
         quickEditor.blockUpdates = false
     }
-
-    onCurrentFileContentsChanged: currentFileContentsProxy = currentFileContents
 
     function targetFile() {
         return root.currentFile.length > 0 ? root.currentFile : "";
