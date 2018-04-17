@@ -153,7 +153,9 @@ bool ApplicationControl::createFolder(QString pPath, QString pFolderName)
 
 bool ApplicationControl::createFile(QString pPath, QString pFileName)
 {
-    QFile file(pPath + "/" + pFileName);
+    QString lPath = pPath.replace("file:///", "");
+
+    QFile file(lPath + "/" + pFileName);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QTextStream textStream(&file);
@@ -161,7 +163,7 @@ bool ApplicationControl::createFile(QString pPath, QString pFileName)
     }
     else
     {
-        qDebug() << QString("Unable to create file \"%1\"").arg(pPath + "/" + pFileName);
+        qDebug() << QString("Unable to create file \"%1\"").arg(lPath + "/" + pFileName);
         return false;
     }
     return true;
