@@ -7,3 +7,4 @@ QmlPlayground.pro.user.0b083da
 /debug/*
 /release/*
 *.qmlc
+object_script.QmlPlayground.*
