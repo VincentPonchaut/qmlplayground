@@ -36,6 +36,9 @@ public:
     Q_INVOKABLE void addToFolderList(const QString& pFolderPath);
     Q_INVOKABLE void removeFromFolderList(const QString& pFolderPath);
 
+    Q_INVOKABLE void requestClearQmlComponentCache();
+    Q_INVOKABLE bool writeFileContents(const QString& pFilePath, const QString& pFileContents);
+
     QString currentFile() const;
 
     QString currentFolder() const;

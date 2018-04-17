@@ -1,6 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.0
+import QtQuick.Controls.Material 2.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
@@ -318,7 +318,7 @@ Pane {
 
             width: parent.width
             height: (isSectionFolded || !matchesFilter ) ? 0 : 50
-            Behavior on height { NumberAnimation { easing.type: Easing.InOutCubic; duration: 500 } }
+            //Behavior on height { NumberAnimation { easing.type: Easing.InOutCubic; duration: 500 } }
 
             text: "" + file
             font.pointSize: 10
@@ -345,7 +345,7 @@ Pane {
                     width: height
                     anchors.verticalCenter: parent.verticalCenter
 
-                    onClicked: Qt.openUrlExternally(appControl.currentFile)
+                    onClicked: Qt.openUrlExternally(fileDelegate.filePath)
                     imageSource: "qrc:///img/edit.svg"
                     ToolTip.text: "Open file in external editor"
                 }
@@ -357,7 +357,7 @@ Pane {
                     width: height
                     anchors.verticalCenter: parent.verticalCenter
 
-                    onClicked: editFileContent(fileDelegate.filePath);
+                    onClicked: editFileLocally(fileDelegate.filePath);
                     imageSource: "qrc:///img/code.svg"
                     ToolTip.text: "Quick edit"
                 }

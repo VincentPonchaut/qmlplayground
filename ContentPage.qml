@@ -18,11 +18,9 @@ Page {
         if (targetSrc.length > 0)
             targetSrc += "?" + reloadCount++;
 
-        if (hack.running)
-            hack.stop()
-
         contentLoader.source = targetSrc
     }
+    function load() { reload() }
 
     background: Rectangle {
         color: "#4f4f4f"
@@ -56,6 +54,7 @@ Page {
             anchors.fill: parent
             visible: status == Loader.Ready
             source: targetFile()
+
             property string errorText;
             
             onStatusChanged:
@@ -66,32 +65,24 @@ Page {
                 if (status == Loader.Error) {
                     contentLoader.errorText = "" + contentLoader.sourceComponent.errorString()
                     contentLoader.errorText = contentLoader.errorText.replace(new RegExp(root.currentFolder, 'g'), "");
-                    hack.start()
                 }
-                else if (hack.running) {
-                    hack.stop()
+                else {
+                    contentLoader.errorText = ""
                 }
             }
         }
-        TextArea {
-            id: errorText
+        BusyIndicator {
             anchors.centerIn: parent
-            color: "red"
-            readOnly: true
-            visible: contentLoader.source.length > 0 && contentLoader.status == Loader.Error
-            
-            text: "Errors in the QML file !\n%1".arg(contentLoader.errorText)
+            running: contentLoader.status == Loader.Loading
         }
-    }
+        Text {
+            id: errorText
+            anchors.fill: parent
+            color: "red"
+            visible: contentLoader.errorText.length > 0
+            text: "Errors in the QML file !\n%1".arg(contentLoader.errorText)
 
-    Timer {
-        id: hack
-        interval: 500
-        running: false
-        repeat: true
-
-        onTriggered: {
-            contentPage.reload();
+            font.pointSize: 10
         }
     }
 }

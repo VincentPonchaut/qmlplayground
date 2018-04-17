@@ -1,5 +1,5 @@
 import QtQuick 2.6
-import QtQuick.Controls 2.2
+import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.0
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
@@ -9,11 +9,14 @@ import QtQuick.Window 2.2
 
 import "./palettes/"
 
-Pane {
+Page {
     id: quickEditor
+
     property bool blockUpdates: false
     property alias text: quickEditorTextArea.text
     property BasePalette mPalette: DarkPalette {}
+
+    signal requestFileSave();
     
     background: Rectangle {
         color: quickEditor.mPalette.background
@@ -81,16 +84,6 @@ Pane {
             wrapMode: TextEdit.NoWrap
 
             property int currentLine: cursorRectangle.y / cursorRectangle.height + 1
-            
-            onTextChanged: {
-                if (quickEditor.blockUpdates)
-                    return;
-
-                 if (text.length > 0) {
-                     saveFile(appControl.currentFile, quickEditorTextArea.text);
-                     contentPage.reload()
-                }
-            }
 
             // Style
             color: quickEditor.mPalette.editorNormal
@@ -122,12 +115,62 @@ Pane {
         }
     }
     
+    property bool hasModifications: (quickEditor.text != root.currentFileContents)
+
+    footer: Pane {
+        width: parent.width
+        height: 50
+//        visible: quickEditor.hasModifications
+        padding: 0
+
+        Material.theme: Material.Dark
+
+        Label {
+            anchors.centerIn: parent
+            text: !quickEditor.hasModifications ? "No changes":
+                                                  "Pending modifications"
+            color: !quickEditor.hasModifications ? Material.foreground:
+                                                   Material.accent
+        }
+
+        ToolButton {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            visible: action.enabled
+
+            action: saveAction
+
+            ToolTip.visible: hovered
+            ToolTip.text: "Save modifications\n(Ctrl+S)"
+
+            Image {
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                source: "qrc:///img/save.svg"
+            }
+        }
+    }
+
     function show() {
         state = "open"
     }
     function toggle() {
         state = (state == "open" ? "closed" : "open");
-        text = readFileContent(appControl.currentFile)
+        text = root.currentFileContents
+    }
+
+    Action {
+        id: saveAction
+//        text: qsTr("&Save")
+        shortcut: StandardKey.Save
+        enabled: quickEditor.state == "open" && quickEditor.hasModifications
+        onTriggered: {
+            quickEditor.requestFileSave()
+
+//            // temporary hack
+//            quickEditor.hasModifications = false;
+//            quickEditor.hasModifications = Qt.binding(function(){ return (quickEditor.text != root.currentFileContents); })
+        }
     }
     
     states: [

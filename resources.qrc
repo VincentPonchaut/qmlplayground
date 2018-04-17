@@ -30,5 +30,6 @@
         <file>resources/dictionaries/keywords.txt</file>
         <file>resources/dictionaries/properties.txt</file>
         <file>resources/dictionaries/qml.txt</file>
+        <file>img/save.svg</file>
     </qresource>
 </RCC>

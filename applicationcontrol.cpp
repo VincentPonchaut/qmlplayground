@@ -187,6 +187,27 @@ void ApplicationControl::removeFromFolderList(const QString &pFolderPath)
     emit folderListChanged(mFolderList);
 }
 
+void ApplicationControl::requestClearQmlComponentCache()
+{
+    mEngine->clearComponentCache();
+    mEngine->trimComponentCache();
+}
+
+bool ApplicationControl::writeFileContents(const QString &pFilePath, const QString &pFileContents)
+{
+    QString filePath = pFilePath;
+    filePath = filePath.replace("file:///", "");
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly))
+        return false;
+
+    QTextStream stream(&file);
+    stream << pFileContents;
+
+    return true;
+}
+
 QString ApplicationControl::currentFile() const
 {
     return m_currentFile;

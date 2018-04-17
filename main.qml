@@ -1,6 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.0
+import QtQuick.Controls.Material 2.3
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
@@ -27,6 +27,9 @@ ApplicationWindow {
     Binding { target: appControl; property: "currentFile"; value: root.currentFile }
     Connections { target: appControl; onCurrentFileChanged: root.currentFile = appControl.currentFile; }
 
+    property string currentFileContents: readFileContents(root.currentFile)
+    property string currentFileContentsProxy;
+
     Settings {
         id: settings
 
@@ -45,6 +48,12 @@ ApplicationWindow {
         property alias folderSelectorPaneFilterText: folderSelectorPane.filterText
         property alias optionsPaneState: optionsPane.state
         property alias quickEditorState: quickEditor.state
+
+        // Window position and size
+        property alias windowX: root.x
+        property alias windowY: root.y
+        property alias windowWidth: root.width
+        property alias windowHeight: root.height
     }
 
     // -----------------------------------------------------------------------------
@@ -107,6 +116,8 @@ ApplicationWindow {
                 id: contentPage
                 width: parent.width - quickEditor.width
                 height: parent.height
+
+                //sourceFilePath: root.currentFile
             }
 
             QuickEditor {
@@ -115,6 +126,18 @@ ApplicationWindow {
                 Behavior on width {
                     NumberAnimation { easing.type: Easing.OutCubic; duration: 500 }
                 }
+
+                onRequestFileSave: {
+                    print("quick editor requested file save");
+                    root.quickEditor_save();
+                    print("quick editor requested file save end");
+                }
+
+//                onTextChanged: {
+//                    if (quickEditor.blockUpdates)
+//                        return;
+//                    quickEditor_save();
+//                }
             }
         }
 
@@ -185,7 +208,7 @@ ApplicationWindow {
     Popup {
         id: folderCreationPopup
 
-        width: parent.width * 0.8
+        width: 1.5 * baseFolderLabelFontMetrics.boundingRect(baseFolderLabel.text + newFolderNameTextField.text).width // parent.width * 0.66
         height: parent.height * 0.33
         x: root.width / 2 - width / 2
         y: root.height / 2 - height / 2
@@ -196,33 +219,56 @@ ApplicationWindow {
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
 
+        function validate() {
+            var success = appControl.createFolder(folderCreationDialog.folder, newFolderNameTextField.text);
+            if (success)
+            {
+                var vFolder = folderCreationDialog.folder + "/" + newFolderNameTextField.text
+                if (createMainQmlFileWithFolderCheckbox.checked)
+                    appControl.createFile(vFolder, 'main.qml');
+                addToFolderList(vFolder);
+            }
+            folderCreationPopup.close()
+        }
+
         Labs.FolderDialog {
             id: folderCreationDialog
             folder: root.currentFolder
         }
 
         Row {
+            id: newFolderRow
             anchors.horizontalCenter: parent.horizontalCenter
             height: parent.height
             spacing: 20
 
-            RoundButton {
-                anchors.verticalCenter: parent.verticalCenter
-                Material.elevation: 1
-
-                onClicked: folderCreationDialog.open()
-
-                Image {
-                    source: "qrc:///img/folder.svg"
-                    anchors.margins: 5
-                }
-            }
 
             Label {
                 id: baseFolderLabel
                 anchors.verticalCenter: parent.verticalCenter
                 text: String(folderCreationDialog.folder).replace("file:///","") + "/"
                 font.pointSize: 11
+
+                FontMetrics {
+                    id: baseFolderLabelFontMetrics
+                    font.family: baseFolderLabel.font.family
+                    font.pointSize: baseFolderLabel.font.pointSize
+                }
+
+                property bool hovered: baseFolderLabelMouseArea.containsMouse
+
+                color: hovered ? Material.accent: Material.foreground
+
+                ToolTip.visible: hovered
+                ToolTip.text: "Click to change"
+
+                MouseArea {
+                    id: baseFolderLabelMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onClicked: folderCreationDialog.open()
+                }
             }
             TextField {
                 id: newFolderNameTextField
@@ -230,10 +276,23 @@ ApplicationWindow {
                 placeholderText: "Enter folder name"
                 font.pointSize: baseFolderLabel.font.pointSize
                 selectByMouse: true
+                focus: true
+
+                onAccepted: folderCreationPopup.validate()
             }
         }
 
+        CheckBox {
+            id: createMainQmlFileWithFolderCheckbox
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: folderCreationPopupValidationButtonsRow.top
+
+            text: "Create a 'main.qml' file"
+            checked: true
+        }
+
         Row {
+            id: folderCreationPopupValidationButtonsRow
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             spacing: 10
@@ -242,14 +301,7 @@ ApplicationWindow {
 
             Button {
                 text: "Create"
-                onClicked: {
-                    var success = appControl.createFolder(folderCreationDialog.folder, newFolderNameTextField.text);
-                    if (success)
-                    {
-                        addToFolderList(folderCreationDialog.folder + "/" + newFolderNameTextField.text)
-                    }
-                    folderCreationPopup.close()
-                }
+                onClicked: folderCreationPopup.validate()
             }
             Button {
                 text: "Cancel"
@@ -279,6 +331,21 @@ ApplicationWindow {
             open();
         }
 
+        function validate() {
+            var folder = baseFolderForFileCreationLabel.text
+            var file = newFileNameTextField.text + ".qml"
+
+            var success = appControl.createFile(folder, file);
+            if (success)
+            {
+                // Refresh active folders
+                refreshActiveFolders();
+
+                root.currentFile = "file:///" + folder + file
+            }
+            fileCreationPopup.close()
+        }
+
         Row {
             anchors.centerIn:  parent
             spacing: 20
@@ -296,6 +363,8 @@ ApplicationWindow {
                 text: "main"
                 font.pointSize: baseFolderForFileCreationLabel.font.pointSize
                 selectByMouse: true
+
+                onAccepted: fileCreationPopup.validate()
             }
             Label {
                 anchors.baseline: baseFolderForFileCreationLabel.baseline
@@ -311,18 +380,7 @@ ApplicationWindow {
 
             Button {
                 text: "Create"
-                onClicked: {
-                    var folder = baseFolderForFileCreationLabel.text
-                    var file = newFileNameTextField.text + ".qml"
-
-                    var success = appControl.createFile(folder, file);
-                    if (success)
-                    {
-                        root.currentFile = "file:///" + folder + file
-                        editCurrentFileExternally()
-                    }
-                    fileCreationPopup.close()
-                }
+                onClicked: fileCreationPopup.validate()
             }
             Button {
                 text: "Cancel"
@@ -375,25 +433,27 @@ ApplicationWindow {
 
     Connections {
         target: appControl
-        onFileChanged: contentPage.reload();
-        onDirectoryChanged: contentPage.reload();
+        onFileChanged: contentPage.load();
+        onDirectoryChanged: contentPage.load();
     }
 
-    function refreshFileComboBox(pFileList)
-    {
-        fileComboBox.mutable = true;
-        fileComboBox.fileList = pFileList
-        fileComboBox.mutable = false;
+    function refreshActiveFolders() {
+        folderSelectorPane.refresh();
     }
 
     onCurrentFileChanged: {
         print("current file changed " + root.currentFile)
-        contentPage.reload();
+        contentPage.load();
+
+        var vFileContents = readFileContents(root.currentFile)
+        root.currentFileContents = vFileContents
 
         quickEditor.blockUpdates = true
-        quickEditor.text = readFileContent(root.currentFile)
+        quickEditor.text = vFileContents
         quickEditor.blockUpdates = false
     }
+
+    onCurrentFileContentsChanged: currentFileContentsProxy = currentFileContents
 
     function targetFile() {
         return root.currentFile.length > 0 ? root.currentFile : "";
@@ -422,7 +482,42 @@ ApplicationWindow {
         Qt.openUrlExternally(vUrl);
     }
 
-    function readFileContent(pPath)
+    function editFileLocally(pFile)
+    {
+        // ensure we do not edit anything that is not current
+        appControl.currentFile = pFile
+
+        // ...
+        var vFileContent = readFileContents(pFile) // TODO remove
+        quickEditor.text = vFileContent
+
+        quickEditor.show()
+    }
+
+    function editCurrentFileLocally()
+    {
+        editFileLocally(root.currentFile);
+    }
+
+    function quickEditor_save()
+    {
+        if (!quickEditor.visible)
+            return;
+        if (!quickEditor.text.length > 0)
+            return;
+
+        writeFileContents(appControl.currentFile,
+                          quickEditor.text,
+                          notifyFileChanged); // emit signal when writing is done
+//        appControl.fileChanged(appControl.currentFile)
+//        contentPage.load() // TODO: should we reload everything instead ?
+    }
+    function notifyFileChanged(pFileUrl) {
+        appControl.fileChanged(pFileUrl)
+        root.currentFileChanged()
+    }
+
+    function readFileContents(pPath)
     {
         var xhr = new XMLHttpRequest;
         xhr.open("GET", "" + appControl.currentFile, false);
@@ -431,21 +526,28 @@ ApplicationWindow {
         return xhr.responseText;
     }
 
-    function saveFile(fileUrl, text) {
+    function writeFileContents(fileUrl, text, callback)
+    {
+        if (appControl.writeFileContents(fileUrl, text))
+            callback.call(fileUrl)
+        else
+            print("Could not write to " + fileUrl)
+
+        // Until I know how to write it synchronously
+        /*
         var request = new XMLHttpRequest();
         request.open("PUT", fileUrl, false);
+
+        request.onreadystatechange = function(event) {
+            if (request.readyState == XMLHttpRequest.DONE) { // @disable-check M126
+                callback.call(fileUrl)
+            }
+        }
+
         request.send(text);
         return request.status;
+        */
     }
 
-    function editFileContent(pFile) {
-        // ensure we do not edit anything that is not current
-        appControl.currentFile = pFile
 
-        // ...
-        var vFileContent = readFileContent(pFile)
-        quickEditor.text = vFileContent
-
-        quickEditor.show()
-    }
 }
