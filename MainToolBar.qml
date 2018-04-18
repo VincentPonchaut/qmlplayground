@@ -67,24 +67,62 @@ ToolBar {
             text: "Edit"
             enabled: appControl.currentFile.length > 0
             onClicked: Qt.openUrlExternally(appControl.currentFile)
+
+            ToolTip.visible: hovered
+            ToolTip.text: "Edit current file externally"
         }
 
         IconButton {
             Material.theme: Material.Dark
+            flat: true
             imageSource: "qrc:///img/code.svg"
             onClicked: quickEditor.toggle()
-            ToolTip.text: "Toggle quick editor"
+            ToolTip.text: quickEditor.state != "open" ? "Show quick editor":
+                                                        "Hide quick editor"
         }
-        
+
         RoundButton {
+            id: helpButton
+
             Material.theme: Material.Dark
-            enabled: root.currentFolder.length > 0
-            anchors.rightMargin: 20
-            text: "x"
-            onClicked: root.currentFolder = ""
-            
+            flat: true
+
+            Image {
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                anchors.margins: 5
+                source: "qrc:///img/help.svg"
+                mipmap: true
+            }
+
             ToolTip.visible: hovered
-            ToolTip.text: "Close current folder"
+            ToolTip.text: "\n"
+                + "Filter files"         + ": %1 \n".arg(shortcutFileFilter.sequence)
+                + "Toggle folder panel"  + ": %1 \n".arg(shortcutFolderSelectorPane.sequence)
+                + "Toggle quick editor"  + ": %1 \n".arg(quickEditorToggleShortcut.sequence)
+                + "Toggle options panel" + ": %1 \n".arg(shortcutOptionsPane.sequence)
+            ;
+        }
+
+        RoundButton {
+            id: optionsPaneToggleButton
+
+            Material.theme: Material.Dark
+            flat: true
+
+            Image {
+                anchors.fill: parent
+                fillMode: Image.PreserveAspectFit
+                anchors.margins: 5
+                source: "qrc:///img/gear.png"
+                mipmap: true
+            }
+
+            onClicked: optionsPane.toggle()
+
+            ToolTip.visible: hovered
+            ToolTip.text: optionsPane.state == "open" ? "Hide options (F1)":
+                                                        "Show options (F1)"
         }
     }
 }

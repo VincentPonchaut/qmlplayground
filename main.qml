@@ -59,7 +59,9 @@ ApplicationWindow {
     // View
     // -----------------------------------------------------------------------------
 
-    header: MainToolBar {}
+    header: MainToolBar {
+        id: mainToolBar
+    }
 
     FolderSelectorPane {
         id: folderSelectorPane
@@ -133,68 +135,9 @@ ApplicationWindow {
                     root.quickEditor_save();
                     print("quick editor requested file save end");
                 }
-
-//                onTextChanged: {
-//                    if (quickEditor.blockUpdates)
-//                        return;
-//                    quickEditor_save();
-//                }
             }
-        }
-
-        RoundButton {
-            id: optionsPaneToggleButton
-
-            anchors.top: parent.top
-            anchors.topMargin: optionsPane.height / 2 - height / 2
-            anchors.right: parent.right
-            anchors.rightMargin: width / 2
-
-            Material.theme: Material.Dark
-
-            Image {
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 5
-                source: "qrc:///img/gear.png"
-                mipmap: true
-            }
-
-            onClicked: optionsPane.toggle()
-
-            ToolTip.visible: hovered
-            ToolTip.text: optionsPane.state == "open" ? "Hide options":
-                                                        "Show options"
-        }
-        RoundButton {
-            id: helpButton
-
-            width: optionsPaneToggleButton.width
-            height: optionsPaneToggleButton.height
-
-            anchors.top: optionsPaneToggleButton.bottom
-            anchors.right: parent.right
-            anchors.rightMargin: width / 2
-
-            Material.theme: Material.Dark
-
-            Image {
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 5
-                source: "qrc:///img/help.svg"
-                mipmap: true
-            }
-
-            ToolTip.visible: hovered
-            ToolTip.text: "\n"
-                + "Filter files"         + ": %1 \n".arg(shortcutFileFilter.sequence)
-                + "Quick file switch"    + ": %1 \n".arg(shortcutFileSwitcher.sequence)
-                + "Toggle folder panel"  + ": %1 \n".arg(shortcutFolderSelectorPane.sequence)
-                + "Toggle options panel" + ": %1 \n".arg(shortcutOptionsPane.sequence)
-            ;
-        }
-    }
+        } // end contentRow
+    } // end Pane
 
     // -----------------------------------------------------------------------------
     // Other Views
@@ -209,7 +152,6 @@ ApplicationWindow {
     Popup {
         id: folderCreationPopup
 
-        //width: 1.5 * baseFolderLabelFontMetrics.boundingRect(baseFolderLabel.text + newFolderNameTextField.text).width // parent.width * 0.66
         width: parent.width * 0.33
         height: parent.height * 0.33
         x: root.width / 2 - width / 2
@@ -606,6 +548,3 @@ ApplicationWindow {
 
 
 }
-// TODO: enlever le bouton close current folder ou reimplementer le close
-// Bouger le toggle settings
-// Repositionner le help ?
