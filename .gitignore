@@ -9,3 +9,4 @@ QmlPlayground.pro.user.0b083da
 *.qmlc
 object_script.QmlPlayground.*
 .vscode/
+*.autosave
