@@ -152,9 +152,13 @@ Page {
 
     function show() {
         state = "open"
+        focus()
     }
     function toggle() {
         state = (state == "open" ? "closed" : "open");
+    }
+    function focus() {
+        quickEditorTextArea.forceActiveFocus()
     }
 
     Action {
