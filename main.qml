@@ -402,15 +402,6 @@ ApplicationWindow {
         onActivated: folderSelectorPane.toggle()
     }
     Shortcut {
-        id: shortcutFileSwitcher
-        sequence: "Ctrl+Space"
-        context: Qt.ApplicationShortcut
-        onActivated: {
-            fileComboBox.forceActiveFocus()
-            fileComboBox.popup.open()
-        }
-    }
-    Shortcut {
         id: shortcutOptionsPane
         sequence: "F1"
         context: Qt.ApplicationShortcut
@@ -421,6 +412,8 @@ ApplicationWindow {
         sequence: "Ctrl+K"
         context: Qt.ApplicationShortcut
         onActivated: {
+            if (folderSelectorPane.state !== "open")
+                folderSelectorPane.toggle()
             folderSelectorPane.focusFileFilter()
         }
     }
