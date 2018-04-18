@@ -131,6 +131,10 @@ Pane {
             anchors.centerIn: parent
             placeholderText: "Filter files..."
             selectByMouse: true
+            onAccepted: {
+                if (quickEditor.state == "open")
+                    quickEditor.focus()
+            }
         }
     }
 
