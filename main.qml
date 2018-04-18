@@ -27,7 +27,7 @@ ApplicationWindow {
     Binding { target: appControl; property: "currentFile"; value: root.currentFile }
     Connections { target: appControl; onCurrentFileChanged: root.currentFile = appControl.currentFile; }
 
-    property string currentFileContents: readFileContents(root.currentFile)
+    property string currentFileContents;
 
     Settings {
         id: settings
@@ -121,11 +121,13 @@ ApplicationWindow {
 
             QuickEditor {
                 id: quickEditor
+
                 height: parent.height
                 Behavior on width {
                     NumberAnimation { easing.type: Easing.OutCubic; duration: 500 }
                 }
 
+                text: root.currentFileContents
                 onRequestFileSave: {
                     print("quick editor requested file save");
                     root.quickEditor_save();
@@ -207,7 +209,8 @@ ApplicationWindow {
     Popup {
         id: folderCreationPopup
 
-        width: 1.5 * baseFolderLabelFontMetrics.boundingRect(baseFolderLabel.text + newFolderNameTextField.text).width // parent.width * 0.66
+        //width: 1.5 * baseFolderLabelFontMetrics.boundingRect(baseFolderLabel.text + newFolderNameTextField.text).width // parent.width * 0.66
+        width: parent.width * 0.33
         height: parent.height * 0.33
         x: root.width / 2 - width / 2
         y: root.height / 2 - height / 2
@@ -224,7 +227,13 @@ ApplicationWindow {
             {
                 var vFolder = folderCreationDialog.folder + "/" + newFolderNameTextField.text
                 if (createMainQmlFileWithFolderCheckbox.checked)
+                {
                     appControl.createFile(vFolder, 'main.qml');
+                    refreshActiveFolders()
+                    appControl.currentFile = vFolder + "/main.qml";
+                    refreshActiveFolders()
+                    // TODO: Scroll to current File
+                }
                 addToFolderList(vFolder);
             }
             folderCreationPopup.close()
@@ -235,89 +244,111 @@ ApplicationWindow {
             folder: root.currentFolder
         }
 
-        Row {
-            id: newFolderRow
-            anchors.horizontalCenter: parent.horizontalCenter
-            height: parent.height
-            spacing: 20
+        padding: 0
 
+        Page {
+            anchors.fill: parent
+            padding: 0
 
-            Label {
-                id: baseFolderLabel
-                anchors.verticalCenter: parent.verticalCenter
-                text: String(folderCreationDialog.folder).replace("file:///","") + "/"
-                font.pointSize: 11
+            Component.onCompleted: newFolderNameTextField.forceActiveFocus()
 
-                FontMetrics {
-                    id: baseFolderLabelFontMetrics
-                    font.family: baseFolderLabel.font.family
-                    font.pointSize: baseFolderLabel.font.pointSize
-                }
+            header: Pane {
+                Material.theme: Material.Dark
 
-                property bool hovered: baseFolderLabelMouseArea.containsMouse
-
-                color: hovered ? Material.accent: Material.foreground
-
-                ToolTip.visible: hovered
-                ToolTip.text: "Click to change"
-
-                MouseArea {
-                    id: baseFolderLabelMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-
-                    onClicked: folderCreationDialog.open()
+                Label {
+                    anchors.centerIn: parent
+                    text: "Create a new folder"
+                    font.pointSize: 16
                 }
             }
-            TextField {
-                id: newFolderNameTextField
-                anchors.baseline: baseFolderLabel.baseline
-                placeholderText: "Enter folder name"
-                font.pointSize: baseFolderLabel.font.pointSize
-                selectByMouse: true
-                focus: true
+            Pane {
+                width: parent.width
+                height: folderCreationPopup.height
 
-                onAccepted: folderCreationPopup.validate()
+                Row {
+                    id: newFolderRow
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 20
+
+                    Label {
+                        id: baseFolderLabel
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: String(folderCreationDialog.folder).substring(String(folderCreationDialog.folder).lastIndexOf("/") + 1) + "/"
+                        font.pointSize: 11
+
+                        property bool hovered: baseFolderLabelMouseArea.containsMouse
+
+                        color: hovered ? Material.accent: Material.foreground
+
+                        ToolTip.visible: hovered
+                        ToolTip.text: "%1\nClick to change".arg(String(folderCreationDialog.folder).replace("file:///",""))
+
+                        MouseArea {
+                            id: baseFolderLabelMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onClicked: folderCreationDialog.open()
+                        }
+                    }
+                    TextField {
+                        id: newFolderNameTextField
+                        anchors.baseline: baseFolderLabel.baseline
+                        placeholderText: "Enter folder name"
+                        font.pointSize: baseFolderLabel.font.pointSize
+                        selectByMouse: true
+                        focus: true
+
+                        onAccepted: folderCreationPopup.validate()
+                    }
+                }
+
+                CheckBox {
+                    id: createMainQmlFileWithFolderCheckbox
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: newFolderRow.bottom
+                    anchors.topMargin: 0
+
+                    text: "Create a 'main.qml' file"
+                    checked: true
+                }
             }
-        }
 
-        CheckBox {
-            id: createMainQmlFileWithFolderCheckbox
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: folderCreationPopupValidationButtonsRow.top
+            footer: Pane {
+                Row {
+                    id: folderCreationPopupValidationButtonsRow
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    spacing: 10
 
-            text: "Create a 'main.qml' file"
-            checked: true
-        }
+                    // TODO: checkbox "Create main.qml file" ou mieux : une liste editable de fichiers à génerer
 
-        Row {
-            id: folderCreationPopupValidationButtonsRow
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            spacing: 10
-
-            // TODO: checkbox "Create main.qml file" ou mieux : une liste editable de fichiers à génerer
-
-            Button {
-                text: "Create"
-                onClicked: folderCreationPopup.validate()
+                    Button {
+                        text: "Create"
+                        onClicked: folderCreationPopup.validate()
+                    }
+                    Button {
+                        text: "Cancel"
+                        onClicked: folderCreationPopup.close()
+                    }
+                }
             }
-            Button {
-                text: "Cancel"
-                onClicked: folderCreationPopup.close()
-            }
-        }
+        } //  end page
+
+
     }
 
     Popup {
         id: fileCreationPopup
 
-        width: parent.width * 0.8
+        width: parent.width * 0.33
         height: parent.height * 0.33
         x: root.width / 2 - width / 2
         y: root.height / 2 - height / 2
 
         clip: true
+        padding: 0
 
         modal: true
         focus: true
@@ -331,61 +362,91 @@ ApplicationWindow {
         }
 
         function validate() {
-            var folder = baseFolderForFileCreationLabel.text
+            var folder = fileCreationPopup.folder.replace("file:///","") + "/"
             var file = newFileNameTextField.text + ".qml"
 
             var success = appControl.createFile(folder, file);
             if (success)
             {
                 // Refresh active folders
+                appControl.currentFile = "file:///" + folder + file;
                 refreshActiveFolders();
 
-                root.currentFile = "file:///" + folder + file
             }
             fileCreationPopup.close()
         }
 
-        Row {
-            anchors.centerIn:  parent
-            spacing: 20
+        Page {
+            anchors.fill: parent
+            padding: 0
 
-            Label {
-                id: baseFolderForFileCreationLabel
-//                anchors.baseline: baseFolderLabel.baseline
-                text: fileCreationPopup.folder.replace("file:///","") + "/"
-                font.pointSize: 11
-            }
-            TextField {
-                id: newFileNameTextField
-                anchors.baseline: baseFolderForFileCreationLabel.baseline
-                placeholderText: "Enter file name"
-                text: "main"
-                font.pointSize: baseFolderForFileCreationLabel.font.pointSize
-                selectByMouse: true
+            Component.onCompleted: newFileNameTextField.forceActiveFocus()
 
-                onAccepted: fileCreationPopup.validate()
+            header: Pane {
+                Material.theme: Material.Dark
+
+                Label {
+                    anchors.centerIn: parent
+                    font.pointSize: 16
+                    text: "Create a new file"
+                }
             }
-            Label {
-                anchors.baseline: baseFolderForFileCreationLabel.baseline
-                text: ".qml"
-                font.pointSize: 11
+
+            Row {
+                anchors.centerIn:  parent
+                spacing: 20
+
+                Label {
+                    id: baseFolderForFileCreationLabel
+                    text: fileCreationPopup.folder.substring(fileCreationPopup.folder.lastIndexOf("/") + 1) + "/";
+                    font.pointSize: 11
+
+                    MouseArea {
+                        id: baseFolderForFileCreationLabelMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                    }
+                    property bool hovered: baseFolderForFileCreationLabelMouseArea.containsMouse
+
+                    ToolTip.visible: hovered
+                    ToolTip.text: fileCreationPopup.folder.replace("file:///","")
+                }
+                TextField {
+                    id: newFileNameTextField
+                    anchors.baseline: baseFolderForFileCreationLabel.baseline
+                    placeholderText: "Enter file name"
+                    text: "main"
+                    font.pointSize: baseFolderForFileCreationLabel.font.pointSize
+                    selectByMouse: true
+
+                    onAccepted: fileCreationPopup.validate()
+                }
+                Label {
+                    anchors.baseline: baseFolderForFileCreationLabel.baseline
+                    text: ".qml"
+                    font.pointSize: 11
+                }
+            }
+
+            footer: Pane {
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    spacing: 10
+
+                    Button {
+                        text: "Create"
+                        onClicked: fileCreationPopup.validate()
+                    }
+                    Button {
+                        text: "Cancel"
+                        onClicked: fileCreationPopup.close()
+                    }
+                }
             }
         }
 
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            spacing: 10
 
-            Button {
-                text: "Create"
-                onClicked: fileCreationPopup.validate()
-            }
-            Button {
-                text: "Cancel"
-                onClicked: fileCreationPopup.close()
-            }
-        }
     }
 
     // -----------------------------------------------------------------------------
@@ -442,14 +503,8 @@ ApplicationWindow {
 
     onCurrentFileChanged: {
         print("current file changed " + root.currentFile)
+        root.currentFileContents = readFileContents(root.currentFile)
         contentPage.load();
-
-        var vFileContents = readFileContents(root.currentFile)
-        root.currentFileContents = vFileContents
-
-        quickEditor.blockUpdates = true
-        quickEditor.text = vFileContents
-        quickEditor.blockUpdates = false
     }
 
     function targetFile() {
@@ -485,8 +540,8 @@ ApplicationWindow {
         appControl.currentFile = pFile
 
         // ...
-        var vFileContent = readFileContents(pFile) // TODO remove
-        quickEditor.text = vFileContent
+        //var vFileContent = readFileContents(pFile) // TODO remove
+        //quickEditor.text = vFileContent
 
         quickEditor.show()
     }
@@ -516,11 +571,14 @@ ApplicationWindow {
 
     function readFileContents(pPath)
     {
+        return appControl.readFileContents(pPath); // make it synchronous
+        /*
         var xhr = new XMLHttpRequest;
         xhr.open("GET", "" + appControl.currentFile, false);
         xhr.send(null);
 
         return xhr.responseText;
+        */
     }
 
     function writeFileContents(fileUrl, text, callback)
@@ -548,3 +606,6 @@ ApplicationWindow {
 
 
 }
+// TODO: enlever le bouton close current folder ou reimplementer le close
+// Bouger le toggle settings
+// Repositionner le help ?

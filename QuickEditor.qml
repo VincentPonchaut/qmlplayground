@@ -12,7 +12,6 @@ import "./palettes/"
 Page {
     id: quickEditor
 
-    property bool blockUpdates: false
     property alias text: quickEditorTextArea.text
     property BasePalette mPalette: DarkPalette {}
 
@@ -128,7 +127,7 @@ Page {
         Label {
             anchors.centerIn: parent
             text: !quickEditor.hasModifications ? "No changes":
-                                                  "Pending modifications"
+                                                  "Pending modifications (Ctrl+S to save)"
             color: !quickEditor.hasModifications ? Material.foreground:
                                                    Material.accent
         }
@@ -156,7 +155,6 @@ Page {
     }
     function toggle() {
         state = (state == "open" ? "closed" : "open");
-        text = root.currentFileContents
     }
 
     Action {

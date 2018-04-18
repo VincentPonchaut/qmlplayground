@@ -193,6 +193,19 @@ void ApplicationControl::requestClearQmlComponentCache()
     mEngine->trimComponentCache();
 }
 
+QString ApplicationControl::readFileContents(const QString &pFilePath)
+{
+    QString filePath = pFilePath;
+    filePath = filePath.replace("file:///", "");
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly))
+        return QString();
+
+    QTextStream stream(&file);
+    return stream.readAll();
+}
+
 bool ApplicationControl::writeFileContents(const QString &pFilePath, const QString &pFileContents)
 {
     QString filePath = pFilePath;
@@ -340,5 +353,13 @@ void ApplicationControl::setupWatchOnFolder(const QString &pPath)
 
 QString ApplicationControl::newFileContent()
 {
-    return "import QtQuick 2.0\n\nItem {\n\n}";
+    static QStringList newFileContent
+            = QStringList() << "import QtQuick 2.0\n"
+                            << "Item {"
+                            << "    Text { "
+                            << "        anchors.centerIn: parent"
+                            << "        text: \"Not implemented yet\""
+                            << "    }"
+                            << "}";
+    return newFileContent.join("\n");
 }
