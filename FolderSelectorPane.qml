@@ -301,12 +301,11 @@ Pane {
 
             width: parent.width
             height: (isSectionFolded || !matchesFilter ) ? 0 : 50
-            //Behavior on height { NumberAnimation { easing.type: Easing.InOutCubic; duration: 500 } }
 
             text: "" + file
             font.pointSize: 10
-            //highlighted: filePath === appControl.currentFile
-            highlighted: ListView.isCurrentItem
+            highlighted: filePath === appControl.currentFile
+            //highlighted: ListView.isCurrentItem
 
             onClicked: {
                 listView.currentIndex = index
