@@ -428,8 +428,12 @@ ApplicationWindow {
 
     Connections {
         target: appControl
-        onFileChanged: contentPage.load();
-        onDirectoryChanged: contentPage.load();
+        onFileChanged: handleExternalChanges()
+        onDirectoryChanged: handleExternalChanges()
+    }
+
+    function handleExternalChanges() {
+        root.currentFileChanged();
     }
 
     function refreshActiveFolders() {
