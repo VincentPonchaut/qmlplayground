@@ -286,7 +286,14 @@ Pane {
                     ToolTip.visible: hovered
                     ToolTip.text: "Stop watching folder"
 
-                    onClicked: appControl.removeFromFolderList(section)
+                    onClicked: {
+                        appControl.removeFromFolderList(section)
+
+                        if (folderSelectorPane.qmlFiles.count == 0) {
+                            appControl.currentFile = ""
+                            appControl.currentFolder = ""
+                        }
+                    }
                 }
             }
         }
