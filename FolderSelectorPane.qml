@@ -380,7 +380,32 @@ Pane {
 //        onClicked: folderDialog.open()
 
         checkable: true
+
         checked: false
+        onHoveredChanged: {
+            if (hovered)
+            {
+                checked = true
+                focusTimer.restart()
+            }
+        }
+
+        Timer {
+            id: focusTimer
+            interval: 200
+            repeat: false
+            onTriggered: {
+                if (addFolderButton.hovered ||
+                    createNewFolderButton.hovered ||
+                    watchAnotherFolderButton.hovered)
+                {
+                    restart()
+                }
+                else {
+                    addFolderButton.checked = false
+                }
+            }
+        }
     }
     Column {
         id: contextualFloatingActionColumn
@@ -423,6 +448,10 @@ Pane {
                     text: "Create new folder"
                 }
             }
+            onHoveredChanged: {
+                if (hovered)
+                    focusTimer.restart()
+            }
         }
         IconButton {
             id: watchAnotherFolderButton
@@ -444,6 +473,10 @@ Pane {
                     anchors.centerIn: parent
                     text: "Add existing folder"
                 }
+            }
+            onHoveredChanged: {
+                if (hovered)
+                    focusTimer.restart()
             }
         }
     }
