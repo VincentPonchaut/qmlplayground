@@ -48,9 +48,6 @@ Pane {
     padding: 0
 
     focus: state == "open"
-    Keys.onPressed: {
-        print("zii")
-    }
 
     Keys.onUpPressed: {
         print("Up pressed")
@@ -64,6 +61,9 @@ Pane {
     Connections {
         target: listView
         onCurrentIndexChanged: {
+            if (listView.currentIndex < 0)
+                return;
+
             var vFilePath = listView.currentItem["filePath"]
             var vFolderPath = listView.currentItem["folderPath"]
 
@@ -117,13 +117,6 @@ Pane {
             left: parent.left
             right: parent.right
         }
-
-//        ComboBox {
-//            editable: true
-//            width: parent.width * 0.77
-//            model: qmlFiles
-//            textRole: "file"
-//        }
 
         TextField {
             id: filterTextField

@@ -538,6 +538,4 @@ ApplicationWindow {
         return request.status;
         */
     }
-
-
 }
