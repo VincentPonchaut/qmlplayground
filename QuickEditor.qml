@@ -82,6 +82,10 @@ Page {
             selectByKeyboard: true
             wrapMode: TextEdit.NoWrap
 
+            Keys.onTabPressed: {
+                quickEditorTextArea.insert(cursorPosition, "    ");
+            }
+
             property int currentLine: cursorRectangle.y / cursorRectangle.height + 1
 
             // Style

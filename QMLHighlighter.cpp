@@ -18,6 +18,7 @@
 
 #include "QMLHighlighter.h"
 
+#include <QFontMetrics>
 #include <QTextDocument>
 
 bool QMLHighlighter::m_cacheLoaded = false;
@@ -39,7 +40,8 @@ QMLHighlighter::QMLHighlighter(QTextDocument *parent) : QSyntaxHighlighter(paren
 
     if (parent) {
         QTextOption textOptions = parent->defaultTextOption();
-        textOptions.setTabStop(10);
+        QFontMetrics metrics(parent->defaultFont());
+        textOptions.setTabStopDistance(4 * metrics.width(" ")); // tab stop is 4*space
         parent->setDefaultTextOption(textOptions);
     }
 }
