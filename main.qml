@@ -460,6 +460,7 @@ ApplicationWindow {
         var copy = root.folderList.slice()
         copy.splice(pFolderIndex,1)
         root.folderList = copy
+        root.folderListChanged();
     }
     function addToFolderList(pFolder)
     {
@@ -468,6 +469,7 @@ ApplicationWindow {
         var copy = root.folderList.slice()
         copy.push("" + pFolder)
         root.folderList = copy
+        root.folderListChanged();
     }
 
     function editCurrentFileExternally()
