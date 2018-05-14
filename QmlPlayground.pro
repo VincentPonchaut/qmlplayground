@@ -9,7 +9,8 @@ QT += \
     xml xmlpatterns svg \
     sensors bluetooth nfc \
     positioning location \
-    3dcore 3drender 3dinput 3dquick
+    3dcore 3drender 3dinput 3dquick \
+    webview \
 
 CONFIG += c++11
 
