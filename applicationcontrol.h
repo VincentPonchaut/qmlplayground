@@ -7,7 +7,9 @@
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
 
-class ApplicationControl : public QObject
+#include "servercontrol.h"
+
+class ApplicationControl: public QObject
 {
     Q_OBJECT
 
@@ -23,7 +25,9 @@ public:
 
     QStringList folderList() const;
 
-    void start(const QString &pMainQmlPath, QQmlApplicationEngine* pEngine);
+    void start(const QString &pMainQmlPath,
+               QQmlApplicationEngine* pEngine,
+               int pServerPort = 12345);
 
     Q_INVOKABLE int runCommand(const QString& pCommand);
     Q_INVOKABLE int runCommandWithArgs(const QString& pCommand, const QStringList& pArgs);
@@ -72,6 +76,7 @@ private:
     QQmlComponent* mQuickComponent = nullptr;
     QString mMainQmlPath;
     QFileSystemWatcher mFileWatcher;
+    ServerControl mServerControl;
 
     // QProperties
     QStringList mFolderList;

@@ -28,13 +28,15 @@ HEADERS += \
     tools/maskedmousearea.h \
     applicationcontrol.h \
     QMLHighlighter.h \
-    SyntaxHighlighter.h
+    SyntaxHighlighter.h \
+    servercontrol.h
 
 SOURCES += main.cpp \
     tools/maskedmousearea.cpp \
     applicationcontrol.cpp \
     QMLHighlighter.cpp \
-    SyntaxHighlighter.cpp
+    SyntaxHighlighter.cpp \
+    servercontrol.cpp
 
 RESOURCES += \
     resources.qrc

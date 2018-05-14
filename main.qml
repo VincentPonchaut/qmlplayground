@@ -444,6 +444,9 @@ ApplicationWindow {
         print("current file changed " + root.currentFile)
         root.currentFileContents = readFileContents(root.currentFile)
         contentPage.load();
+
+        if (serverControl.available)
+            serverControl.sendToClients(root.currentFileContents);
     }
 
     function targetFile() {

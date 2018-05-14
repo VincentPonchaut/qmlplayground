@@ -36,7 +36,7 @@ QStringList ApplicationControl::folderList() const
     return mFolderList;
 }
 
-void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngine* pEngine)
+void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngine* pEngine, int pServerPort)
 {
     if (!pEngine)
         return;
@@ -45,6 +45,11 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     mEngine = pEngine;
 
     mEngine->rootContext()->setContextProperty("appControl", this);
+
+    // Server management
+    mEngine->rootContext()->setContextProperty("serverControl", &mServerControl);
+    if (!mServerControl.startListening(pServerPort))
+        qDebug() << "failed to start server on port " << pServerPort;
 
 //    mQuickView = new QQuickView(mEngine, nullptr);
 //    mQuickView->setIcon(QIcon(":/img/appIcon.png"));
