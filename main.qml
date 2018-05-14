@@ -146,7 +146,7 @@ ApplicationWindow {
     Labs.FolderDialog {
         id: folderDialog
         folder: root.currentFolder
-        onAccepted: addToFolderList(folder)
+        onAccepted: addToFolderList(currentFolder)
     }
 
     Popup {
