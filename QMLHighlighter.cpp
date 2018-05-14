@@ -38,12 +38,12 @@ QMLHighlighter::QMLHighlighter(QTextDocument *parent) : QSyntaxHighlighter(paren
         m_cacheLoaded = true;
     }
 
-    if (parent) {
-        QTextOption textOptions = parent->defaultTextOption();
-        QFontMetrics metrics(parent->defaultFont());
-        textOptions.setTabStopDistance(4 * metrics.width(" ")); // tab stop is 4*space
-        parent->setDefaultTextOption(textOptions);
-    }
+//    if (parent) {
+//        QTextOption textOptions = parent->defaultTextOption();
+//        QFontMetrics metrics(parent->defaultFont());
+//        .//textOptions.setTabStopDistance(4 * metrics.width(" ")); // tab stop is 4*space
+//        parent->setDefaultTextOption(textOptions);
+//    }
 }
 
 void QMLHighlighter::setColor(ColorComponent component, const QColor &color)
