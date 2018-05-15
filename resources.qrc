@@ -34,5 +34,6 @@
         <file>img/eye.svg</file>
         <file>img/eye_off.svg</file>
         <file>img/plus.svg</file>
+        <file>Modules.qml</file>
     </qresource>
 </RCC>
