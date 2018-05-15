@@ -40,7 +40,7 @@ bool ServerControl::startListening(int port)
 
 void ServerControl::onNewConnection()
 {
-    while(mServer->hasPendingConnections())
+    while (mServer->hasPendingConnections())
     {
         //QTcpSocket *socket = server.nextPendingConnection();
         QWebSocket* socket = mServer->nextPendingConnection();
@@ -48,6 +48,12 @@ void ServerControl::onNewConnection()
 
         //socket->sendTextMessage("Hello from server");
         mClients.push_back(socket);
+        setActiveClients(mClients.size());
+
+        connect(socket, &QWebSocket::disconnected, [=](){
+            mClients.removeOne(socket);
+            setActiveClients(mClients.size());
+        });
     }
 }
 
@@ -69,6 +75,11 @@ QString ServerControl::hostAddress() const
     return m_hostAddress;
 }
 
+int ServerControl::activeClients() const
+{
+    return m_activeClients;
+}
+
 void ServerControl::setAvailable(bool available)
 {
     if (m_available == available)
@@ -85,4 +96,13 @@ void ServerControl::setHostAddress(QString hostAddress)
 
     m_hostAddress = hostAddress;
     emit hostAddressChanged(m_hostAddress);
+}
+
+void ServerControl::setActiveClients(int activeClients)
+{
+    if (m_activeClients == activeClients)
+        return;
+
+    m_activeClients = activeClients;
+    emit activeClientsChanged(m_activeClients);
 }
