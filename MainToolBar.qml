@@ -62,6 +62,17 @@ ToolBar {
 
         }
 
+        IconButton {
+            id: serverToolButton
+            Material.theme: Material.Dark
+            flat: true
+            imageSource: "qrc:///img/code.svg"
+            visible: serverControl.available
+
+            onClicked: ;
+            ToolTip.text: "To broadcast to remote devices, connect to %1 on the same network as this machine".arg(serverControl.hostAddress);
+        }
+
         ToolButton {
             id: editToolButton
             text: "Edit"

@@ -32,7 +32,9 @@ bool ServerControl::startListening(int port)
     bool success = mServer->listen(QHostAddress::AnyIPv4, port);
     setAvailable(success);
 
-    qDebug() << "Server is listening at" << ipAddress + ":" + QString::number(mServer->serverPort());
+    QString hostAddress = ipAddress + ":" + QString::number(mServer->serverPort());
+    setHostAddress(hostAddress);
+    qDebug() << "Server is listening at" << hostAddress;
     return success;
 }
 
@@ -62,6 +64,11 @@ bool ServerControl::isAvailable() const
     return m_available;
 }
 
+QString ServerControl::hostAddress() const
+{
+    return m_hostAddress;
+}
+
 void ServerControl::setAvailable(bool available)
 {
     if (m_available == available)
@@ -69,4 +76,13 @@ void ServerControl::setAvailable(bool available)
 
     m_available = available;
     emit availableChanged(m_available);
+}
+
+void ServerControl::setHostAddress(QString hostAddress)
+{
+    if (m_hostAddress == hostAddress)
+        return;
+
+    m_hostAddress = hostAddress;
+    emit hostAddressChanged(m_hostAddress);
 }
