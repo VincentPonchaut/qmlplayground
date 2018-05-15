@@ -28,7 +28,7 @@ import Qt3D.Renderer 2.0
 import QtQuick.Scene3D 2.0
 import QtCanvas3D 1.0
 import QtLocation 5.3
-import Qt.labs.folderlistmodel
+import Qt.labs.folderlistmodel 1.0
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0
 

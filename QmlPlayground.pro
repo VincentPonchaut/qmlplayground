@@ -1,9 +1,7 @@
 QT += \
-    qml \
-    quick \
+    core gui qml quick \
     quickcontrols2 \
     widgets \
-    core gui qml quick \
     multimedia sql \
     network websockets \
     xml xmlpatterns svg \
