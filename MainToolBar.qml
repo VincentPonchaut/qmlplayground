@@ -62,6 +62,16 @@ ToolBar {
 
         }
 
+        ToolButton {
+            id: dataToolButton
+            text: "Data"
+            enabled: dataManager.currentDataFile.length > 0
+            onClicked: dataManager.requestEditData()
+
+            ToolTip.visible: hovered
+            ToolTip.text: "Edit data"
+        }
+
         IconButton {
             id: serverToolButton
             Material.theme: Material.Dark
@@ -70,7 +80,7 @@ ToolBar {
             visible: serverControl.available
 
             onClicked: ;
-            ToolTip.text: "To broadcast to remote devices, connect to %1 on the same network as this machine".arg(serverControl.hostAddress);
+            ToolTip.text: "To broadcast to remote devices, \nconnect to %1 \non the same network as this machine".arg(serverControl.hostAddress);
 
             Rectangle {
                 anchors.bottom: parent.bottom

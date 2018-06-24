@@ -45,6 +45,8 @@ public:
     Q_INVOKABLE QString readFileContents(const QString& pFilePath);
     Q_INVOKABLE bool writeFileContents(const QString& pFilePath, const QString& pFileContents);
 
+    Q_INVOKABLE void addContextProperty(const QString& pKey, QVariant pData);
+
     QString currentFile() const;
 
     QString currentFolder() const;

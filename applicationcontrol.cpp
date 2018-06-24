@@ -226,6 +226,11 @@ bool ApplicationControl::writeFileContents(const QString &pFilePath, const QStri
     return true;
 }
 
+void ApplicationControl::addContextProperty(const QString &pKey, QVariant pData)
+{
+    mEngine->rootContext()->setContextProperty(pKey, pData);
+}
+
 QString ApplicationControl::currentFile() const
 {
     return m_currentFile;
