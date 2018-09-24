@@ -6,7 +6,7 @@ import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
 
-QtObject {
+Item {
     id: dataManager
 
     // -----------------------------------------------------------------------------
@@ -53,11 +53,22 @@ QtObject {
         {
             appControl.addContextProperty(vProperty, vDataObject[vProperty]);
         }
+
+        appControl.sendDataMessage(readFileContents(dataManager.currentDataFile));
     }
 
     onCurrentDataFileChanged: {
         parseData()
     }
+
+    // Send data to clients as soon as connected
+    Connections {
+        target: serverControl
+        onActiveClientsChanged: {
+            appControl.sendDataMessage(readFileContents(dataManager.currentDataFile));
+        }
+    }
+
 
     // -----------------------------------------------------------------------------
     // View

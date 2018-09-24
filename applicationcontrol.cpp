@@ -63,6 +63,7 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
 
     connect(&mServerControl, &ServerControl::activeClientsChanged, [=]() {
         sendFolderToClients("");
+        emit this->newConnection(); // TODO: uniformize who does what where
     });
 
     if (!mServerControl.startListening(pServerPort))
@@ -296,6 +297,20 @@ void ApplicationControl::sendFileToClients(const QString &file)
     // Specify current file
     message += beginTag("currentfile") + currentFile() + endTag("currentfile");
 
+    mServerControl.sendToClients(message);
+}
+
+void ApplicationControl::sendDataMessage(const QString &data)
+{
+    QString message;
+
+    // Specify message type
+    message += beginTag("messagetype") + "data" + endTag("messagetype");
+
+    // Add data content
+    message += beginTag("json") + data + endTag("json");
+
+    // Send
     mServerControl.sendToClients(message);
 }
 

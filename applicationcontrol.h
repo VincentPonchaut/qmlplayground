@@ -49,6 +49,7 @@ public:
 
     Q_INVOKABLE void sendFolderToClients(const QString& folder);
     Q_INVOKABLE void sendFileToClients(const QString& file);
+    Q_INVOKABLE void sendDataMessage(const QString& data);
 
     Q_INVOKABLE void setClipboardText(const QString& clipboard);
 
@@ -61,6 +62,7 @@ signals:
     void directoryChanged(const QString& pDirectoryPath);
     void currentFileChanged(QString currentFile);
     void currentFolderChanged(QString currentFolder);
+    void newConnection();
 
 public slots:
     void setFolderList(QStringList folderList);
