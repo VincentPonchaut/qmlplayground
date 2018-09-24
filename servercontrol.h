@@ -20,6 +20,7 @@ public:
     void onNewConnection();
 
     Q_INVOKABLE void sendToClients(const QString& message);
+    Q_INVOKABLE void sendFilesToClients(const QStringList& files);
 
 // ------------------------------------------------------------------
 // QProperties

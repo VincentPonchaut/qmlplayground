@@ -79,7 +79,10 @@ ToolBar {
             imageSource: "qrc:///img/smartphone.svg"
             visible: serverControl.available
 
-            onClicked: ;
+            onClicked: {
+                appControl.setClipboardText(serverControl.hostAddress);
+                // TODO: toast "Address copied to clipboard"
+            }
             ToolTip.text: "To broadcast to remote devices, \nconnect to %1 \non the same network as this machine".arg(serverControl.hostAddress);
 
             Rectangle {

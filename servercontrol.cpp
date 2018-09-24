@@ -3,6 +3,7 @@
 #include <QWebSocket>
 #include <QNetworkInterface>
 #include <QDebug>
+#include <QFile>
 
 ServerControl::ServerControl()
     : QObject()
@@ -63,6 +64,36 @@ void ServerControl::sendToClients(const QString& message)
     {
         client->sendTextMessage(message);
     }
+}
+
+void ServerControl::sendFilesToClients(const QStringList &files)
+{
+    QString message;
+
+    for (const QString& filename: files)
+    {
+        // Read file content
+        QFile file(filename);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            qDebug() << "cannot open " << filename;
+            continue;
+        }
+
+        QTextStream textStream(&file);
+        QString fileContent = textStream.readAll();
+
+        // Generate header
+        QString header = QString("<file>%1</file>").arg(file.fileName());
+
+        // Append content
+        message += header + QString("<content>\n%1\n</content>").arg(fileContent);
+
+        // Append separator
+        message += "\n";
+    }
+
+    sendToClients(message);
 }
 
 bool ServerControl::isAvailable() const

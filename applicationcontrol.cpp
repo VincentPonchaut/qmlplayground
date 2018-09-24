@@ -4,6 +4,18 @@
 #include <QQmlContext>
 #include <QDirIterator>
 #include <QProcess>
+#include <QGuiApplication>
+#include <QClipboard>
+
+inline QString beginTag(const QString& tag)
+{
+    return "<" + tag + ">";
+}
+
+inline QString endTag(const QString& tag)
+{
+    return "</" + tag + ">";
+}
 
 ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
 {
@@ -48,6 +60,11 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
 
     // Server management
     mEngine->rootContext()->setContextProperty("serverControl", &mServerControl);
+
+    connect(&mServerControl, &ServerControl::activeClientsChanged, [=]() {
+        sendFolderToClients("");
+    });
+
     if (!mServerControl.startListening(pServerPort))
         qDebug() << "failed to start server on port " << pServerPort;
 
@@ -109,9 +126,13 @@ QStringList ApplicationControl::listFiles(const QString &pPath)
     while (it.hasNext())
     {
         QString lPath = it.next();
-        lFileList << lPath.split(lActualPath).last();
+        lPath = lPath.split(lActualPath).last();
+//        lPath = lPath.startsWith("/") ? lPath.remove(0,1) : lPath; // TODO
+
+        lFileList << lPath;
     }
 
+    qDebug() << "returning filelist" << lFileList;
     return lFileList;
 }
 
@@ -231,6 +252,58 @@ void ApplicationControl::addContextProperty(const QString &pKey, QVariant pData)
     mEngine->rootContext()->setContextProperty(pKey, pData);
 }
 
+void ApplicationControl::sendFolderToClients(const QString &folder)
+{
+    QString message;
+    QStringList fileList = this->listFiles(currentFolder());
+
+    // Specify message type
+    message += beginTag("messagetype") + "folderchange" + endTag("messagetype");
+
+    // Add current folder
+    message += beginTag("folder") + "\n" +
+               currentFolder() +
+               endTag("folder") + "\n";
+
+    for (const QString& fileName: fileList)
+    {
+        if (!addFileToMessage(fileName, message))
+        {
+            qDebug() << "Could not add " << fileName << "to message";
+            continue;
+        }
+    }
+
+    // Specify current file
+    message += beginTag("currentfile") + currentFile() + endTag("currentfile");
+
+    mServerControl.sendToClients(message);
+}
+
+void ApplicationControl::sendFileToClients(const QString &file)
+{
+    QString message;
+
+    // Specify message type
+    message += beginTag("messagetype") + "filechange" + endTag("messagetype");
+
+    if (!addFileToMessage(file, message))
+    {
+        qDebug() << "Could not add " << file << "to message";
+        return;
+    }
+
+    // Specify current file
+    message += beginTag("currentfile") + currentFile() + endTag("currentfile");
+
+    mServerControl.sendToClients(message);
+}
+
+void ApplicationControl::setClipboardText(const QString &clipboard)
+{
+    QGuiApplication::clipboard()->setText(clipboard);
+}
+
 QString ApplicationControl::currentFile() const
 {
     return m_currentFile;
@@ -278,8 +351,9 @@ void ApplicationControl::onFileChanged(const QString &pPath)
     qDebug() << mFileWatcher.files();
     qDebug() << "------------------------------------------------------";
 
-
     emit fileChanged(pPath);
+
+    // TODO: bug: when only one file is modified, this slot is not called
 }
 
 void ApplicationControl::onDirectoryChanged(const QString &pPath)
@@ -294,8 +368,18 @@ void ApplicationControl::onDirectoryChanged(const QString &pPath)
     qDebug() << mFileWatcher.directories();
     qDebug() << "------------------------------------------------------";
 
-
     emit directoryChanged(pPath);
+
+//    // Notify clients of any change
+    sendFolderToClients("");
+    // TODO BUG: this function seems to call itself recurisvely
+//    // TODO: find a way to send only file by file
+//    if (!mServerControl.isAvailable())
+//        return;
+
+//    QStringList fileList = this->listFiles(currentFolder());
+//    for (const QString& file: fileList)
+//        sendFileToClients(file);
 }
 
 void ApplicationControl::setCurrentFile(QString currentFile)
@@ -372,4 +456,38 @@ QString ApplicationControl::newFileContent()
                             << "    }"
                             << "}";
     return newFileContent.join("\n");
+}
+
+bool ApplicationControl::addFileToMessage(const QString &path, QString &message)
+{
+    // Prep filepath
+    QString filePath = currentFolder() + path;
+    filePath = filePath.remove("file:///");
+
+    // Attempt open file
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "cannot open " << filePath;
+        return false;
+    }
+
+    QTextStream textStream(&file);
+    QString fileContent = textStream.readAll();
+
+    // Generate header
+    QString header = beginTag("file") +
+                     file.fileName() +
+                     endTag("file") + "\n";
+
+    // Append content
+    message += header +
+               beginTag("content") + "\n" +
+               fileContent + "\n" +
+               endTag("content") + "\n";
+
+    // Append file separator
+    message += "\n";
+
+    return true;
 }

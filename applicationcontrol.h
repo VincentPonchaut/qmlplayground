@@ -47,8 +47,12 @@ public:
 
     Q_INVOKABLE void addContextProperty(const QString& pKey, QVariant pData);
 
-    QString currentFile() const;
+    Q_INVOKABLE void sendFolderToClients(const QString& folder);
+    Q_INVOKABLE void sendFileToClients(const QString& file);
 
+    Q_INVOKABLE void setClipboardText(const QString& clipboard);
+
+    QString currentFile() const;
     QString currentFolder() const;
 
 signals:
@@ -71,6 +75,7 @@ protected slots:
 protected:
     void setupWatchOnFolder(const QString& pPath);
     QString newFileContent();
+    bool addFileToMessage(const QString& path, QString& message);
 
 private:
     // Owned

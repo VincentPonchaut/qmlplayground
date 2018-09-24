@@ -449,8 +449,19 @@ ApplicationWindow {
         root.currentFileContents = readFileContents(root.currentFile)
         contentPage.load();
 
-        if (serverControl.available)
-            serverControl.sendToClients(root.currentFileContents);
+        appControl.sendFolderToClients("");
+    }
+
+    onCurrentFolderChanged: {
+        print("current folder changed " + root.currentFolder)
+
+        appControl.sendFolderToClients("");
+
+//        if (serverControl.available)
+//            serverControl.sendFilesToClients(appControl.listFiles(root.currentFolder));
+    }
+    onCurrentFileContentsChanged: {
+        appControl.sendFolderToClients("");
     }
 
     function targetFile() {
