@@ -29,6 +29,8 @@ public:
                QQmlApplicationEngine* pEngine,
                int pServerPort = 12345);
 
+    void onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+
     Q_INVOKABLE int runCommand(const QString& pCommand);
     Q_INVOKABLE int runCommandWithArgs(const QString& pCommand, const QStringList& pArgs);
     Q_INVOKABLE QStringList listFiles(const QString& pPath);
@@ -63,6 +65,8 @@ signals:
     void currentFileChanged(QString currentFile);
     void currentFolderChanged(QString currentFolder);
     void newConnection();
+
+    void logMessage(const QString& message, const QString& file, int line);
 
 public slots:
     void setFolderList(QStringList folderList);

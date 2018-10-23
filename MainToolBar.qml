@@ -62,6 +62,21 @@ ToolBar {
 
         }
 
+        IconButton {
+            id: consoleToolButton
+            text: ""
+
+            Material.theme: Material.Dark
+            flat: true
+            imageSource: "qrc:///img/console.svg"
+            margins: 10
+            onClicked: theConsole.toggle()
+
+            ToolTip.visible: hovered
+            ToolTip.text: "%1 console".arg(theConsole.state == "open" ? "Hide":
+                                                                        "Show");
+        }
+
         ToolButton {
             id: dataToolButton
             text: "Data"

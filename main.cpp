@@ -12,6 +12,20 @@
 #include "applicationcontrol.h"
 #include "SyntaxHighlighter.h"
 
+#include <QtGlobal>
+#include <stdio.h>
+#include <stdlib.h>
+
+static ApplicationControl* theApplicationControl = nullptr;
+
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    if (!theApplicationControl)
+        return;
+
+    theApplicationControl->onLogMessage(type, context, msg);
+}
+
 void registerQmlTypes(QQmlApplicationEngine& pEngine)
 {
     Q_UNUSED(pEngine)
@@ -21,6 +35,9 @@ void registerQmlTypes(QQmlApplicationEngine& pEngine)
 
 int main(int argc, char *argv[])
 {
+    // Install a custom handler for qDebug etc...
+    qInstallMessageHandler(myMessageOutput);
+
     // Prepare the application
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setOrganizationName("QmlEnterprise");
@@ -37,6 +54,7 @@ int main(int argc, char *argv[])
     registerQmlTypes(engine);
 
     ApplicationControl appControl;
+    theApplicationControl = &appControl;
 
     // Set style for QtQuickControls 2
     QQuickStyle::setStyle("Material");

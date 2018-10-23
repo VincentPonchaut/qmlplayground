@@ -7,6 +7,8 @@
 #include <QGuiApplication>
 #include <QClipboard>
 
+#include <iostream>
+
 inline QString beginTag(const QString& tag)
 {
     return "<" + tag + ">";
@@ -82,6 +84,21 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     {
         qDebug() << mQuickComponent->errorString();
     }
+}
+
+void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    Q_UNUSED(type);
+    QString file(context.file);
+
+    if (QString(context.category) != "qml" || // This is a regular message
+        file.startsWith("qrc:"))              // This is a message from the app's QML files
+    {
+        std::cout << msg.toStdString() << std::endl;
+        return;
+    }
+
+    emit logMessage(msg, file, context.line);
 }
 
 int ApplicationControl::runCommand(const QString &pCommand)

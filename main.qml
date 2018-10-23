@@ -79,6 +79,15 @@ ApplicationWindow {
             left: parent.left
             top: parent.top
         }
+
+        Text {
+            anchors.centerIn: parent
+            visible: root.folderList.length == 0
+
+            text: "There are no active folders.\nCreate a new one or add an existing one to start."
+            font.italic: true
+            color: "white"
+        }
     }
 
     Pane {
@@ -117,12 +126,23 @@ ApplicationWindow {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
 
-            ContentPage {
-                id: contentPage
+            Column {
                 width: parent.width - quickEditor.width
                 height: parent.height
+                spacing: 0
 
-                //sourceFilePath: root.currentFile
+                ContentPage {
+                    id: contentPage
+                    width: parent.width
+                    height: theConsole.state == "open" ? parent.height * 0.66:
+                                                         parent.height
+                }
+
+                Console {
+                    id: theConsole
+                    width: parent.width
+                    height: parent.height * 0.33
+                }
             }
 
             QuickEditor {
@@ -139,7 +159,23 @@ ApplicationWindow {
                     root.quickEditor_save();
                     print("quick editor requested file save end");
                 }
+//                Pane {
+//                    width: quickEditor.width
+//                    height: quickEditor.height
+
+//                    background: Rectangle {
+//                        color: "black"
+//                    }
+
+//                    Text {
+//                        id: consoleText
+//                        anchors.fill: parent
+//                        font.family: "Consolas"
+//                        color: "white"
+//                    }
+//                }
             }
+
         } // end contentRow
     } // end Pane
 
@@ -434,6 +470,7 @@ ApplicationWindow {
         target: appControl
         onFileChanged: handleExternalChanges()
         onDirectoryChanged: handleExternalChanges()
+        ///onLogMessage: consoleText.text += "\n" + message
     }
 
     function handleExternalChanges() {

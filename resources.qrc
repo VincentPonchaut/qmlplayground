@@ -37,5 +37,7 @@
         <file>Modules.qml</file>
         <file>img/smartphone.svg</file>
         <file>DataManager.qml</file>
+        <file>Console.qml</file>
+        <file>img/console.svg</file>
     </qresource>
 </RCC>

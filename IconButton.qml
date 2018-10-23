@@ -7,12 +7,15 @@ import Qt.labs.platform 1.0 as Labs
 
 RoundButton
 {
+    id: roundButton
+
     property alias imageSource: img.source
+    property int margins: 5
     
     Image {
         id: img
         anchors.fill: parent
-        anchors.margins: 5
+        anchors.margins: roundButton.margins
         
         fillMode: Image.PreserveAspectFit
         smooth: true
