@@ -1,9 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.2
-import QtQuick.Layouts 1.3
-import Qt.labs.settings 1.0
-import Qt.labs.platform 1.0 as Labs
 
 RoundButton
 {
@@ -11,6 +8,7 @@ RoundButton
 
     property alias imageSource: img.source
     property int margins: 5
+    property var __img__: img
     
     Image {
         id: img
@@ -19,6 +17,8 @@ RoundButton
         
         fillMode: Image.PreserveAspectFit
         smooth: true
+        sourceSize.width: width
+        sourceSize.height: height
     }
     
     ToolTip.visible: hovered

@@ -39,5 +39,7 @@
         <file>DataManager.qml</file>
         <file>Console.qml</file>
         <file>img/console.svg</file>
+        <file>img/search.svg</file>
+        <file>SoftIconButton.qml</file>
     </qresource>
 </RCC>

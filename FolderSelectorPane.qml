@@ -89,6 +89,8 @@ Pane {
         }
         
         Row {
+            id: titleRow
+
             anchors.centerIn: parent
             height: parent.height
             
@@ -104,6 +106,24 @@ Pane {
                 anchors.verticalCenter: parent.verticalCenter
                 color: Material.accent
             }
+
+
+        }
+        SoftIconButton {
+            id: filterToggleButton
+
+            height: parent.height * 0.8
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            checked: filterPane.visible
+            visible: checked || folderSectionTitlePane.hovered
+
+            imageSource: "qrc:///img/search.svg"
+            margins: 10
+            ToolTip.text: "%1 search field".arg(filterPane.visible ? "Hide" :
+                                                                     "Show")
+
+            onClicked: filterPane.toggle()
         }
     }
     
@@ -118,6 +138,12 @@ Pane {
             right: parent.right
         }
 
+        function toggle() {
+            state = state == "open" ? "closed" : "open"
+            if (state == "open")
+                filterTextField.forceActiveFocus()
+        }
+
         TextField {
             id: filterTextField
             width: parent.width * 0.77
@@ -129,6 +155,26 @@ Pane {
                     quickEditor.focus()
             }
         }
+
+        states: [
+            State {
+                name: "open"
+                PropertyChanges {
+                    target: filterPane
+                    height: optionsPane.height
+                    visible: true
+                }
+            },
+            State {
+                name: "closed"
+                PropertyChanges {
+                    target: filterPane
+                    height: 0
+                    visible: false
+                }
+            }
+        ]
+        state: "closed"
     }
 
     ListView {
