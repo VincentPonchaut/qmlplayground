@@ -105,6 +105,7 @@ Pane {
                                    "path": String(file)
                                });
             root.messagesChanged();
+            listView.positionViewAtEnd();
         }
     }
 
