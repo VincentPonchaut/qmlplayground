@@ -82,12 +82,13 @@ Pane {
         imageSource: "qrc:///img/trash.svg"
         ToolTip.text: "Clear console"
 
+        property color baseColor: "#3d3d3d"
         background: Rectangle {
             implicitWidth: 40
             implicitHeight: implicitWidth
             radius: width / 2
-            color: trashButton.hovered ? Qt.lighter(color):
-                                         "#3d3d3d"
+            color: trashButton.hovered ? Qt.lighter(baseColor):
+                                         baseColor
         }
 
         onClicked: root.messages = []
