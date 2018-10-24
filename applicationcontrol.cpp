@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QGuiApplication>
 #include <QClipboard>
+#include <QSettings>
 
 #include <iostream>
 
@@ -84,6 +85,12 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     {
         qDebug() << mQuickComponent->errorString();
     }
+
+    // BUG: when there is only one folder, QVariant mistakes it for a simple QString
+    QSettings settings;
+    QVariant folderList = settings.value("folderList");
+    QStringList folderListAsList = folderList.value<QStringList>();
+    setFolderList(folderListAsList);
 }
 
 void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg)
