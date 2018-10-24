@@ -127,12 +127,20 @@ Pane {
                 target: root
                 height: contentRow.height * 0.33
             }
+            PropertyChanges {
+                target: trashButton
+                visible: true
+            }
         },
         State {
             name: "closed"
             PropertyChanges {
                 target: root
                 height: 0
+            }
+            PropertyChanges {
+                target: trashButton
+                visible: false
             }
         }
     ]
