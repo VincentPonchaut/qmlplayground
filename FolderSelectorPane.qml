@@ -325,6 +325,18 @@ Pane {
                 visible: fileDelegate.hovered
 
                 IconButton {
+                    id: exploreToButton
+
+                    height: parent.height * 0.8
+                    width: height
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    onClicked: Qt.openUrlExternally(fileDelegate.folderPath)
+                    imageSource: "qrc:///img/folder.svg"
+                    ToolTip.text: "Open in explorer"
+                }
+
+                IconButton {
                     id: editFileButton
 
                     height: parent.height * 0.8
