@@ -87,8 +87,8 @@ Pane {
             implicitWidth: 40
             implicitHeight: implicitWidth
             radius: width / 2
-            color: trashButton.hovered ? Qt.lighter(baseColor):
-                                         baseColor
+            color: trashButton.hovered ? Qt.lighter(trashButton.baseColor):
+                                         trashButton.baseColor
         }
 
         onClicked: root.messages = []
