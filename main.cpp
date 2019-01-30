@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 
     // Prepare the application
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QCoreApplication::setOrganizationName("QmlEnterprise");
-    QCoreApplication::setOrganizationDomain("qmlenterprise.com");
+    QCoreApplication::setOrganizationName("QmlPlayground");
+    QCoreApplication::setOrganizationDomain("QmlPlayground.com");
     QCoreApplication::setApplicationName("QmlPlayground");
     QApplication app(argc, argv);
 
@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
 
     // Set style for QtQuickControls 2
     QQuickStyle::setStyle("Material");
-
 
     appControl.start("qrc:/main.qml", &engine);
 
