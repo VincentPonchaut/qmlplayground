@@ -417,16 +417,20 @@ Item {
                               "    <qresource prefix=\"/\">\n" +
                                        "%1" +
                               "        <file>qtquickcontrols2.conf</file>\n" +
+                              "        <file>appIcon.png</file>\n" +
                               "    </qresource>\n" +
                               "</RCC>\n"
 
     property string main_cpp_file: "#include <QGuiApplication>\n" +
                                    "#include <QQmlApplicationEngine>\n" +
+                                   "#include <QIcon>\n" +
+                                   "\n" +
                                    "int main(int argc, char *argv[])\n" +
                                    "{\n" +
                                    "    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);\n" +
                                    "\n" +
                                    "    QGuiApplication app(argc, argv);\n" +
+                                   "    app.setWindowIcon(QIcon(\":/appIcon.png\"));" +
                                    "\n" +
                                    "    QQmlApplicationEngine engine;\n" +
                                    "    engine.load(QUrl(QStringLiteral(\"qrc:/qmlplayground_generated_main.qml\")));\n" +
