@@ -142,7 +142,7 @@ int ApplicationControl::runCommandWithArgs(const QString &pCommand, const QStrin
     return QProcess::execute(pCommand, lArgs);
 }
 
-QStringList ApplicationControl::listFiles(const QString &pPath)
+QStringList ApplicationControl::listFiles(const QString &pPath, const QStringList& pNameFilters)
 {
     QString lActualPath = pPath;
     lActualPath.remove("file:///");
@@ -152,7 +152,7 @@ QStringList ApplicationControl::listFiles(const QString &pPath)
 
     qDebug() << "Looking up files in " << lActualPath;
 
-    QStringList lNameFilters = { "*.qml" };
+    QStringList lNameFilters = pNameFilters;
     QStringList lFileList;
 
     QDirIterator it(lActualPath, lNameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
@@ -226,6 +226,14 @@ bool ApplicationControl::createFile(QString pPath, QString pFileName)
         return false;
     }
     return true;
+}
+
+bool ApplicationControl::copyFile(QString pSrcPath, QString pDstPath)
+{
+    QString srcPath = pSrcPath.replace("file:///", "");
+    QString dstPath = pDstPath.replace("file:///", "");
+
+    return QFile::copy(srcPath, dstPath);
 }
 
 void ApplicationControl::addToFolderList(const QString &pFolderPath)

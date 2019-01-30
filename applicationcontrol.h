@@ -34,11 +34,12 @@ public:
     Q_INVOKABLE int runCommand(const QString& pCommand);
     Q_INVOKABLE int runAsyncCommand(const QString& pCommand);
     Q_INVOKABLE int runCommandWithArgs(const QString& pCommand, const QStringList& pArgs);
-    Q_INVOKABLE QStringList listFiles(const QString& pPath);
+    Q_INVOKABLE QStringList listFiles(const QString& pPath, const QStringList& pNameFilters = QStringList("*.qml"));
     Q_INVOKABLE void openFileExternally(const QString& pPath);
 
     Q_INVOKABLE bool createFolder(QString pPath, QString pFolderName);
     Q_INVOKABLE bool createFile(QString pPath, QString pFileName);
+    Q_INVOKABLE bool copyFile(QString pSrcPath, QString pDstPath);
 
     Q_INVOKABLE void addToFolderList(const QString& pFolderPath);
     Q_INVOKABLE void removeFromFolderList(const QString& pFolderPath);

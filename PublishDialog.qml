@@ -288,11 +288,22 @@ Item {
         var vFolder = get_folder(currentFile)
         print("publish start in " + vFolder)
 
-        // List all files
-        var fileList = appControl.listFiles(vFolder)
+        // List all QML files
+        var fileList = appControl.listFiles(vFolder, [
+                                                        "*.qml",
+                                                        "*.png",
+                                                        "*.jpg",
+                                                        "*.jpeg",
+                                                        "*.gif",
+                                                        "*.mp3",
+                                                        "*.mp4",
+                                                        "*.avi"
+                                                     ])
         print(fileList)
 
+        // -----------------------------------------------------------------------------
         // Generate <file>filename</file>
+        // -----------------------------------------------------------------------------
         // to be inserted in
         // <RCC>
         //     <qresource prefix="/">
@@ -389,20 +400,40 @@ Item {
                               "    positioning location \\ " + "\n" +
                               "    3dcore 3drender 3dinput 3dquick \\ " + "\n" +
                               "    webview \\ " + "\n" +
-                              "    charts " + "\n" +
-                              "CONFIG += c++11 " + "\n" +
+                              "    charts "
+                              + "\n" +
+                              "CONFIG += c++11 "
+                              + "\n" +
                               "# The following define makes your compiler emit warnings if you use " + "\n" +
                               "# any Qt feature that has been marked deprecated (the exact warnings " + "\n" +
                               "# depend on your compiler). Refer to the documentation for the " + "\n" +
                               "# deprecated API to know how to port your code away from it. " + "\n" +
-                              "DEFINES += QT_DEPRECATED_WARNINGS" + "\n" +
+                              "DEFINES += QT_DEPRECATED_WARNINGS"
+                              + "\n" +
                               "# You can also make your code fail to compile if it uses deprecated APIs. " + "\n" +
                               "# In order to do so, uncomment the following line. " + "\n" +
                               "# You can also select to disable deprecated APIs only up to a certain version of Qt. " + "\n" +
                               "#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0" + "\n" +
                               "SOURCES += \\ " + "\n" +
                               "        main.cpp" + "\n" +
-                              "RESOURCES += qml.qrc" + "\n" +
+                              "RESOURCES += qml.qrc"
+                              + "\n" +
+                              "DISTFILES += \\"
+                              + "%1" // TODO: add for hot reload /!\ The cpp must not load using qrc:/// for that to work
+                              + "\n" +
+                              "" + "\n" +
+                              "# Copy qml files post build" + "\n" +
+                              "win32 {" + "\n" +
+                              "    DESTDIR_WIN = $${OUT_PWD}" + "\n" +
+                              "    DESTDIR_WIN ~= s,/,\\\\,g" + "\n" +
+                              "    PWD_WIN = $${PWD}" + "\n" +
+                              "    PWD_WIN ~= s,/,\\\\,g" + "\n" +
+                              "    for(FILE, DISTFILES){" + "\n" +
+                              "        FILE ~= s,/,\\\\,g" + "\n" +
+                              "        QMAKE_POST_LINK += $$quote(cmd /c echo F | xcopy /y /s $$quote($${PWD_WIN}\\\\$${FILE}) $$quote($${DESTDIR_WIN}\\\\$${FILE}$$escape_expand(\\\\n\\\\t)))" + "\n" +
+                              "    }" + "\n" +
+                              "}"
+                              + "\n" +
                               "# Additional import path used to resolve QML modules in Qt Creator's code model " + "\n" +
                               "QML_IMPORT_PATH =" + "\n" +
                               "# Additional import path used to resolve QML modules just for Qt Quick Designer " + "\n" +
