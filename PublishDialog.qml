@@ -482,6 +482,7 @@ Item {
                                    "\n" +
                                    "    Loader {\n" +
                                    "        anchors.fill: parent\n" +
+                                   "        asynchronous: true; \n" +
                                    "        source: \"qrc:///%4\"\n" +
                                    "    }\n" +
                                    "}\n"
