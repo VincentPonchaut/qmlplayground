@@ -450,7 +450,7 @@ ApplicationWindow {
 
         modal: true
         focus: true
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
         PublishDialog {
             id: publishDialogItem
