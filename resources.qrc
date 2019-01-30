@@ -41,5 +41,8 @@
         <file>img/console.svg</file>
         <file>img/search.svg</file>
         <file>SoftIconButton.qml</file>
+        <file>PublishDialog.qml</file>
+        <file>DirectorySelector.qml</file>
+        <file>FormField.qml</file>
     </qresource>
 </RCC>

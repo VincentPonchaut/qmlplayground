@@ -32,6 +32,7 @@ public:
     void onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
     Q_INVOKABLE int runCommand(const QString& pCommand);
+    Q_INVOKABLE int runAsyncCommand(const QString& pCommand);
     Q_INVOKABLE int runCommandWithArgs(const QString& pCommand, const QStringList& pArgs);
     Q_INVOKABLE QStringList listFiles(const QString& pPath);
     Q_INVOKABLE void openFileExternally(const QString& pPath);
@@ -54,6 +55,8 @@ public:
     Q_INVOKABLE void sendDataMessage(const QString& data);
 
     Q_INVOKABLE void setClipboardText(const QString& clipboard);
+
+    Q_INVOKABLE bool exists(const QString& path);
 
     QString currentFile() const;
     QString currentFolder() const;

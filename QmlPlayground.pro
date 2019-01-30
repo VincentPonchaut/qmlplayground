@@ -9,6 +9,7 @@ QT += \
     positioning location \
     3dcore 3drender 3dinput 3dquick \
     webview \
+    charts \
 
 CONFIG += c++11
 

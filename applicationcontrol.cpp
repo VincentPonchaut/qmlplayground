@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QClipboard>
 #include <QSettings>
+#include <QDir>
 
 #include <iostream>
 
@@ -114,6 +115,13 @@ int ApplicationControl::runCommand(const QString &pCommand)
     return QProcess::execute(pCommand);
 }
 
+
+int ApplicationControl::runAsyncCommand(const QString &pCommand)
+{
+    qDebug() << "Executing command " << pCommand;
+    return QProcess::startDetached(pCommand);
+}
+
 int ApplicationControl::runCommandWithArgs(const QString &pCommand, const QStringList &pArgs)
 {
     QStringList lArgs;
@@ -136,13 +144,13 @@ int ApplicationControl::runCommandWithArgs(const QString &pCommand, const QStrin
 
 QStringList ApplicationControl::listFiles(const QString &pPath)
 {
-    qDebug() << "Looking up files in " << pPath;
-
-    if (pPath.isEmpty())
-        return QStringList();
-
     QString lActualPath = pPath;
     lActualPath.remove("file:///");
+
+    if (lActualPath.isEmpty() || lActualPath == "/" || !QDir(lActualPath).exists())
+        return QStringList();
+
+    qDebug() << "Looking up files in " << lActualPath;
 
     QStringList lNameFilters = { "*.qml" };
     QStringList lFileList;
@@ -341,6 +349,11 @@ void ApplicationControl::sendDataMessage(const QString &data)
 void ApplicationControl::setClipboardText(const QString &clipboard)
 {
     QGuiApplication::clipboard()->setText(clipboard);
+}
+
+bool ApplicationControl::exists(const QString &path)
+{
+    return QDir(path).exists() || QFile::exists(path);
 }
 
 QString ApplicationControl::currentFile() const

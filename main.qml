@@ -53,6 +53,11 @@ ApplicationWindow {
         property alias windowY: root.y
         property alias windowWidth: root.width
         property alias windowHeight: root.height
+
+        // Publish dialog
+        property alias qtBinPath: publishDialogItem.qtBinPath
+        property alias msvcCmdPath: publishDialogItem.msvcCmdPath
+        property alias publishDir: publishDialogItem.publishDir
     }
 
     DataManager {
@@ -428,6 +433,32 @@ ApplicationWindow {
             }
         }
 
+
+    }
+
+    // Publish Dialog
+    Popup {
+        id: publishDialog
+
+        width: parent.width * 0.66
+        height: parent.height * 0.66
+        x: root.width / 2 - width / 2
+        y: root.height / 2 - height / 2
+
+        clip: true
+        padding: 0
+
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+
+        PublishDialog {
+            id: publishDialogItem
+
+            width: publishDialog.width * 0.9
+            height: publishDialog.height * 0.9
+            anchors.centerIn: parent
+        }
 
     }
 

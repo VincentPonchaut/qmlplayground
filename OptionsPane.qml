@@ -16,12 +16,12 @@ Pane {
 
     Material.theme: Material.Dark
     background: Rectangle { color: "#1d1d1d" }
-    
+
     Row {
         id: contentPageHeader
         spacing: 20
         
-        width: parent.width * 0.85
+//        width: parent.width * 0.85
         anchors.horizontalCenter: parent.horizontalCenter
         
         CheckBox {
@@ -70,7 +70,17 @@ Pane {
                 }
             }
         }
+
+        // Publish button
+        Button {
+            anchors.verticalCenter: optionsPane.verticalCenter
+
+            text: "Publish"
+            onClicked: publishDialog.open()
+        }
+
     } // end contentPageHeader
+
     
     states: [
         State {
