@@ -62,6 +62,36 @@ Item {
                 }
             }
         }
+        FormField {
+            label: "App icon:"
+
+            RoundButton {
+                id: appIconSelector
+
+                property string selectedFile: appIconPreview.source
+
+                onClicked: fileDialog.open()
+
+                Image {
+                    id: appIconPreview
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    fillMode: Image.PreserveAspectFit
+                    source: fileDialog.currentFile
+
+                }
+
+                FileDialog {
+                    id: fileDialog
+                    acceptLabel: "*.png"
+                    folder: StandardPaths.standardLocations(StandardPaths.PicturesLocation)[0]
+                }
+            }
+            Label {
+                anchors.verticalCenter: parent.verticalCenter
+                text: fileDialog.currentFile
+            }
+        }
 
         FormField {
             label: "Window title:"
@@ -277,7 +307,9 @@ Item {
         print("fileList:", vFileList)
         print("qrcfile:", qrc_file)
 
+        // -----------------------------------------------------------------------------
         // Generate files
+        // -----------------------------------------------------------------------------
         appControl.createFolder(vPublishDir, vProjectName)
         var vTargetFolder = vPublishDir + "/" + vProjectName
 
@@ -309,19 +341,37 @@ Item {
         appControl.writeFileContents("%1/build_and_deploy.bat".arg(vTargetFolder), build_script_bat.arg(vPublishDir)
                                                                                                    .arg(vProjectName)
                                                                                                    .arg(vQtDir))
-
+        // -----------------------------------------------------------------------------
         // Prepare command args
+        // -----------------------------------------------------------------------------
         vFolder = vFolder.replace("file:///", "")
         vFolder = replaceAll(vFolder, "/", "\\")
         if (vFolder.endsWith("\\")) {
             vFolder = vFolder.substring(0, vFolder.length - 1)
         }
 
+        // -----------------------------------------------------------------------------
+        // Copy appIcon to destination
+        // -----------------------------------------------------------------------------
+        var vSelectedFile = replaceAll(appIconSelector.selectedFile, "file:///", "")
+        vSelectedFile = replaceAll(vSelectedFile, "/", "\\")
+
+        appControl.runCommand("cmd /c copy /y \"%1\" \"%2\\appIcon.png\""
+                                .arg(replaceAll(vSelectedFile, "/", "\\"))
+                                .arg(replaceAll(vTargetFolder, "/", "\\")))
+
+        Qt.openUrlExternally(vTargetFolder)
+
+        // -----------------------------------------------------------------------------
         // Call command
+        // -----------------------------------------------------------------------------
         appControl.runCommand("xcopy /y /s %1 %2".arg(vFolder)
                                                  .arg(replaceAll(vTargetFolder, "/", "\\")))
 
+
+        // -----------------------------------------------------------------------------
         // Build & Deploy
+        // -----------------------------------------------------------------------------
         appControl.runAsyncCommand("%1\\build_and_deploy.bat".arg(replaceAll(vTargetFolder, "/", "\\")))
 
         print("publish end")
