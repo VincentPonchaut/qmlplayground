@@ -73,7 +73,7 @@ Pane {
 
         // Publish button
         Button {
-            anchors.verticalCenter: optionsPane.verticalCenter
+            anchors.verticalCenter: parent.verticalCenter
 
             text: "Publish"
             onClicked: publishDialog.open()
