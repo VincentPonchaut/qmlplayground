@@ -4,27 +4,27 @@
 SystemTrayIcon::SystemTrayIcon(QObject *parent)
     : QObject(parent)
 {
-    m_menu = new QMenu();
-    connect(m_menu, &QMenu::triggered, [=](QAction* a) {
-        emit m_actionsMap[a]->triggered();
+    mMenu = new QMenu();
+    connect(mMenu, &QMenu::triggered, [=](QAction* a) {
+        emit mActionMap[a]->triggered();
     });
 
-    m_systemTrayIcon = new QSystemTrayIcon(this);
+    mSystemTrayIcon = new QSystemTrayIcon(this);
     QPixmap pixmap(":/img/appIcon.png");
-    m_systemTrayIcon->setIcon(QIcon(pixmap));
-    m_systemTrayIcon->setContextMenu(m_menu);
+    mSystemTrayIcon->setIcon(QIcon(pixmap));
+    mSystemTrayIcon->setContextMenu(mMenu);
 
-    m_systemTrayIcon->show();
+    mSystemTrayIcon->show();
 }
 
 QUrl SystemTrayIcon::iconUrl() const
 {
-    return m_iconUrl;
+    return mIconUrl;
 }
 
 void SystemTrayIcon::setIconUrl(QUrl iconUrl)
 {
-    if (m_iconUrl == iconUrl)
+    if (mIconUrl == iconUrl)
         return;
 
     QString iconPath = iconUrl.path().replace("file:///", "");
@@ -35,68 +35,81 @@ void SystemTrayIcon::setIconUrl(QUrl iconUrl)
     if (iconUrl.scheme() == "qrc")
         iconPath = ":" + iconPath; // from something like "/img/myimg.png" to ":/img/myimg.png"
 
-    m_iconUrl = iconUrl;
-    m_systemTrayIcon->setIcon(QIcon(iconPath));
+    mIconUrl = iconUrl;
+    mSystemTrayIcon->setIcon(QIcon(iconPath));
 
-    emit iconUrlChanged(m_iconUrl);
+    emit iconUrlChanged(mIconUrl);
 }
 
-QQmlListProperty<SystemTrayAction> SystemTrayIcon::actions()
+QQmlListProperty<SystemTrayMenuItem> SystemTrayIcon::menuItems()
 {
-    return QQmlListProperty<SystemTrayAction>(this, this,
-             &SystemTrayIcon::appendAction,
-             &SystemTrayIcon::actionCount,
-             &SystemTrayIcon::action,
-             &SystemTrayIcon::clearActions);
+    return QQmlListProperty<SystemTrayMenuItem>(this, this,
+             &SystemTrayIcon::appendMenuItem,
+             &SystemTrayIcon::menuItemCount,
+             &SystemTrayIcon::menuItem,
+             &SystemTrayIcon::clearMenuItems);
 }
 
-void SystemTrayIcon::appendAction(SystemTrayAction* p)
+void SystemTrayIcon::appendMenuItem(SystemTrayMenuItem* p)
 {
-    m_actions.append(p);
-    QAction* newQAction = m_menu->addAction(p->name());
+    if (p->inherits("SystemTraySeparator"))
+    {
+        mMenu->addSeparator();
+        return;
+    }
+    else if (p->inherits("SystemTrayAction"))
+    {
+        SystemTrayAction* a = qobject_cast<SystemTrayAction*>(p);
+        QAction* newQAction = mMenu->addAction(a->name());
+        mActionMap[newQAction] = a;
+    }
 
-    m_actionsMap[newQAction] = p;
+    mMenuItems.append(p);
+
 }
 
-int SystemTrayIcon::actionCount() const
+int SystemTrayIcon::menuItemCount() const
 {
-    return m_actions.count();
+    return mMenuItems.count();
 }
 
-SystemTrayAction *SystemTrayIcon::action(int index) const
+SystemTrayMenuItem *SystemTrayIcon::menuItem(int index) const
 {
-    return m_actions.at(index);
+    return mMenuItems.at(index);
 }
 
-void SystemTrayIcon::clearActions()
+void SystemTrayIcon::clearMenuItems()
 {
-    m_actions.clear();
+    mMenuItems.clear();
 }
 
 void SystemTrayIcon::registerQmlTypes()
 {
-    qmlRegisterType<SystemTrayAction>("SystemTray", 1, 0, "SystemTrayAction");
     qmlRegisterType<SystemTrayIcon>("SystemTray", 1, 0, "SystemTrayIcon");
+
+    qmlRegisterType<SystemTrayMenuItem>();
+    qmlRegisterType<SystemTrayAction>("SystemTray", 1, 0, "SystemTrayAction");
+    qmlRegisterType<SystemTraySeparator>("SystemTray", 1, 0, "SystemTraySeparator");
 }
 
 // static
 
-void SystemTrayIcon::appendAction(QQmlListProperty<SystemTrayAction>* list, SystemTrayAction* p)
+void SystemTrayIcon::appendMenuItem(QQmlListProperty<SystemTrayMenuItem>* list, SystemTrayMenuItem* p)
 {
-    reinterpret_cast< SystemTrayIcon* >(list->data)->appendAction(p);
+    reinterpret_cast< SystemTrayIcon* >(list->data)->appendMenuItem(p);
 }
 
-void SystemTrayIcon::clearActions(QQmlListProperty<SystemTrayAction>* list)
+void SystemTrayIcon::clearMenuItems(QQmlListProperty<SystemTrayMenuItem>* list)
 {
-    reinterpret_cast< SystemTrayIcon* >(list->data)->clearActions();
+    reinterpret_cast< SystemTrayIcon* >(list->data)->clearMenuItems();
 }
 
-SystemTrayAction* SystemTrayIcon::action(QQmlListProperty<SystemTrayAction>* list, int i)
+SystemTrayMenuItem* SystemTrayIcon::menuItem(QQmlListProperty<SystemTrayMenuItem>* list, int i)
 {
-    return reinterpret_cast< SystemTrayIcon* >(list->data)->action(i);
+    return reinterpret_cast< SystemTrayIcon* >(list->data)->menuItem(i);
 }
 
-int SystemTrayIcon::actionCount(QQmlListProperty<SystemTrayAction>* list)
+int SystemTrayIcon::menuItemCount(QQmlListProperty<SystemTrayMenuItem>* list)
 {
-    return reinterpret_cast< SystemTrayIcon* >(list->data)->actionCount();
+    return reinterpret_cast< SystemTrayIcon* >(list->data)->menuItemCount();
 }

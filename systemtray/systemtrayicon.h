@@ -16,17 +16,19 @@ class SystemTrayIcon: public QObject
     Q_OBJECT
 
     Q_PROPERTY(QUrl iconUrl READ iconUrl WRITE setIconUrl NOTIFY iconUrlChanged)
-    Q_PROPERTY(QQmlListProperty<SystemTrayAction> actions READ actions)
+    Q_PROPERTY(QQmlListProperty<SystemTrayMenuItem> menuItems READ menuItems)
+    Q_CLASSINFO("DefaultProperty", "menuItems")
+
 
 public:
     explicit SystemTrayIcon(QObject* parent = nullptr);
     QUrl iconUrl() const;
 
-    QQmlListProperty<SystemTrayAction> actions();
-    void appendAction(SystemTrayAction*);
-    int actionCount() const;
-    SystemTrayAction *action(int) const;
-    void clearActions();
+    QQmlListProperty<SystemTrayMenuItem> menuItems();
+    void appendMenuItem(SystemTrayMenuItem*);
+    int menuItemCount() const;
+    SystemTrayMenuItem *menuItem(int) const;
+    void clearMenuItems();
 
     static void registerQmlTypes();
 
@@ -37,16 +39,16 @@ signals:
     void iconUrlChanged(QUrl iconUrl);
 
 private:
-    static void appendAction(QQmlListProperty<SystemTrayAction>*, SystemTrayAction*);
-    static int actionCount(QQmlListProperty<SystemTrayAction>*);
-    static SystemTrayAction *action(QQmlListProperty<SystemTrayAction>*,int);
-    static void clearActions(QQmlListProperty<SystemTrayAction>*);
+    static void appendMenuItem(QQmlListProperty<SystemTrayMenuItem>*, SystemTrayMenuItem*);
+    static int menuItemCount(QQmlListProperty<SystemTrayMenuItem>*);
+    static SystemTrayMenuItem *menuItem(QQmlListProperty<SystemTrayMenuItem>*,int);
+    static void clearMenuItems(QQmlListProperty<SystemTrayMenuItem>*);
 
-    QUrl m_iconUrl;
-    QVector<SystemTrayAction*> m_actions;
-    QHash<QAction*, SystemTrayAction*> m_actionsMap;
-    QSystemTrayIcon* m_systemTrayIcon;
-    QMenu* m_menu;
+    QUrl mIconUrl;
+    QVector<SystemTrayMenuItem*> mMenuItems;
+    QHash<QAction*, SystemTrayAction*> mActionMap;
+    QSystemTrayIcon* mSystemTrayIcon;
+    QMenu* mMenu;
 };
 
 #endif // SYSTEMTRAYICON_H

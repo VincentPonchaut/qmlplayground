@@ -3,7 +3,14 @@
 
 #include <QObject>
 
-class SystemTrayAction : public QObject
+class SystemTrayMenuItem: public QObject
+{
+    Q_OBJECT
+public:
+    explicit SystemTrayMenuItem(QObject* parent = nullptr);
+};
+
+class SystemTrayAction : public SystemTrayMenuItem
 {
     Q_OBJECT
 
@@ -23,6 +30,12 @@ signals:
 
 private:
     QString m_name;
+};
+
+
+class SystemTraySeparator: public SystemTrayMenuItem
+{
+    Q_OBJECT
 };
 
 #endif // SYSTEMTRAYACTION_H

@@ -1,6 +1,12 @@
 #include "systemtrayaction.h"
 
-SystemTrayAction::SystemTrayAction(QObject *parent) : QObject(parent)
+SystemTrayMenuItem::SystemTrayMenuItem(QObject *parent)
+    : QObject (parent)
+{
+
+}
+
+SystemTrayAction::SystemTrayAction(QObject *parent) : SystemTrayMenuItem (parent)
 {
 
 }
@@ -18,3 +24,4 @@ void SystemTrayAction::setName(QString name)
     m_name = name;
     emit nameChanged(m_name);
 }
+
