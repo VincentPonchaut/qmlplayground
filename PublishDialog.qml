@@ -333,7 +333,7 @@ Item {
 
         appControl.writeFileContents("%1/%2.pro".arg(vTargetFolder).arg(vProjectName), pro_file)
         appControl.writeFileContents("%1/qml.qrc".arg(vTargetFolder), qrc_file.arg(vFileList))
-        appControl.writeFileContents("%1/main.cpp".arg(vTargetFolder), main_cpp_file)
+        appControl.writeFileContents("%1/main.cpp".arg(vTargetFolder), main_cpp_file.arg(vProjectName))
         appControl.writeFileContents("%1/qtquickcontrols2.conf".arg(vTargetFolder), qtquickcontrols2_conf) // TODO input args
 
         // %1 is Window title
@@ -348,10 +348,13 @@ Item {
         // %1 is folder
         // %2 is project name
         // %3 is Qt dir
-        var vQtDir = "C:\\Qt\\5.12.0\\msvc2017_64\\bin"
+//        var vQtDir = "C:\\Qt\\5.12.0\\msvc2017_64\\bin"
+        var vQtDir = qtBinPathEditor.text
+        var vMsvcDir = msvcCmdPathEditor.text
         appControl.writeFileContents("%1/build_and_deploy.bat".arg(vTargetFolder), build_script_bat.arg(vPublishDir)
                                                                                                    .arg(vProjectName)
-                                                                                                   .arg(vQtDir))
+                                                                                                   .arg(vQtDir)
+                                                                                                   .arg(vMsvcDir))
         // -----------------------------------------------------------------------------
         // Prepare command args
         // -----------------------------------------------------------------------------
@@ -388,6 +391,8 @@ Item {
         print("publish end")
         publishDialog.close()
     }
+
+    /*
 
     property string pro_file: "QT += \\ " + "\n" +
                               "    core gui qml quick \\ " + "\n" +
@@ -512,6 +517,13 @@ Item {
                                            "Theme=Dark" + "\n" +
                                            "Accent=Teal" + "\n" +
                                            "Primary=BlueGrey"
+    */
+    property string pro_file: appControl.readFileContents(":/publishing/template.pro")
+    property string qrc_file: appControl.readFileContents(":/publishing/qml.rc")
+    property string main_cpp_file: appControl.readFileContents(":/publishing/main.cpp")
+    property string main_qml_file: appControl.readFileContents(":/publishing/main.qml")
+    property string qtquickcontrols2_conf: appControl.readFileContents(":/publishing/qtquickcontrols2.conf")
+    property string build_script_bat: appControl.readFileContents(":/publishing/build_and_deploy.bat")
 
 
     function writeFile(fileUrl, text, callback) {
