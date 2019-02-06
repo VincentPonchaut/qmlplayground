@@ -382,6 +382,12 @@ Item {
         appControl.runCommand("xcopy /y /s %1 %2".arg(vFolder)
                                                  .arg(replaceAll(vTargetFolder, "/", "\\")))
 
+        // -----------------------------------------------------------------------------
+        // Copy features pack
+        // -----------------------------------------------------------------------------
+
+        // SystemTray
+        appControl.copyFeaturePack("systemtray", vTargetFolder + "/systemtray")
 
         // -----------------------------------------------------------------------------
         // Build & Deploy

@@ -38,6 +38,8 @@ SOURCES += main.cpp \
     SyntaxHighlighter.cpp \
     servercontrol.cpp
 
+include(systemtray/systemtray.pri)
+
 RESOURCES += \
     resources.qrc
 

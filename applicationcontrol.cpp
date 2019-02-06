@@ -236,6 +236,28 @@ bool ApplicationControl::copyFile(QString pSrcPath, QString pDstPath)
     return QFile::copy(srcPath, dstPath);
 }
 
+bool ApplicationControl::copyFeaturePack(QString pFeaturePackPrefix, QString pDstPath)
+{
+    QString dstPath = pDstPath.replace("file:///", "");
+
+    if (!QDir::root().exists(dstPath))
+    {
+        QDir::root().mkpath(dstPath);
+    }
+
+    bool success = true;
+    foreach (const QString& file, QDir(":/" + pFeaturePackPrefix).entryList())
+    {
+        qDebug() << "copying" << file << "to" << dstPath;
+        QString srcFile = ":/" + pFeaturePackPrefix + "/" + file;
+        QString dstFile = dstPath + "/" + file;
+
+        success &= QFile::copy(srcFile, dstFile);
+    }
+
+    return success;
+}
+
 void ApplicationControl::addToFolderList(const QString &pFolderPath)
 {
     if (mFolderList.contains(pFolderPath))

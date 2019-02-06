@@ -50,5 +50,10 @@
         <file>publishing/qml.rc</file>
         <file>publishing/qtquickcontrols2.conf</file>
         <file>publishing/template.pro</file>
+        <file>systemtray/systemtray.pri</file>
+        <file>systemtray/systemtrayaction.cpp</file>
+        <file>systemtray/systemtrayaction.h</file>
+        <file>systemtray/systemtrayicon.cpp</file>
+        <file>systemtray/systemtrayicon.h</file>
     </qresource>
 </RCC>

@@ -12,6 +12,8 @@
 #include "applicationcontrol.h"
 #include "SyntaxHighlighter.h"
 
+#include "systemtray/systemtrayicon.h"
+
 #include <QtGlobal>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +33,8 @@ void registerQmlTypes(QQmlApplicationEngine& pEngine)
     Q_UNUSED(pEngine)
     qmlRegisterType<MaskedMouseArea>("Tools", 1, 0, "MaskedMouseArea");
     qmlRegisterType<SyntaxHighlighter>("SyntaxHighlighter", 1, 1, "SyntaxHighlighter");
+
+    SystemTrayIcon::registerQmlTypes();
 }
 
 int main(int argc, char *argv[])
