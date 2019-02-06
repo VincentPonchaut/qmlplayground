@@ -293,6 +293,7 @@ Item {
                                                         "*.qml",
                                                         "*.png",
                                                         "*.jpg",
+                                                        "*.svg",
                                                         "*.jpeg",
                                                         "*.gif",
                                                         "*.mp3",
@@ -499,19 +500,19 @@ Item {
                                    "}\n"
 
     // TODO
-    property string build_script_bat: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvarsall.bat\" x64" + "\n" +
-                                      "set PATH=%PATH%;%3;" + "\n" +
-                                      "\n" +
-                                      "taskkill /F /IM %2.exe" + "\n" +
-                                      "\n" +
-                                      "cd \"%1\\%2\"" + "\n" +
-                                      "qmake %2.pro" + "\n" +
-                                      "qmake" + "\n" +
-                                      "nmake" + "\n" +
-                                      "\n" +
-                                      "REM Deploy" + "\n" +
-                                      "windeployqt --qmldir . release/%2.exe" + "\n" +
-                                      "start release/%2.exe"
+        property string build_script_bat: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvarsall.bat\" x64" + "\n" +
+                                          "set PATH=%PATH%;%3;" + "\n" +
+                                          "\n" +
+                                          "taskkill /F /IM %2.exe" + "\n" +
+                                          "\n" +
+                                          "cd \"%1\\%2\"" + "\n" +
+                                          "qmake %2.pro" + "\n" +
+                                          "qmake" + "\n" +
+                                          "nmake" + "\n" +
+                                          "\n" +
+                                          "REM Deploy" + "\n" +
+                                          "windeployqt --qmldir . release/%2.exe" + "\n" +
+                                          "start release/%2.exe"
 
     // TODO
     property string qtquickcontrols2_conf: "[Controls]" + "\n" +
