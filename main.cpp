@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("QmlPlayground");
     QApplication app(argc, argv);
 
-    app.setWindowIcon(QIcon(":/img/appIcon.png"));
+    app.setWindowIcon(QIcon(":/img/appIcon.ico"));
 
     QSettings::setDefaultFormat(QSettings::IniFormat);
 

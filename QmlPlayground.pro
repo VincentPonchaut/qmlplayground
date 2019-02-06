@@ -43,6 +43,8 @@ include(systemtray/systemtray.pri)
 RESOURCES += \
     resources.qrc
 
+RC_FILE = img/appicon.rc
+
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
 
