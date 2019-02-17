@@ -10,3 +10,4 @@ QmlPlayground.pro.user.0b083da
 object_script.QmlPlayground.*
 .vscode/
 *.autosave
+resources_qmlcache.qrc

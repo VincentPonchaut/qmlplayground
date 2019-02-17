@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>publishing/build_and_deploy.bat</file>
+        <file>publishing/main.cpp</file>
+        <file>publishing/main.qml</file>
+        <file>publishing/qml.rc</file>
+        <file>publishing/qtquickcontrols2.conf</file>
+        <file>publishing/template.pro</file>
+    </qresource>
+</RCC>

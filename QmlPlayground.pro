@@ -42,7 +42,10 @@ include(systemtray/systemtray.pri)
 include(svg/svg.pri)
 
 RESOURCES += \
-    resources.qrc
+    resources.qrc \
+    publishing.qrc
+
+QTQUICK_COMPILER_SKIPPED_RESOURCES += publishing.qrc
 
 RC_FILE = img/appicon.rc
 
@@ -57,5 +60,3 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    resources
