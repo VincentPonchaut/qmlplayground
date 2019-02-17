@@ -13,6 +13,7 @@
 #include "SyntaxHighlighter.h"
 
 #include "systemtray/systemtrayicon.h"
+#include "svg/svgimageitem.h"
 
 #include <QtGlobal>
 #include <stdio.h>
@@ -35,6 +36,7 @@ void registerQmlTypes(QQmlApplicationEngine& pEngine)
     qmlRegisterType<SyntaxHighlighter>("SyntaxHighlighter", 1, 1, "SyntaxHighlighter");
 
     SystemTrayIcon::registerQmlTypes();
+    SvgImageItem::registerQmlTypes();
 }
 
 int main(int argc, char *argv[])

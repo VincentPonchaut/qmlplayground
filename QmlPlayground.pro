@@ -39,6 +39,7 @@ SOURCES += main.cpp \
     servercontrol.cpp
 
 include(systemtray/systemtray.pri)
+include(svg/svg.pri)
 
 RESOURCES += \
     resources.qrc
