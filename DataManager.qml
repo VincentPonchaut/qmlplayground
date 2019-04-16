@@ -83,11 +83,11 @@ Item {
 //            Material.theme: Material.Dark
             anchors.fill: parent
 
-            Column {
+            Page {
                 anchors.fill: parent
                 spacing: 20
 
-                Column {
+                header: Column {
                     width: parent.width
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 10
@@ -127,28 +127,28 @@ Item {
                                 }
                             }
 
-//                            contentItem: Label {
-//                                width: parent.width
-//                                text: modelData
-////                                color: "#21be2b"
-//                                font: control.font
-//                                elide: Text.ElideLeft
-//                                verticalAlignment: Text.AlignVCenter
-//                            }
+                            //                            contentItem: Label {
+                            //                                width: parent.width
+                            //                                text: modelData
+                            ////                                color: "#21be2b"
+                            //                                font: control.font
+                            //                                elide: Text.ElideLeft
+                            //                                verticalAlignment: Text.AlignVCenter
+                            //                            }
 
-//                            text: filenameFromUrl(modelData)
-//                            ToolTip.visible: hovered
-//                            ToolTip.text: modelData
+                            //                            text: filenameFromUrl(modelData)
+                            //                            ToolTip.visible: hovered
+                            //                            ToolTip.text: modelData
 
-//                            Text {
-//                                anchors.verticalCenter: parent.verticalCenter
-//                                anchors.right: parent.right
-//                                anchors.rightMargin: 5
-//                                text: "" + modelData
-//                                font.pointSize: 9
-//                                font.family: "Segoe UI"
-//                                font.italic: true
-//                            }
+                            //                            Text {
+                            //                                anchors.verticalCenter: parent.verticalCenter
+                            //                                anchors.right: parent.right
+                            //                                anchors.rightMargin: 5
+                            //                                text: "" + modelData
+                            //                                font.pointSize: 9
+                            //                                font.family: "Segoe UI"
+                            //                                font.italic: true
+                            //                            }
 
                             function filenameFromUrl(pUrl) {
                                 var s = String(pUrl)
@@ -192,23 +192,29 @@ Item {
                     }
                 }
 
-                TextArea {
-                    width: parent.width
-                    text: dataObject
+                ScrollView {
+                    anchors.fill: parent
 
-                    selectByKeyboard: true
-                    selectByMouse: true
-//                    tabStopDistance: 4
+//                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                    Keys.onTabPressed: {
-                        insert(cursorPosition, "    ");
-                    }
-                    onTextChanged: {
-                        writeFileContents(currentDataFile,
-                                          text,
-                                          function onFileWritten() {
-                                              dataManager.parseData()
-                                          })
+                    TextArea {
+                        width: parent.width
+                        text: dataObject
+
+                        selectByKeyboard: true
+                        selectByMouse: true
+                        //                    tabStopDistance: 4
+
+                        Keys.onTabPressed: {
+                            insert(cursorPosition, "    ");
+                        }
+                        onTextChanged: {
+                            writeFileContents(currentDataFile,
+                                              text,
+                                              function onFileWritten() {
+                                                  dataManager.parseData()
+                                              })
+                        }
                     }
                 }
             }
