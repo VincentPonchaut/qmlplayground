@@ -83,13 +83,13 @@ void SystemTrayIcon::clearMenuItems()
     mMenuItems.clear();
 }
 
-void SystemTrayIcon::registerQmlTypes()
+void SystemTrayIcon::registerQmlTypes(const char *uri)
 {
-    qmlRegisterType<SystemTrayIcon>("SystemTray", 1, 0, "SystemTrayIcon");
+    qmlRegisterType<SystemTrayIcon>(uri, 1, 0, "SystemTrayIcon");
 
     qmlRegisterType<SystemTrayMenuItem>();
-    qmlRegisterType<SystemTrayAction>("SystemTray", 1, 0, "SystemTrayAction");
-    qmlRegisterType<SystemTraySeparator>("SystemTray", 1, 0, "SystemTraySeparator");
+    qmlRegisterType<SystemTrayAction>(uri, 1, 0, "SystemTrayAction");
+    qmlRegisterType<SystemTraySeparator>(uri, 1, 0, "SystemTraySeparator");
 }
 
 // static

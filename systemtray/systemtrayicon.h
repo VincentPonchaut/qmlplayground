@@ -30,7 +30,7 @@ public:
     SystemTrayMenuItem *menuItem(int) const;
     void clearMenuItems();
 
-    static void registerQmlTypes();
+    static void registerQmlTypes(const char* uri);
 
 public slots:
     void setIconUrl(QUrl iconUrl);
