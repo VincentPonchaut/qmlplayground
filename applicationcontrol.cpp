@@ -614,20 +614,21 @@ void ApplicationControl::setupWatchOnFolder(const QString &pPath)
     }
     mFileWatcher.addPaths(lNestedFolderList);
 
-//    // Iterate over all qml files
-//    QStringList lNameFilters = { "*.qml" };
-//    QStringList lFileList;
+    // Iterate over all qml files : because some editors do not delete/replace an edited file, it will not trigger a directory change
+    // TODO: avoid having two signals fired for the same file
+    QStringList lNameFilters = { "*.qml" };
+    QStringList lFileList;
 
-//    QDirIterator it(pPath, lNameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
-//    while (it.hasNext())
-//    {
-//        QString lPath = it.next();
+    QDirIterator it2(pPath, lNameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    while (it2.hasNext())
+    {
+        QString lPath = it2.next();
 //        qDebug() << "adding watchee " << lPath;
-//        lFileList << lPath;
-//    }
+        lFileList << lPath;
+    }
 
-//    if (!lFileList.isEmpty())
-    //        mFileWatcher.addPaths(lFileList);
+    if (!lFileList.isEmpty())
+        mFileWatcher.addPaths(lFileList);
 }
 
 QString ApplicationControl::newFileContent()

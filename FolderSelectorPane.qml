@@ -17,6 +17,7 @@ Pane {
     property ListModel qmlFiles: ListModel {}
 
     function refresh() {
+//        print("refreshing FolderSelectorPane")
         qmlFiles.clear();
 
         folders.forEach(function(folder) {
@@ -33,9 +34,25 @@ Pane {
                                 });
             })
         });
+
+        var newCurrentIndex = 0;
+        for (var i = 0; i < qmlFiles.count; ++i) {
+            var qmlFile = qmlFiles.get(i);
+            if (qmlFile.file == appControl.currentFile) {
+                newCurrentIndex = i
+                break;
+            }
+        }
+        listView.currentIndex = newCurrentIndex
     }
-    onFoldersChanged: refresh()
-    onFilterTextChanged: refresh()
+    onFoldersChanged: {
+        print("foldersChanged from FolderSelectorPane")
+        refresh()
+    }
+    onFilterTextChanged: {
+        print("foldersChanged from FolderSelectorPane")
+        refresh()
+    }
 
     function focusFileFilter() {
         filterTextField.forceActiveFocus()
@@ -261,6 +278,7 @@ Pane {
                         var dirs = section.split("/");
                         return String(dirs[dirs.length - 1]);
                     }
+                    font.family: "Montserrat"
                 }
             }
 
@@ -350,10 +368,12 @@ Pane {
             }
 
             width: parent.width
-            height: (isSectionFolded || !matchesFilter ) ? 0 : 50
+            height: (isSectionFolded || !matchesFilter ) ? 0 : 40
 
-            text: "" + file
+            text: "" + file.substring(1)
             font.pointSize: 10
+            font.family: "Segoe UI"
+
             highlighted: filePath === appControl.currentFile
             //highlighted: ListView.isCurrentItem
 
@@ -373,7 +393,7 @@ Pane {
                 IconButton {
                     id: exploreToButton
 
-                    height: parent.height * 0.8
+                    height: parent.height //* 0.8
                     width: height
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -385,7 +405,7 @@ Pane {
                 IconButton {
                     id: editFileButton
 
-                    height: parent.height * 0.8
+                    height: parent.height //* 0.8
                     width: height
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -397,7 +417,7 @@ Pane {
                 IconButton {
                     id: editFileContentButton
 
-                    height: parent.height * 0.8
+                    height: parent.height //* 0.8
                     width: height
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -416,6 +436,8 @@ Pane {
         id: addFolderButton
         width: 60
         height: width
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
 //        text: checked ? "x" : "+"
 
         Image {
@@ -433,37 +455,8 @@ Pane {
             }
         }
 
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-//        onClicked: folderDialog.open()
-
         checkable: true
-
         checked: false
-        onHoveredChanged: {
-            if (hovered)
-            {
-                checked = true
-                focusTimer.restart()
-            }
-        }
-
-        Timer {
-            id: focusTimer
-            interval: 200
-            repeat: false
-            onTriggered: {
-                if (addFolderButton.hovered ||
-                    createNewFolderButton.hovered ||
-                    watchAnotherFolderButton.hovered)
-                {
-                    restart()
-                }
-                else {
-                    addFolderButton.checked = false
-                }
-            }
-        }
     }
     Column {
         id: contextualFloatingActionColumn
@@ -562,7 +555,10 @@ Pane {
         to: "closed"
         reversible: true
         
-        NumberAnimation { properties: "x"; easing.type: Easing.InOutQuad }
+        NumberAnimation {
+            properties: "x";
+            easing.type: Easing.InOutQuad
+        }
     }
     
     function toggle() {
