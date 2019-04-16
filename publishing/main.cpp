@@ -12,7 +12,7 @@ void registerQmlTypes(QQmlApplicationEngine& pEngine)
 //    qmlRegisterType<MaskedMouseArea>("Tools", 1, 0, "MaskedMouseArea");
 //    qmlRegisterType<SyntaxHighlighter>("SyntaxHighlighter", 1, 1, "SyntaxHighlighter");
 
-    SystemTrayIcon::registerQmlTypes();
+    SystemTrayIcon::registerQmlTypes("SystemTray");
 }
 
 int main(int argc, char *argv[])
