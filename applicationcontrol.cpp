@@ -172,7 +172,7 @@ QStringList ApplicationControl::listFiles(const QString &pPath, const QStringLis
     if (lActualPath.isEmpty() || lActualPath == "/" || !QDir(lActualPath).exists())
         return QStringList();
 
-    qDebug() << "Looking up files in " << lActualPath;
+//    qDebug() << "Looking up files in " << lActualPath;
 
     QStringList lNameFilters = pNameFilters;
     QStringList lFileList;
@@ -187,7 +187,7 @@ QStringList ApplicationControl::listFiles(const QString &pPath, const QStringLis
         lFileList << lPath;
     }
 
-    qDebug() << "returning filelist" << lFileList;
+//    qDebug() << "returning filelist" << lFileList;
     return lFileList;
 }
 
@@ -268,7 +268,8 @@ bool ApplicationControl::copyFeaturePack(QString pFeaturePackPrefix, QString pDs
     }
 
     bool success = true;
-    foreach (const QString& file, QDir(":/" + pFeaturePackPrefix).entryList())
+    QStringList entries = QDir(":/" + pFeaturePackPrefix).entryList();
+    foreach (const QString& file, entries)
     {
         qDebug() << "copying" << file << "to" << dstPath;
         QString srcFile = ":/" + pFeaturePackPrefix + "/" + file;
@@ -420,6 +421,8 @@ void ApplicationControl::addContextProperty(const QString &pKey, QVariant pData)
 
 void ApplicationControl::sendFolderToClients(const QString &folder)
 {
+    Q_UNUSED(folder);
+
     QString message;
     QStringList fileList = this->listFiles(currentFolder());
 
@@ -521,7 +524,7 @@ void ApplicationControl::setFolderList(QStringList folderList)
 
 void ApplicationControl::onFileChanged(const QString &pPath)
 {
-    qDebug() << "file changed " << pPath;
+//    qDebug() << "file changed " << pPath;
 
     mEngine->trimComponentCache();
     mEngine->clearComponentCache();
@@ -532,9 +535,9 @@ void ApplicationControl::onFileChanged(const QString &pPath)
 //    mQuickView->show();
 #endif
     mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
-    qDebug() << "Still watching files ---------------------------------";
-    qDebug() << mFileWatcher.files();
-    qDebug() << "------------------------------------------------------";
+//    qDebug() << "Still watching files ---------------------------------";
+//    qDebug() << mFileWatcher.files();
+//    qDebug() << "------------------------------------------------------";
 
     emit fileChanged(pPath);
 
@@ -543,15 +546,15 @@ void ApplicationControl::onFileChanged(const QString &pPath)
 
 void ApplicationControl::onDirectoryChanged(const QString &pPath)
 {
-    qDebug() << "directory changed " << pPath;
+//    qDebug() << "directory changed " << pPath;
 
     mEngine->trimComponentCache();
     mEngine->clearComponentCache();
 
     mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
-    qDebug() << "Still watching directories ---------------------------";
-    qDebug() << mFileWatcher.directories();
-    qDebug() << "------------------------------------------------------";
+//    qDebug() << "Still watching directories ---------------------------";
+//    qDebug() << mFileWatcher.directories();
+//    qDebug() << "------------------------------------------------------";
 
     emit directoryChanged(pPath);
 
@@ -600,6 +603,7 @@ void ApplicationControl::setupWatchOnFolder(const QString &pPath)
     qDebug() << "setting up watch on " << pPath;
     mFileWatcher.addPath(pPath);
 
+    // Iterate over directories
     QDirIterator it(pPath, QStringList(), QDir::AllDirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     QStringList lNestedFolderList;
     while (it.hasNext())
@@ -609,7 +613,7 @@ void ApplicationControl::setupWatchOnFolder(const QString &pPath)
         if (!it.fileInfo().isDir())
             continue;
 
-        qDebug() << "Found nested folder " << lPath;
+//        qDebug() << "Found nested folder " << lPath;
         lNestedFolderList << lPath;
     }
     mFileWatcher.addPaths(lNestedFolderList);
