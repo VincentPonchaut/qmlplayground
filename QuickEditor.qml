@@ -4,8 +4,9 @@ import QtQuick.Controls.Material 2.0
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
-import SyntaxHighlighter 1.1
 import QtQuick.Window 2.2
+
+import QmlPlayground 1.0
 
 import "./palettes/"
 

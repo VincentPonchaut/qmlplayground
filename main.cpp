@@ -32,11 +32,11 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 void registerQmlTypes(QQmlApplicationEngine& pEngine)
 {
     Q_UNUSED(pEngine)
-    qmlRegisterType<MaskedMouseArea>("Tools", 1, 0, "MaskedMouseArea");
-    qmlRegisterType<SyntaxHighlighter>("SyntaxHighlighter", 1, 1, "SyntaxHighlighter");
+    qmlRegisterType<MaskedMouseArea>("QmlPlayground", 1, 0, "MaskedMouseArea");
+    qmlRegisterType<SyntaxHighlighter>("QmlPlayground", 1, 0, "SyntaxHighlighter");
 
-    SystemTrayIcon::registerQmlTypes();
-    SvgImageItem::registerQmlTypes();
+    SystemTrayIcon::registerQmlTypes("QmlPlayground");
+    SvgImageItem::registerQmlTypes("QmlPlayground");
 }
 
 int main(int argc, char *argv[])
