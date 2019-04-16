@@ -44,5 +44,6 @@
         <file>PublishDialog.qml</file>
         <file>DirectorySelector.qml</file>
         <file>FormField.qml</file>
+        <file>img/exclamation-triangle.svg</file>
     </qresource>
 </RCC>
