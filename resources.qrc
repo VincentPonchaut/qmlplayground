@@ -45,5 +45,10 @@
         <file>DirectorySelector.qml</file>
         <file>FormField.qml</file>
         <file>img/exclamation-triangle.svg</file>
+        <file>systemtray/systemtray.pri</file>
+        <file>systemtray/systemtrayaction.cpp</file>
+        <file>systemtray/systemtrayaction.h</file>
+        <file>systemtray/systemtrayicon.cpp</file>
+        <file>systemtray/systemtrayicon.h</file>
     </qresource>
 </RCC>
