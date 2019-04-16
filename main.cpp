@@ -7,6 +7,8 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QQuickStyle>
+#include <QtWebEngine>
+#include <QtWebView>
 
 #include "tools/maskedmousearea.h"
 #include "applicationcontrol.h"
@@ -14,6 +16,7 @@
 
 #include "systemtray/systemtrayicon.h"
 #include "svg/svgimageitem.h"
+
 
 #include <QtGlobal>
 #include <stdio.h>
@@ -54,6 +57,9 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":/img/appIcon.ico"));
 
     QSettings::setDefaultFormat(QSettings::IniFormat);
+
+    QtWebView::initialize();
+    QtWebEngine::initialize();
 
     // Prepare the QML engine
     QQmlApplicationEngine engine;
