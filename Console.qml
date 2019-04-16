@@ -8,6 +8,13 @@ Pane {
     property var messages: []
     property int unreadMessages: 0
 
+    Connections {
+        target: appControl
+        onCurrentFileChanged: {
+            clearMessages()
+        }
+    }
+
     background: Rectangle {
         color: "black"
     }
@@ -113,7 +120,7 @@ Pane {
                                          trashButton.baseColor
         }
 
-        onClicked: root.messages = []
+        onClicked: clearMessages()
     }
 
     Connections {
@@ -123,9 +130,9 @@ Pane {
             if (String(file).startsWith("qrc:"))
                 return;
             pushMessage({
-                                   "msg" : message,
-                                   "file": String(file).replace(appControl.currentFolder, ""),
-                                   "line": line,
+                            "msg" : message,
+                            "file": String(file).replace(appControl.currentFolder, ""),
+                            "line": line,
                             "path": String(file),
                             "type": "user"
                         });
@@ -137,7 +144,7 @@ Pane {
                             "line": line,
                             "path": String(file),
                             "type": "warning"
-                               });
+                        });
         }
     }
 
@@ -162,6 +169,11 @@ Pane {
         if (root.state == "closed") {
             unreadMessages++;
         }
+    }
+
+    function clearMessages() {
+        root.messages = []
+        unreadMessages = 0
     }
 
     states: [
