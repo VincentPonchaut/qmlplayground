@@ -13,16 +13,14 @@ Item {
     // Data
     // -----------------------------------------------------------------------------
 
-    property var dataFiles: [
-        "C:/Users/Vincent/Desktop/test.json"
-    ]
+    property var dataFiles: []
 
     property var settings: Settings {
         property alias dataFiles: dataManager.dataFiles
         property alias currentDataFile: dataManager.currentDataFile
     }
 
-    property string currentDataFile: dataFiles[0]
+    property string currentDataFile;
     property var dataObject: readFileContents(currentDataFile)
 
     // -----------------------------------------------------------------------------
@@ -82,7 +80,7 @@ Item {
         title: "Add custom data"
 
         Pane {
-            Material.theme: Material.Dark
+//            Material.theme: Material.Dark
             anchors.fill: parent
 
             Column {
@@ -97,9 +95,68 @@ Item {
                     ComboBox {
                         id: dataFileComboBox
                         width: parent.width
+
                         model: dataManager.dataFiles
+                        currentIndex: dataManager.dataFiles.indexOf(dataManager.currentDataFile)
 
                         property bool locked: false
+
+                        delegate: ItemDelegate {
+                            width: dataFileComboBox.width
+                            highlighted: dataFileComboBox.highlightedIndex === index
+
+                            contentItem: Column {
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                spacing: 2
+
+                                Label {
+                                    height: 30
+                                    text: filenameFromUrl(modelData)
+                                    font: dataFileComboBox.font
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                Label {
+                                    height: 10
+                                    text: "" + modelData
+                                    font.pointSize: 8
+                                    font.family: "Segoe UI"
+                                    font.italic: true
+                                    color: "grey"
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+
+//                            contentItem: Label {
+//                                width: parent.width
+//                                text: modelData
+////                                color: "#21be2b"
+//                                font: control.font
+//                                elide: Text.ElideLeft
+//                                verticalAlignment: Text.AlignVCenter
+//                            }
+
+//                            text: filenameFromUrl(modelData)
+//                            ToolTip.visible: hovered
+//                            ToolTip.text: modelData
+
+//                            Text {
+//                                anchors.verticalCenter: parent.verticalCenter
+//                                anchors.right: parent.right
+//                                anchors.rightMargin: 5
+//                                text: "" + modelData
+//                                font.pointSize: 9
+//                                font.family: "Segoe UI"
+//                                font.italic: true
+//                            }
+
+                            function filenameFromUrl(pUrl) {
+                                var s = String(pUrl)
+                                var i = s.lastIndexOf("/")
+                                i++
+                                return s.substring(i)
+                            }
+                        }
 
                         onCurrentIndexChanged: {
                             if (locked)
@@ -127,7 +184,7 @@ Item {
                             }
                         }
                         ToolButton {
-                            text: "Clear"
+                            text: "Clear All"
                             onClicked: {
                                 dataManager.dataFiles = []
                             }
