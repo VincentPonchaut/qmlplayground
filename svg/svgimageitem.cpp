@@ -12,10 +12,10 @@ SvgImageItem::SvgImageItem(QQuickItem* pParent)
     connect(&mSvgImage, &SvgImageData::isLoadedChanged, this, &SvgImageItem::isLoadedChanged);
 
     // Repaint when something is modified
-    connect(&mSvgImage, &SvgImageData::sourceChanged, this, &SvgImageItem::repaint);
-    connect(&mSvgImage, &SvgImageData::svgElementsChanged, this, &SvgImageItem::repaint);
-    connect(&mSvgImage, &SvgImageData::svgTextReplacementsChanged, this, &SvgImageItem::repaint);
-    connect(&mSvgImage, &SvgImageData::isLoadedChanged, this, &SvgImageItem::repaint);
+    connect(&mSvgImage, &SvgImageData::sourceChanged, this, &SvgImageItem::handleDataChange);
+    connect(&mSvgImage, &SvgImageData::svgElementsChanged, this, &SvgImageItem::handleDataChange);
+    connect(&mSvgImage, &SvgImageData::svgTextReplacementsChanged, this, &SvgImageItem::handleDataChange);
+    connect(&mSvgImage, &SvgImageData::isLoadedChanged, this, &SvgImageItem::handleDataChange);
 }
 
 SvgImageItem::~SvgImageItem()
@@ -71,8 +71,19 @@ void SvgImageItem::repaint()
     update();
 }
 
-void SvgImageItem::registerQmlTypes()
+void SvgImageItem::handleDataChange()
 {
-    qmlRegisterType<SvgElement>("Svg", 1, 0, "SvgElement");
-    qmlRegisterType<SvgImageItem>("Svg", 1, 0, "SvgImage");
+    repaint();
+    emit this->processedContentChanged(processedContent());
+}
+
+void SvgImageItem::registerQmlTypes(const char *uri)
+{
+    qmlRegisterType<SvgElement>(uri, 1, 0, "SvgElement");
+    qmlRegisterType<SvgImageItem>(uri, 1, 0, "SvgImage");
+}
+
+QString SvgImageItem::processedContent() const
+{
+    return QString(mSvgImage.processedContent());
 }

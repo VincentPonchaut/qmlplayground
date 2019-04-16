@@ -21,6 +21,8 @@ class SvgImageItem: public QQuickPaintedItem
     Q_PROPERTY(QQmlListProperty<SvgElement> svgElements READ svgElements)
     Q_PROPERTY(QVariantMap svgTextReplacements READ svgTextReplacements WRITE setSvgTextReplacements NOTIFY svgTextReplacementsChanged)
     Q_PROPERTY(bool isLoaded READ isLoaded WRITE setIsLoaded NOTIFY isLoadedChanged)
+    Q_PROPERTY(QString processedContent READ processedContent NOTIFY processedContentChanged)
+    Q_CLASSINFO("DefaultProperty", "svgElements")
 
 public:
     explicit SvgImageItem(QQuickItem *pParent = nullptr);
@@ -34,9 +36,10 @@ public:
     QQmlListProperty<SvgElement> svgElements();
     QVariantMap svgTextReplacements() const;
     bool isLoaded() const;
+    QString processedContent() const;
 
     // QML engine
-    static void registerQmlTypes();
+    static void registerQmlTypes(const char* uri);
 
 public slots:
     void setSource(const QUrl& pSource);
@@ -44,15 +47,19 @@ public slots:
     void setIsLoaded(bool pIsLoaded);
     void repaint();
 
+    void handleDataChange();
+
 signals:
     void sourceChanged(QUrl pSource);
     void svgTextReplacementsChanged(QVariantMap pSvgTextReplacements);
     void svgElementsChanged();
     void isLoadedChanged(bool isLoaded);
+    void processedContentChanged(QString processedContent);
 
 private:
     SvgImageData mSvgImage;
     QSvgRenderer mRenderer;
+    QString m_processedContent;
 };
 
 #endif // SVGIMAGEITEM_H

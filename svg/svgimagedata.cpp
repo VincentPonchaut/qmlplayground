@@ -8,6 +8,9 @@ SvgImageData::SvgImageData(QObject* pParent)
     : QObject(pParent)
     , mIsLoaded(false)
 {
+    connect(this, &SvgImageData::svgElementsChanged, this, &SvgImageData::processedContentStrChanged);
+    connect(this, &SvgImageData::svgTextReplacementsChanged, this, &SvgImageData::processedContentStrChanged);
+    connect(this, &SvgImageData::isLoadedChanged, this, &SvgImageData::processedContentStrChanged);
 }
 
 SvgImageData::SvgImageData(const SvgImageData& pOther)
@@ -253,5 +256,11 @@ QString SvgImageData::resolveSourceUrl(QString pBaseUrl, QString pSrcUrl)
 
     QDir lBasePath(pBaseUrl);
     return lBasePath.relativeFilePath(pSrcUrl);
+}
+
+QString SvgImageData::processedContentStr()
+{
+    QString str(mProcessedContent);
+    return str;
 }
 

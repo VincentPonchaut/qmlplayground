@@ -20,6 +20,7 @@ class SvgImageData : public QObject
     Q_PROPERTY(QQmlListProperty<SvgElement> svgElements READ svgElements)
     Q_PROPERTY(QVariantMap svgTextReplacements READ svgTextReplacements WRITE setSvgTextReplacements NOTIFY svgTextReplacementsChanged)
     Q_PROPERTY(bool isLoaded READ isLoaded WRITE setIsLoaded NOTIFY isLoadedChanged)
+    Q_PROPERTY(QString processedContentStr READ processedContentStr NOTIFY processedContentStrChanged)
     Q_CLASSINFO("DefaultProperty", "svgElements")
 
 public:
@@ -30,6 +31,7 @@ public:
     bool loadFile();
     const QUrl& source() const;
     QByteArray processedContent() const;
+    QString processedContentStr();
     QQmlListProperty<SvgElement> svgElements();
     QVariantMap svgTextReplacements() const;
     bool isLoaded() const;
@@ -46,6 +48,7 @@ signals:
     void svgTextReplacementsChanged(QVariantMap pSvgTextReplacements);
     void svgElementsChanged();
     void isLoadedChanged(bool isLoaded);
+    void processedContentStrChanged();
 
 protected:
     static void appendSvgElement(QQmlListProperty<SvgElement>* pList, SvgElement* pElem);
