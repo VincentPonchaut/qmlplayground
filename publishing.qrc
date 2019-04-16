@@ -6,5 +6,6 @@
         <file>publishing/qml.rc</file>
         <file>publishing/qtquickcontrols2.conf</file>
         <file>publishing/template.pro</file>
+        <file>publishing/appicon.rc</file>
     </qresource>
 </RCC>

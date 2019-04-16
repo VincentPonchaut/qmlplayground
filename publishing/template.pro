@@ -29,6 +29,8 @@ SOURCES += \
 
 RESOURCES += qml.qrc
 
+RC_FILE = appicon.rc
+
 include(systemtray/systemtray.pri)
 
 # TODO: add for hot reload /!\ The cpp must not load using qrc:/// for that to work

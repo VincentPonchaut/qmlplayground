@@ -327,6 +327,7 @@ Item {
 
         appControl.createFile(vTargetFolder, vProjectName + ".pro")
         appControl.createFile(vTargetFolder, "qml.qrc")
+        appControl.createFile(vTargetFolder, "appicon.rc")
         appControl.createFile(vTargetFolder, "main.cpp")
         appControl.createFile(vTargetFolder, "qmlplayground_generated_main.qml")
         appControl.createFile(vTargetFolder, "build_and_deploy.bat")
@@ -334,6 +335,7 @@ Item {
 
         appControl.writeFileContents("%1/%2.pro".arg(vTargetFolder).arg(vProjectName), pro_file)
         appControl.writeFileContents("%1/qml.qrc".arg(vTargetFolder), qrc_file.arg(vFileList))
+        appControl.writeFileContents("%1/appicon.rc".arg(vTargetFolder), appIcon_file)
         appControl.writeFileContents("%1/main.cpp".arg(vTargetFolder), main_cpp_file.arg(vProjectName))
         appControl.writeFileContents("%1/qtquickcontrols2.conf".arg(vTargetFolder), qtquickcontrols2_conf) // TODO input args
 
@@ -371,9 +373,12 @@ Item {
         var vSelectedFile = replaceAll(appIconSelector.selectedFile, "file:///", "")
         vSelectedFile = replaceAll(vSelectedFile, "/", "\\")
 
+        appControl.saveImageAsIco(vSelectedFile, vTargetFolder + "/appIcon.ico");
+        /*
         appControl.runCommand("cmd /c copy /y \"%1\" \"%2\\appIcon.png\""
                                 .arg(replaceAll(vSelectedFile, "/", "\\"))
                                 .arg(replaceAll(vTargetFolder, "/", "\\")))
+        */
 
         Qt.openUrlExternally(vTargetFolder)
 
@@ -527,6 +532,7 @@ Item {
     */
     property string pro_file: appControl.readFileContents(":/publishing/template.pro")
     property string qrc_file: appControl.readFileContents(":/publishing/qml.rc")
+    property string appIcon_file: appControl.readFileContents(":/publishing/appicon.rc")
     property string main_cpp_file: appControl.readFileContents(":/publishing/main.cpp")
     property string main_qml_file: appControl.readFileContents(":/publishing/main.qml")
     property string qtquickcontrols2_conf: appControl.readFileContents(":/publishing/qtquickcontrols2.conf")

@@ -2,6 +2,5 @@
     <qresource prefix="/">
         %1
         <file>qtquickcontrols2.conf</file>
-        <file>appIcon.png</file>
     </qresource>
 </RCC>
