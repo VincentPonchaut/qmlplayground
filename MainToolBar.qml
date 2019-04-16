@@ -75,6 +75,26 @@ ToolBar {
             ToolTip.visible: hovered
             ToolTip.text: "%1 console".arg(theConsole.state == "open" ? "Hide":
                                                                         "Show");
+
+            Rectangle {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: width / 5
+                anchors.rightMargin: width / 5
+                anchors.right: parent.right
+
+                visible: theConsole.unreadMessages > 0
+
+                width: parent.width * 0.35
+                height: width
+                radius: width / 2
+
+                color: Material.accent
+
+                Text {
+                    anchors.centerIn: parent
+                    text: theConsole.unreadMessages
+                }
+            }
         }
 
         ToolButton {

@@ -4,7 +4,9 @@ import QtQuick.Controls.Material 2.2
 
 Pane {
     id: root
+
     property var messages: []
+    property int unreadMessages: 0
 
     background: Rectangle {
         color: "black"
@@ -35,10 +37,28 @@ Pane {
             width: parent.width
             height: clickableText.height + messageText.height //childrenRect.height
 
+            Image {
+                id: warningIcon
+
+                height: parent.height * 0.5
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 5
+
+                fillMode: Image.PreserveAspectFit
+
+                visible: modelData.type === "warning"
+
+                source: "qrc:///img/exclamation-triangle.svg"
+                sourceSize.width: width
+                sourceSize.height: height
+            }
+
             Text {
                 id: clickableText
                 anchors.top: parent.top
-                anchors.left: parent.left
+                anchors.left: warningIcon.right
+                anchors.leftMargin: warningIcon.anchors.leftMargin
                 anchors.right: parent.right
 
                 text: "%1 line %2".arg(modelData.file).arg(modelData.line)
@@ -60,7 +80,8 @@ Pane {
                 id: messageText
                 width: parent.width
                 anchors {
-                    left: parent.left
+                    left: warningIcon.right
+                    leftMargin: warningIcon.anchors.leftMargin
                     top: clickableText.bottom
                 }
 
@@ -68,7 +89,8 @@ Pane {
                 wrapMode: Text.Wrap
                 font.family: "Consolas"
                 font.pointSize: 10
-                color: messageDelegate.hovered ? "yellow" : "white"
+                color: messageDelegate.hovered ? "yellow" :
+                                                 "white"
             }
 
         }
@@ -96,17 +118,26 @@ Pane {
 
     Connections {
         target: appControl
+
         onLogMessage: {
             if (String(file).startsWith("qrc:"))
                 return;
-            root.messages.push({
+            pushMessage({
                                    "msg" : message,
                                    "file": String(file).replace(appControl.currentFolder, ""),
                                    "line": line,
-                                   "path": String(file)
+                            "path": String(file),
+                            "type": "user"
+                        });
+        }
+        onWarningMessage: {
+            pushMessage({
+                            "msg" : String(message).replace(file, ""),
+                            "file": String(file).replace(appControl.currentFolder, ""),
+                            "line": line,
+                            "path": String(file),
+                            "type": "warning"
                                });
-            root.messagesChanged();
-            listView.positionViewAtEnd();
         }
     }
 
@@ -122,12 +153,28 @@ Pane {
         state = (state == "open" ? "closed" : "open");
     }
 
+    function pushMessage(pMsgObject) {
+        root.messages.push(pMsgObject);
+        root.messagesChanged();
+        listView.positionViewAtEnd();
+
+        // Update unread count if not visible
+        if (root.state == "closed") {
+            unreadMessages++;
+        }
+    }
+
     states: [
         State {
             name: "open"
             PropertyChanges {
                 target: root
                 height: contentRow.height * 0.33
+            }
+            PropertyChanges {
+                target: root
+                unreadMessages: 0
+                restoreEntryValues: false // really reset to 0 every time console is open
             }
             PropertyChanges {
                 target: trashButton

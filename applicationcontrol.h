@@ -72,6 +72,7 @@ signals:
     void newConnection();
 
     void logMessage(const QString& message, const QString& file, int line);
+    void warningMessage(const QString& message, const QString& file, int line);
 
 public slots:
     void setFolderList(QStringList folderList);
