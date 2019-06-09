@@ -11,7 +11,12 @@
 #include <QQuickItem>
 #include <QQmlProperty>
 #include <QTemporaryFile>
+#include <QGuiApplication>
+#include <QScreen>
+#include <private/qzipreader_p.h>
+#include <private/qzipwriter_p.h>
 
+#include <QStandardPaths>
 #include <iostream>
 
 inline QString beginTag(const QString& tag)
@@ -69,8 +74,13 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     mEngine->rootContext()->setContextProperty("serverControl", &mServerControl);
 
     connect(&mServerControl, &ServerControl::activeClientsChanged, [=]() {
-        sendFolderToClients("");
-        emit this->newConnection(); // TODO: uniformize who does what where
+//        sendFolderToClients("");
+//        emit this->newConnection(); // TODO: uniformize who does what where
+
+        sendZippedFolderToClients(this->currentFolder());
+        // TODO: setCurrentFile from the directory
+        sendFolderChangeMessage();
+        emit this->newConnection();
     });
 
     if (!mServerControl.startListening(pServerPort))
@@ -424,7 +434,13 @@ void ApplicationControl::sendFolderToClients(const QString &folder)
     Q_UNUSED(folder);
 
     QString message;
-    QStringList fileList = this->listFiles(currentFolder());
+
+    // TODO: Handle non-text files
+    QStringList nameFilters;
+    nameFilters << "*.qml"
+                << "*.js";
+
+    QStringList fileList = this->listFiles(currentFolder(), nameFilters);
 
     // Specify message type
     message += beginTag("messagetype") + "folderchange" + endTag("messagetype");
@@ -479,6 +495,135 @@ void ApplicationControl::sendDataMessage(const QString &data)
     message += beginTag("json") + data + endTag("json");
 
     // Send
+    mServerControl.sendToClients(message);
+}
+
+void ApplicationControl::sendZippedFolderToClients(const QString &folder)
+{
+    // Ensure source content exists
+    QString folderPath = folder;
+    folderPath = folderPath.replace("file:///", "");
+    QDir srcDir(folderPath);
+    if (!srcDir.exists())
+        return;
+    QString projectName = srcDir.dirName();
+
+    // Prepare resulting file
+    QString filePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QString("/qmlplayground_cache/%1.zip").arg(projectName);
+
+    QFileInfo fileInfo(filePath);
+
+    // Ensure resulting directory exists
+    if (!QDir().mkpath(fileInfo.absolutePath()))
+    {
+        return;
+    }
+
+    // Remove previous file if it exists
+    if (fileInfo.exists() && !QFile::remove(filePath))
+    {
+        return;
+    }
+
+    // Create the resulting file
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadWrite))
+    {
+        return;
+    }
+
+    // zip the folder
+    QZipWriter writer(&file);
+    writer.setCreationPermissions(QFile::ReadOther | QFile::WriteOther | QFile::ExeOther);
+
+
+    QStringList nameFilters;
+    nameFilters << "*";
+
+    QDirIterator it(folderPath, nameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    QStringList invalidEntries;
+    invalidEntries << folderPath + "/."
+                   << folderPath + "/..";
+    while (it.hasNext())
+    {
+        QString itPath = it.next();
+        if (invalidEntries.contains(itPath))
+        {
+            qDebug() << itPath << "is invalid";
+            continue;
+        }
+
+        QFile f(itPath);
+        if (!f.open(QIODevice::ReadOnly))
+        {
+            qDebug() << itPath << "could not be opened";
+            continue;
+        }
+
+        writer.addFile(it.fileName(), f.readAll());
+        f.close();
+    }
+    writer.close();
+    file.close();
+
+    // Now we have the zip file, we have to send it to clients
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
+//    QByteArray binaryMessage = file.readAll();
+//    mServerControl.sendByteArrayToClients(binaryMessage);
+
+    // Prepare a datastream to compose the message
+    QByteArray binaryMessage;
+    QDataStream stream(&binaryMessage, QIODevice::WriteOnly);
+
+    // Get relevant message parts
+    QByteArray data = file.readAll();
+    qint32 dataLength = data.length();
+
+    // Write message, starting with project name and zip file byte length
+    stream << projectName;
+    stream << dataLength;
+    binaryMessage.append(data);
+
+    // Send the message
+    mServerControl.sendByteArrayToClients(binaryMessage);
+
+//    QDataStream stream2(&binaryMessage, QIODevice::ReadOnly);
+//    QString readProjectName;
+//    QByteArray payload;
+//    qint32 payloadSize;
+//    stream2 >> readProjectName >> payloadSize;
+
+//    payload.resize(payloadSize);
+//    stream2.readRawData(payload.data(), payloadSize);
+//    qDebug() << "read project name: " << readProjectName << "read payload size: " << payloadSize;
+
+
+//    QDir().mkpath("C:/Users/vincent.ponchaut/Desktop/perso/testzipagain/");
+//    QFile lol("C:/Users/vincent.ponchaut/Desktop/perso/testzipagain/zouze.zip");
+//    if (lol.open(QIODevice::WriteOnly))
+//    {
+//        lol.write(payload);
+//    }
+
+}
+
+void ApplicationControl::sendFolderChangeMessage()
+{
+    QString message;
+
+    // Specify message type
+    message += beginTag("messagetype") + "folderchange" + endTag("messagetype");
+
+    // Add current folder
+    message += beginTag("folder") + "\n" +
+               currentFolder() +
+               endTag("folder") + "\n";
+
+    // Specify current file
+    message += beginTag("currentfile") + currentFile() + endTag("currentfile");
+
     mServerControl.sendToClients(message);
 }
 

@@ -11,6 +11,8 @@ QT += \
     webview \
     webengine \
     charts \
+# For ZipReader & ZipWriter
+QT+=gui-private
 
 CONFIG += c++11
 

@@ -19,23 +19,44 @@ ServerControl::~ServerControl()
 
 bool ServerControl::startListening(int port)
 {
-    QString ipAddress;
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    for (int i = 0; i < ipAddressesList.size(); ++i)
+//    QString ipAddress;
+//    QHostAddress hostAddress;
+//    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+//    for (int i = 0; i < ipAddressesList.size(); ++i)
+//    {
+//        QHostAddress h = ipAddressesList.at(i);
+//        bool isIPV4 = true;
+//        h.toIPv4Address(&isIPV4);
+
+//        if (h != QHostAddress::LocalHost && isIPV4 && h.isInSubnet(QHostAddress("255.255.255"), 0))
+//        {
+//            hostAddress = ipAddressesList.at(i);
+//            ipAddress = ipAddressesList.at(i).toString();
+//            break;
+//        }
+//    }
+    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    QHostAddress ipAddress;
+    for (int nIter=0; nIter < list.count(); nIter++)
     {
-        if (ipAddressesList.at(i) != QHostAddress::LocalHost && ipAddressesList.at(i).toIPv4Address())
+        if(!list[nIter].isLoopback() &&
+            list[nIter] != QHostAddress::LocalHost &&
+            list[nIter].protocol() == QAbstractSocket::IPv4Protocol)
         {
-            ipAddress = ipAddressesList.at(i).toString();
+            ipAddress = list[nIter];
+            qDebug() << list[nIter].toString();
             break;
         }
+
     }
 
     bool success = mServer->listen(QHostAddress::AnyIPv4, port);
     setAvailable(success);
 
-    QString hostAddress = ipAddress + ":" + QString::number(mServer->serverPort());
-    setHostAddress(hostAddress);
-    qDebug() << "Server is listening at" << hostAddress;
+    QString hostAddressStr = ipAddress.toString() + ":" + QString::number(mServer->serverPort());
+//    QString hostAddressStr = mServer->serverAddress().toString() + ":" + QString::number(mServer->serverPort());
+    setHostAddress(hostAddressStr);
+    qDebug() << "Server is listening at" << hostAddressStr;
     return success;
 }
 
@@ -94,6 +115,14 @@ void ServerControl::sendFilesToClients(const QStringList &files)
     }
 
     sendToClients(message);
+}
+
+void ServerControl::sendByteArrayToClients(const QByteArray &message)
+{
+    for (QWebSocket* client: mClients)
+    {
+        client->sendBinaryMessage(message);
+    }
 }
 
 bool ServerControl::isAvailable() const
