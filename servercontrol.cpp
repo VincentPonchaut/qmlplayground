@@ -2,14 +2,30 @@
 
 #include <QWebSocket>
 #include <QNetworkInterface>
+#include <QUdpSocket>
 #include <QDebug>
 #include <QFile>
 
 ServerControl::ServerControl()
-    : QObject()
+    : QObject(),
+      groupAddress4(QStringLiteral("239.255.255.250")), // Simple Service Discovery Protocol" Address (https://forum.qt.io/topic/74822/multicast-sender-and-receiver-example/7)
+      groupAddress6(QStringLiteral("ff12::2115"))
 {
     mServer = new QWebSocketServer("qmlplaygroundserver", QWebSocketServer::NonSecureMode);
     QObject::connect(mServer, &QWebSocketServer::newConnection, this, &ServerControl::onNewConnection);
+
+    // force binding to their respective families
+    udpSocket4.bind(QHostAddress(QHostAddress::AnyIPv4), 0);
+    udpSocket6.bind(QHostAddress(QHostAddress::AnyIPv6), udpSocket4.localPort());
+
+    if (udpSocket6.state() != QAbstractSocket::BoundState)
+        qDebug() << tr("IPv6 failed. Ready to multicast datagrams to group %1 on port 45454").arg(groupAddress4.toString());
+
+    // we only set the TTL on the IPv4 socket, as that changes the multicast scope
+    udpSocket4.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
+
+    connect(&mUdpTimer, &QTimer::timeout, this, &ServerControl::broadcastDatagram);
+    startBroadcasting();
 }
 
 ServerControl::~ServerControl()
@@ -52,11 +68,33 @@ bool ServerControl::startListening(int port)
 
     bool success = mServer->listen(QHostAddress::AnyIPv4, port);
     setAvailable(success);
+    qDebug() << "url:" << mServer->serverUrl()
+             << "address:" << mServer->serverAddress()
+             << "port:" << mServer->serverPort()
+             << "proxy:" << mServer->proxy()
+             << "error:" << mServer->errorString()
+             ;
 
     QString hostAddressStr = ipAddress.toString() + ":" + QString::number(mServer->serverPort());
 //    QString hostAddressStr = mServer->serverAddress().toString() + ":" + QString::number(mServer->serverPort());
     setHostAddress(hostAddressStr);
     qDebug() << "Server is listening at" << hostAddressStr;
+
+
+    for (auto&& interface: QNetworkInterface::allInterfaces())
+    {
+        for (auto&& entry: interface.addressEntries())
+        {
+            qDebug() << "interface:" << interface.humanReadableName();
+            qDebug() << "\tentry: ip:" << entry.ip()
+                     << ", broadcast:" << entry.broadcast()
+                     << ", netmask:" << entry.netmask()
+                     << ", dnsEligible:" << entry.dnsEligibility()
+                     << ", permanent:" << entry.isPermanent()
+                     ;
+        }
+    }
+
     return success;
 }
 
@@ -165,4 +203,20 @@ void ServerControl::setActiveClients(int activeClients)
 
     m_activeClients = activeClients;
     emit activeClientsChanged(m_activeClients);
+}
+
+void ServerControl::startBroadcasting()
+{
+    mUdpTimer.start(1000);
+}
+
+void ServerControl::broadcastDatagram()
+{
+    static uint n = 0;
+    ++n;
+
+    QByteArray datagram = "qmlplayground Broadcast message #" + QByteArray::number(n);
+    udpSocket4.writeDatagram(datagram, groupAddress4, 45454);
+    if (udpSocket6.state() == QAbstractSocket::BoundState)
+        udpSocket6.writeDatagram(datagram, groupAddress6, 45454);
 }

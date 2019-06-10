@@ -2,7 +2,14 @@
 #define SERVERCONTROL_H
 
 #include <QObject>
+#include <QTimer>
 #include <QWebSocketServer>
+
+#include <QtNetwork>
+
+QT_BEGIN_NAMESPACE
+class QUdpSocket;
+QT_END_NAMESPACE
 
 class ServerControl: public QObject
 {
@@ -43,8 +50,20 @@ signals:
     void activeClientsChanged(int activeClients);
 
 private:
+    void startBroadcasting();
+    void broadcastDatagram();
+
+private:
     QWebSocketServer *mServer = nullptr;
     QVector<QWebSocket*> mClients;
+
+    QUdpSocket udpSocket4;
+    QUdpSocket udpSocket6;
+    QHostAddress groupAddress4;
+    QHostAddress groupAddress6;
+
+    QTimer mUdpTimer;
+
     bool m_available;
     QString m_hostAddress;
     int m_activeClients;
