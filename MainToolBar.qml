@@ -49,8 +49,17 @@ ToolBar {
         Row {
             Layout.fillWidth: true
             height: parent.height
-            spacing: 5
             
+            IconButton {
+                id: openCurrentFolderButton
+
+                imageSource: "qrc:///img/folder.svg"
+                onClicked: Qt.openUrlExternally(appControl.currentFolder)
+
+                ToolTip.visible: hovered
+                ToolTip.text: "Open in explorer"
+            }
+
             Label {
                 id: folderLabel
                 anchors.verticalCenter: parent.verticalCenter
