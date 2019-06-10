@@ -60,12 +60,20 @@ ToolBar {
                 ToolTip.text: "Open in explorer"
             }
 
-            Label {
+            ClickableLabel {
                 id: folderLabel
                 anchors.verticalCenter: parent.verticalCenter
-                text: "" + appControl.currentFile.replace(appControl.currentFolder.substring(0, appControl.currentFolder.lastIndexOf("/") + 1), "")
-                elide: Label.ElideRight
+
+                property string currentFileName: "" + appControl.currentFile.replace(appControl.currentFolder.substring(0, appControl.currentFolder.lastIndexOf("/") + 1), "")
+
+                text: currentFileName
+                elide: Label.ElideLeft
                 verticalAlignment: Qt.AlignVCenter
+
+                ToolTip.visible: hovered
+                ToolTip.text: "Open %1 in the default editor".arg(currentFileName)
+
+                onClicked: Qt.openUrlExternally(appControl.currentFile)
             }
             
 
@@ -150,15 +158,15 @@ ToolBar {
             }
         }
 
-        ToolButton {
-            id: editToolButton
-            text: "Edit"
-            enabled: appControl.currentFile.length > 0
-            onClicked: Qt.openUrlExternally(appControl.currentFile)
+//        ToolButton {
+//            id: editToolButton
+//            text: "Edit"
+//            enabled: appControl.currentFile.length > 0
+//            onClicked: Qt.openUrlExternally(appControl.currentFile)
 
-            ToolTip.visible: hovered
-            ToolTip.text: "Edit current file externally"
-        }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "Edit current file externally"
+//        }
 
         IconButton {
             Material.theme: Material.Dark
@@ -221,7 +229,12 @@ ToolBar {
             margins: 12
 
             enableTooltip: false
-            onClicked: optionsMenu.open()
+            onClicked: {
+                if (!optionsMenu.visible)
+                    optionsMenu.open()
+                else
+                    optionsMenu.close()
+            }
 
             Menu {
                 id: optionsMenu
@@ -333,22 +346,15 @@ ToolBar {
                 wrapMode: Label.Wrap
                 font.pixelSize: 14
             }
-            Label {
+            ClickableLabel {
                 width: parent.width
-                text: "Author: Vincent Ponchaut\n"
                 wrapMode: Label.Wrap
+
+                text: "Author: Vincent Ponchaut\n"
                 font.pixelSize: 12
-                font.underline: hovered
 
-                property alias hovered: innerMouseArea.containsMouse
-
-                MouseArea {
-                    id: innerMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: {
-                        Qt.openUrlExternally("https://github.com/VincentPonchaut")
-                    }
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/VincentPonchaut")
                 }
             }
 
