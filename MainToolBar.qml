@@ -49,14 +49,31 @@ ToolBar {
         Row {
             Layout.fillWidth: true
             height: parent.height
-            spacing: 5
             
-            Label {
+            IconButton {
+                id: openCurrentFolderButton
+
+                imageSource: "qrc:///img/folder.svg"
+                onClicked: Qt.openUrlExternally(appControl.currentFolder)
+
+                ToolTip.visible: hovered
+                ToolTip.text: "Open in explorer"
+            }
+
+            ClickableLabel {
                 id: folderLabel
                 anchors.verticalCenter: parent.verticalCenter
-                text: "" + appControl.currentFile
-                elide: Label.ElideRight
+
+                property string currentFileName: "" + appControl.currentFile.replace(appControl.currentFolder.substring(0, appControl.currentFolder.lastIndexOf("/") + 1), "")
+
+                text: currentFileName
+                elide: Label.ElideLeft
                 verticalAlignment: Qt.AlignVCenter
+
+                ToolTip.visible: hovered
+                ToolTip.text: "Open %1 in the default editor".arg(currentFileName)
+
+                onClicked: Qt.openUrlExternally(appControl.currentFile)
             }
             
 
@@ -97,15 +114,15 @@ ToolBar {
             }
         }
 
-        ToolButton {
-            id: dataToolButton
-            text: "Data"
-            enabled: dataManager.currentDataFile.length > 0
-            onClicked: dataManager.requestEditData()
+//        ToolButton {
+//            id: dataToolButton
+//            text: "Data"
+//            enabled: dataManager.dataFiles.length == 0 || Manager.currentDataFile.length > 0
+//            onClicked: dataManager.requestEditData()
 
-            ToolTip.visible: hovered
-            ToolTip.text: "Edit data"
-        }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "Edit data"
+//        }
 
         IconButton {
             id: serverToolButton
@@ -141,15 +158,15 @@ ToolBar {
             }
         }
 
-        ToolButton {
-            id: editToolButton
-            text: "Edit"
-            enabled: appControl.currentFile.length > 0
-            onClicked: Qt.openUrlExternally(appControl.currentFile)
+//        ToolButton {
+//            id: editToolButton
+//            text: "Edit"
+//            enabled: appControl.currentFile.length > 0
+//            onClicked: Qt.openUrlExternally(appControl.currentFile)
 
-            ToolTip.visible: hovered
-            ToolTip.text: "Edit current file externally"
-        }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "Edit current file externally"
+//        }
 
         IconButton {
             Material.theme: Material.Dark
@@ -160,28 +177,28 @@ ToolBar {
                                                         "Hide quick editor"
         }
 
-        RoundButton {
-            id: helpButton
+//        RoundButton {
+//            id: helpButton
 
-            Material.theme: Material.Dark
-            flat: true
+//            Material.theme: Material.Dark
+//            flat: true
 
-            Image {
-                anchors.fill: parent
-                fillMode: Image.PreserveAspectFit
-                anchors.margins: 5
-                source: "qrc:///img/help.svg"
-                mipmap: true
-            }
+//            Image {
+//                anchors.fill: parent
+//                fillMode: Image.PreserveAspectFit
+//                anchors.margins: 5
+//                source: "qrc:///img/help.svg"
+//                mipmap: true
+//            }
 
-            ToolTip.visible: hovered
-            ToolTip.text: "\n"
-                + "Filter files"         + ": %1 \n".arg(shortcutFileFilter.sequence)
-                + "Toggle folder panel"  + ": %1 \n".arg(shortcutFolderSelectorPane.sequence)
-                + "Toggle quick editor"  + ": %1 \n".arg(quickEditorToggleShortcut.sequence)
-                + "Toggle options panel" + ": %1 \n".arg(shortcutOptionsPane.sequence)
-            ;
-        }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "\n"
+//                + "Filter files"         + ": %1 \n".arg(shortcutFileFilter.sequence)
+//                + "Toggle folder panel"  + ": %1 \n".arg(shortcutFolderSelectorPane.sequence)
+//                + "Toggle quick editor"  + ": %1 \n".arg(quickEditorToggleShortcut.sequence)
+//                + "Toggle options panel" + ": %1 \n".arg(shortcutOptionsPane.sequence)
+//            ;
+//        }
 
         RoundButton {
             id: optionsPaneToggleButton
@@ -203,5 +220,145 @@ ToolBar {
             ToolTip.text: optionsPane.state == "open" ? "Hide options (F1)":
                                                         "Show options (F1)"
         }
+
+        // Overflow
+        IconButton {
+            id: overflowButton
+
+            imageSource: "qrc:///img/overflow.svg"
+            margins: 12
+
+            enableTooltip: false
+            onClicked: {
+                if (!optionsMenu.visible)
+                    optionsMenu.open()
+                else
+                    optionsMenu.close()
+            }
+
+            Menu {
+                id: optionsMenu
+                x: parent.width - width - 5
+                y: parent.y + parent.height
+                transformOrigin: Menu.TopRight
+
+                DetailedMenuItem {
+                    iconFile: "qrc:///img/database.svg"
+                    text: "Edit Data"
+                    description: "Edit the underlying data model sent to your QML files"
+                    onTriggered: dataManager.requestEditData()
+                }
+                DetailedMenuItem {
+                    iconFile: "qrc:///img/help.svg"
+                    text: "Help"
+                    description: "View keyboard shortcuts reference"
+                    onTriggered: helpDialog.open()
+                }
+
+                MenuSeparator {}
+
+                MenuItem {
+                    text: "About"
+                    onTriggered: aboutDialog.open()
+                }
+            }
+        } // End overflow Button
+    } // End RowLayout
+
+    // ----------------------------------------------------------------------------------------
+    // Other views
+    // ----------------------------------------------------------------------------------------
+
+    Dialog {
+        id: helpDialog
+        modal: true
+        focus: true
+        title: "Help"
+        x: (root.width - width) / 2
+        y: root.height / 6
+        width: Math.min(root.width, root.height) / 3 * 2
+        contentHeight: shortcutsGrid.height
+
+
+         GridLayout {
+             id: shortcutsGrid
+
+             width: helpDialog.availableWidth
+             columns: 2
+
+             Label { text: "Filter files" }
+             Label { text: "" + shortcutFileFilter.sequence }
+
+             Label { text: "Toggle folder panel" }
+             Label { text: "" + shortcutFolderSelectorPane.sequence }
+
+             Label { text: "Toggle quick editor" }
+             Label { text: "" + quickEditorToggleShortcut.sequence }
+
+             Label { text: "Toggle options pane" }
+             Label { text: "" + shortcutOptionsPane.sequence }
+         }
+
+//        Label {
+//            id: helpLabel
+//            width: helpDialog.availableWidth
+////            height: helpDialog.availableHeight
+
+//            text: "Shortcuts\n"
+//                  + "Filter files"         + ": %1 \n".arg(shortcutFileFilter.sequence)
+//                  + "Toggle folder panel"  + ": %1 \n".arg(shortcutFolderSelectorPane.sequence)
+//                  + "Toggle quick editor"  + ": %1 \n".arg(quickEditorToggleShortcut.sequence)
+//                  + "Toggle options panel" + ": %1 \n".arg(shortcutOptionsPane.sequence)
+//        }
     }
+
+    Dialog {
+        id: aboutDialog
+        modal: true
+        focus: true
+        title: "About"
+        x: (root.width - width) / 2
+        y: root.height / 6
+        width: Math.min(root.width, root.height) / 3 * 2
+        contentHeight: aboutColumn.height
+
+        Image {
+            id: appIcon
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            height: aboutDialog.availableHeight * 0.9
+            width: height
+
+            source: "qrc:///img/appIcon.png"
+            fillMode: Image.PreserveAspectFit
+        }
+
+        Column {
+            id: aboutColumn
+            spacing: 20
+            width: aboutDialog.availableWidth - appIcon.width - 20
+            anchors.left: appIcon.right
+            anchors.leftMargin: 20
+
+            Label {
+                width: parent.width
+                text: "QmlPlayground 0.9 Beta"
+                wrapMode: Label.Wrap
+                font.pixelSize: 14
+            }
+            ClickableLabel {
+                width: parent.width
+                wrapMode: Label.Wrap
+
+                text: "Author: Vincent Ponchaut\n"
+                font.pixelSize: 12
+
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/VincentPonchaut")
+                }
+            }
+
+        }
+    }
+
 }

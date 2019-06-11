@@ -101,6 +101,12 @@ Item {
 
                         property bool locked: false
 
+                        // Ugly hack to workaround popup appearing on top of the combobox
+                        onPressedChanged: {
+                            if (pressed)
+                                popup.y = dataFileComboBox.contentItem.y + dataFileComboBox.contentItem.height
+                        }
+
                         delegate: ItemDelegate {
                             width: dataFileComboBox.width
                             highlighted: dataFileComboBox.highlightedIndex === index

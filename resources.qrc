@@ -50,5 +50,9 @@
         <file>systemtray/systemtrayaction.h</file>
         <file>systemtray/systemtrayicon.cpp</file>
         <file>systemtray/systemtrayicon.h</file>
+        <file>DetailedMenuItem.qml</file>
+        <file>img/database.svg</file>
+        <file>img/overflow.svg</file>
+        <file>ClickableLabel.qml</file>
     </qresource>
 </RCC>

@@ -10,9 +10,10 @@ QT += \
     3dcore 3drender 3dinput 3dlogic 3dextras 3dquick 3danimation \
     webview \
     webengine \
-    charts \
+    charts
+
 # For ZipReader & ZipWriter
-QT+=gui-private
+QT += gui-private
 
 requires(qtConfig(udpsocket))
 
