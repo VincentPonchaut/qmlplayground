@@ -41,6 +41,7 @@ ApplicationWindow {
         property alias showContentBackground: optionsPane.showBackground
         property alias contentXRatio: optionsPane.xRatio //xRatioSlider.value
         property alias contentYRatio: optionsPane.yRatio //yRatioSlider.value
+        property alias clearConsoleOnReload: optionsPane.clearConsoleOnReload
 
         // Visual states
         property alias folderSelectorPaneState: folderSelectorPane.state
