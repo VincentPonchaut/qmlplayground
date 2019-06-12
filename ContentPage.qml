@@ -5,6 +5,8 @@ import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
 
+import QtQuick.Window 2.12
+
 Page {
     id: contentPage
 
@@ -81,6 +83,7 @@ Page {
             color: "red"
             visible: contentLoader.errorText.length > 0
             text: "Errors in the QML file !\n%1".arg(contentLoader.errorText)
+            wrapMode: Text.Wrap
 
             font.pointSize: 10
         }
