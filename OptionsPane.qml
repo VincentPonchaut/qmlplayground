@@ -13,6 +13,7 @@ Pane {
     property alias xRatio: xRatioSlider.value
     property alias yRatio: yRatioSlider.value
     property alias showBackground: showContentBackgroundCheckBox.checked
+    property alias clearConsoleOnReload: clearConsoleCheckbox.checked
 
     Material.theme: Material.Dark
     background: Rectangle { color: "#1d1d1d" }
@@ -69,6 +70,14 @@ Pane {
                     text: "%1\%".arg(Math.floor(yRatioSlider.value))
                 }
             }
+        }
+
+        // Clear console checkbox
+        CheckBox {
+            id: clearConsoleCheckbox
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: "Clear console on reload"
         }
 
         // Publish button

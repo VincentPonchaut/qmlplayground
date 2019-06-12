@@ -146,6 +146,11 @@ Pane {
                             "type": "warning"
                         });
         }
+
+        onCurrentFileChanged: reload()
+        onCurrentFolderChanged: reload()
+        onFileChanged: reload()
+        onDirectoryChanged: reload()
     }
 
     // ------------------------------------------------------
@@ -158,6 +163,13 @@ Pane {
 
     function toggle() {
         state = (state == "open" ? "closed" : "open");
+    }
+
+    function reload() {
+        if (settings.clearConsoleOnReload)
+        {
+            clearMessages()
+        }
     }
 
     function pushMessage(pMsgObject) {
