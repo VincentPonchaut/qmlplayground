@@ -14,7 +14,6 @@ RoundButton
     property bool enableTooltip: true
         
     Material.theme: Material.Dark
-    flat: true
 
     Image {
         id: img

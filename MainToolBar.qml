@@ -53,6 +53,7 @@ ToolBar {
             IconButton {
                 id: openCurrentFolderButton
 
+                flat: true
                 imageSource: "qrc:///img/folder.svg"
                 onClicked: Qt.openUrlExternally(appControl.currentFolder)
 
@@ -83,7 +84,6 @@ ToolBar {
             id: consoleToolButton
             text: ""
 
-            Material.theme: Material.Dark
             flat: true
             imageSource: "qrc:///img/console.svg"
             margins: 10
@@ -225,6 +225,7 @@ ToolBar {
         IconButton {
             id: overflowButton
 
+            flat: true
             imageSource: "qrc:///img/overflow.svg"
             margins: 12
 
