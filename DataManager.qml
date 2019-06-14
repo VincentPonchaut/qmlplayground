@@ -1,5 +1,5 @@
 import QtQuick 2.6
-import QtQuick.Controls 2.2
+import QtQuick.Controls 2.4
 import QtQuick.Controls.Material 2.2
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.3
@@ -75,7 +75,7 @@ Item {
     property var dataPopup: Window
     {
         id: dataPopup
-        width: 400
+        width: 640
         height: 500
         title: "Add custom data"
 
@@ -98,6 +98,8 @@ Item {
 
                         model: dataManager.dataFiles
                         currentIndex: dataManager.dataFiles.indexOf(dataManager.currentDataFile)
+
+                        font.pointSize: 10
 
                         property bool locked: false
 
@@ -181,6 +183,8 @@ Item {
                                 dataFileDialog.fileMode = Labs.FileDialog.OpenFile
                                 dataFileDialog.open()
                             }
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Add a new JSON file to serve as data"
                         }
                         ToolButton {
                             text: "New"
@@ -188,12 +192,16 @@ Item {
                                 dataFileDialog.fileMode = Labs.FileDialog.SaveFile
                                 dataFileDialog.open()
                             }
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Create a new JSON file to serve as data"
                         }
                         ToolButton {
                             text: "Clear All"
                             onClicked: {
                                 dataManager.dataFiles = []
                             }
+                            ToolTip.visible: hovered
+                            ToolTip.text: "Clear the list of datafiles"
                         }
                     }
                 }
@@ -214,6 +222,8 @@ Item {
                         Keys.onTabPressed: {
                             insert(cursorPosition, "    ");
                         }
+                        font.family: "Consolas"
+                        font.pointSize: 10
                         onTextChanged: {
                             writeFileContents(currentDataFile,
                                               text,
