@@ -8,6 +8,7 @@ import Qt.labs.platform 1.0 as Labs
 
 //Page {
 ToolBar {
+    id: mainToolBar
 
     RowLayout {
         anchors.fill: parent
@@ -395,6 +396,10 @@ ToolBar {
                 onTextChanged: {
                     serverControl.serverId = text
                 }
+                onAccepted: {
+                    if (!serverControl.available)
+                        serverControl.start()
+                }
 
             }
             Label {
@@ -434,7 +439,5 @@ ToolBar {
                 color: "grey"
             }
         }
-
-
     }
 }
