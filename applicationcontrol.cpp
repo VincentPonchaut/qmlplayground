@@ -548,7 +548,8 @@ void ApplicationControl::sendZippedFolderToClients(const QString &folder)
     while (it.hasNext())
     {
         QString itPath = it.next();
-        if (invalidEntries.contains(itPath))
+        if (invalidEntries.contains(itPath) ||
+            itPath.split(".").last() == "qmlc")
         {
 //            qDebug() << itPath << "is invalid";
             continue;
@@ -561,7 +562,14 @@ void ApplicationControl::sendZippedFolderToClients(const QString &folder)
             continue;
         }
 
-        writer.addFile(it.fileName(), f.readAll());
+        // Add the file to the archive while respecting
+        // the hierarchy
+        QString itFilePath = it.fileInfo().filePath();
+        QString itSubPath = itFilePath.remove(folderPath);
+        if (itSubPath.startsWith("/"))
+            itSubPath.remove(0, 1);
+
+        writer.addFile(itSubPath, f.readAll());
         f.close();
     }
     writer.close();
