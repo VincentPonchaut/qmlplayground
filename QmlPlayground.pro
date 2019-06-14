@@ -10,7 +10,8 @@ QT += \
     3dcore 3drender 3dinput 3dlogic 3dextras 3dquick 3danimation \
     webview \
     webengine \
-    charts
+    charts \
+    concurrent
 
 # For ZipReader & ZipWriter
 QT += gui-private

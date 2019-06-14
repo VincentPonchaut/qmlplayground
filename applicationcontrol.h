@@ -6,6 +6,9 @@
 #include <QFileSystemWatcher>
 #include <QQmlApplicationEngine>
 #include <QQmlComponent>
+#include <QFuture>
+#include <QFutureWatcher>
+
 
 #include "servercontrol.h"
 
@@ -86,6 +89,7 @@ public slots:
 
 protected slots:
     void onFolderListChanged();
+    void onZippedFolderReadyToSend();
 
 protected:
     void setupWatchOnFolder(const QString& pPath);
@@ -109,6 +113,11 @@ private:
 
     // External
     QQmlApplicationEngine* mEngine = nullptr;
+
+    // Zip task
+    QFuture<QByteArray> mFuture;
+    QFutureWatcher<QByteArray> mFutureWatcher;
+};
 };
 
 #endif // APPLICATIONCONTROL_H

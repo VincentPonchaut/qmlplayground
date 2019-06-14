@@ -506,6 +506,7 @@ ApplicationWindow {
     }
 
     function handleExternalChanges() {
+        appControl.sendZippedFolderToClients(root.currentFolder)
         root.currentFileChanged();
     }
 
@@ -524,6 +525,7 @@ ApplicationWindow {
     onCurrentFolderChanged: {
         print("current folder changed " + root.currentFolder)
 
+        appControl.sendZippedFolderToClients(root.currentFolder)
         appControl.sendFolderToClients("");
 
 //        if (serverControl.available)
