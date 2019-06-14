@@ -134,8 +134,10 @@ ToolBar {
             onClicked: {
                 appControl.setClipboardText(serverControl.hostAddress);
                 // TODO: toast "Address copied to clipboard"
+
+                serverDialog.open()
             }
-            ToolTip.text: "To broadcast to remote devices, \nconnect to %1 \non the same network as this machine".arg(serverControl.hostAddress);
+            ToolTip.text: "To broadcast to remote devices, \nconnect to one of the following\n%1 \non the same network as this machine".arg(serverControl.hostAddress);
 
             Rectangle {
                 anchors.bottom: parent.bottom
@@ -250,6 +252,12 @@ ToolBar {
                     onTriggered: dataManager.requestEditData()
                 }
                 DetailedMenuItem {
+                    iconFile: "qrc:///img/mobile.svg"
+                    text: "Live preview"
+                    description: "Show your content LIVE on devices from the same network"
+                    onTriggered: serverDialog.open()
+                }
+                DetailedMenuItem {
                     iconFile: "qrc:///img/help.svg"
                     text: "Help"
                     description: "View keyboard shortcuts reference"
@@ -362,4 +370,71 @@ ToolBar {
         }
     }
 
+    Dialog {
+        id: serverDialog
+        modal: true
+        focus: true
+        title: "Live preview"
+        x: (root.width - width) / 2
+        y: root.height / 6
+        width: 400
+        contentHeight: serverDialogColumn.height
+
+        Column {
+            id: serverDialogColumn
+            width: serverDialog.availableWidth
+            spacing: 20
+
+            TextField {
+                id: serverNameTextField
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: parent.width * 0.88
+                placeholderText: "Enter id..."
+
+                readOnly: serverControl.available
+                onTextChanged: {
+                    serverControl.serverId = text
+                }
+
+            }
+            Label {
+                width: parent.width * 0.88
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "The ID will be used to recognize this host on the local network"
+                wrapMode: Label.Wrap
+            }
+
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Connected clients: %1".arg(serverControl.activeClients)
+            }
+
+            Button {
+                width: parent.width * 0.88
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                text: serverControl.available ? "Stop" : "Start"
+                enabled: serverControl.available || serverNameTextField.text.length > 0
+
+                onClicked: {
+                    if (serverControl.available)
+                        serverControl.stop()
+                    else {
+                        serverControl.start()
+                    }
+//                    serverDialog.close()
+                }
+            }
+
+            Label {
+                width: parent.width
+                text: "The client is available for windows and android.\nYou can download it here."
+                font.italic: true
+                font.pointSize: 11
+                color: "grey"
+            }
+        }
+
+
+    }
 }

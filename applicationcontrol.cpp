@@ -83,8 +83,9 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
         emit this->newConnection();
     });
 
-    if (!mServerControl.startListening(pServerPort))
-        qDebug() << "failed to start server on port " << pServerPort;
+//    if (!mServerControl.startListening(pServerPort))
+//        qDebug() << "failed to start server on port " << pServerPort;
+    mServerControl.setServerPort(pServerPort);
 
 //    mQuickView = new QQuickView(mEngine, nullptr);
 //    mQuickView->setIcon(QIcon(":/img/appIcon.png"));
@@ -549,7 +550,7 @@ void ApplicationControl::sendZippedFolderToClients(const QString &folder)
         QString itPath = it.next();
         if (invalidEntries.contains(itPath))
         {
-            qDebug() << itPath << "is invalid";
+//            qDebug() << itPath << "is invalid";
             continue;
         }
 
@@ -584,6 +585,7 @@ void ApplicationControl::sendZippedFolderToClients(const QString &folder)
     // Write message, starting with project name and zip file byte length
     stream << projectName;
     stream << dataLength;
+    stream << newFolderChangeMessage();
     binaryMessage.append(data);
 
     // Send the message
@@ -611,19 +613,7 @@ void ApplicationControl::sendZippedFolderToClients(const QString &folder)
 
 void ApplicationControl::sendFolderChangeMessage()
 {
-    QString message;
-
-    // Specify message type
-    message += beginTag("messagetype") + "folderchange" + endTag("messagetype");
-
-    // Add current folder
-    message += beginTag("folder") + "\n" +
-               currentFolder() +
-               endTag("folder") + "\n";
-
-    // Specify current file
-    message += beginTag("currentfile") + currentFile() + endTag("currentfile");
-
+    QString message = newFolderChangeMessage();
     mServerControl.sendToClients(message);
 }
 
@@ -826,3 +816,36 @@ bool ApplicationControl::addFileToMessage(const QString &path, QString &message)
 
     return true;
 }
+
+QString ApplicationControl::newFolderChangeMessage()
+{
+    QString message;
+    // Specify message type
+    message += beginTag("messagetype") + "folderchange" + endTag("messagetype");
+
+    // Add current folder
+    message += beginTag("folder") + "\n" +
+               currentFolder() +
+               endTag("folder") + "\n";
+
+    // Add files
+    QStringList nameFilters;
+    nameFilters << "*.qml"
+                << "*.js";
+
+    QStringList fileList = this->listFiles(currentFolder(), nameFilters);
+    for (const QString& fileName: fileList)
+    {
+        if (!addFileToMessage(fileName, message))
+        {
+            qDebug() << "Could not add " << fileName << "to message";
+            continue;
+        }
+    }
+
+    // Specify current file
+    message += beginTag("currentfile") + currentFile() + endTag("currentfile");
+
+    return message;
+}
+

@@ -92,6 +92,8 @@ protected:
     QString newFileContent();
     bool addFileToMessage(const QString& path, QString& message);
 
+    QString newFolderChangeMessage();
+
 private:
     // Owned
     QQuickView *mQuickView = nullptr; // deprecated

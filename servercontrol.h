@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QTimer>
 #include <QWebSocketServer>
-
 #include <QtNetwork>
+
+#include "macros.h"
 
 QT_BEGIN_NAMESPACE
 class QUdpSocket;
@@ -19,9 +20,15 @@ class ServerControl: public QObject
     Q_PROPERTY(bool available READ isAvailable WRITE setAvailable NOTIFY availableChanged)
     Q_PROPERTY(int activeClients READ activeClients WRITE setActiveClients NOTIFY activeClientsChanged)
 
+    PROPERTY(int, serverPort, setServerPort)
+    PROPERTY(QString, serverId, setServerId)
+
 public:
     ServerControl();
     virtual ~ServerControl();
+
+    Q_INVOKABLE bool start();
+    Q_INVOKABLE bool stop();
 
     bool startListening(int port);
     void onNewConnection();
@@ -51,6 +58,7 @@ signals:
 
 private:
     void startBroadcasting();
+    void stopBroadcasting();
     void broadcastDatagram();
 
 private:
@@ -64,9 +72,9 @@ private:
 
     QTimer mUdpTimer;
 
-    bool m_available;
+    bool m_available = false;
     QString m_hostAddress;
-    int m_activeClients;
+    int m_activeClients = 0;
 };
 
 #endif // SERVERCONTROL_H

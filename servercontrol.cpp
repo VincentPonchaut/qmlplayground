@@ -14,18 +14,7 @@ ServerControl::ServerControl()
     mServer = new QWebSocketServer("qmlplaygroundserver", QWebSocketServer::NonSecureMode);
     QObject::connect(mServer, &QWebSocketServer::newConnection, this, &ServerControl::onNewConnection);
 
-    // force binding to their respective families
-    udpSocket4.bind(QHostAddress(QHostAddress::AnyIPv4), 0);
-    udpSocket6.bind(QHostAddress(QHostAddress::AnyIPv6), udpSocket4.localPort());
-
-    if (udpSocket6.state() != QAbstractSocket::BoundState)
-        qDebug() << tr("IPv6 failed. Ready to multicast datagrams to group %1 on port 45454").arg(groupAddress4.toString());
-
-    // we only set the TTL on the IPv4 socket, as that changes the multicast scope
-    udpSocket4.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
-
     connect(&mUdpTimer, &QTimer::timeout, this, &ServerControl::broadcastDatagram);
-    startBroadcasting();
 }
 
 ServerControl::~ServerControl()
@@ -33,58 +22,82 @@ ServerControl::~ServerControl()
     mServer->deleteLater();
 }
 
+bool ServerControl::start()
+{
+    // ----------------------------------------------------------
+    // First, start the actual listening
+    // ----------------------------------------------------------
+    if (!startListening(m_serverPort))
+        return false;
+
+    // ----------------------------------------------------------
+    // Then, start broadcasting the availability on the network
+    // ----------------------------------------------------------
+
+    // force binding to their respective families
+    udpSocket4.bind(QHostAddress(QHostAddress::AnyIPv4), 0);
+    udpSocket6.bind(QHostAddress(QHostAddress::AnyIPv6), udpSocket4.localPort());
+
+    bool ipv4 = udpSocket4.state() == QAbstractSocket::BoundState;
+    bool ipv6 = udpSocket6.state() == QAbstractSocket::BoundState;
+
+    if (!ipv4) qDebug() << tr("IPv4 failed.");
+    if (!ipv6) qDebug() << tr("IPv6 failed.");
+
+    if ((!ipv4) && (!ipv6))
+        return false;
+
+    // we only set the TTL on the IPv4 socket, as that changes the multicast scope
+    udpSocket4.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
+
+    startBroadcasting();
+
+    setAvailable(true);
+    return true;
+}
+
+bool ServerControl::stop()
+{
+    mServer->close();
+    setAvailable(false);
+    return true;
+}
+
 bool ServerControl::startListening(int port)
 {
-//    QString ipAddress;
-//    QHostAddress hostAddress;
-//    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-//    for (int i = 0; i < ipAddressesList.size(); ++i)
-//    {
-//        QHostAddress h = ipAddressesList.at(i);
-//        bool isIPV4 = true;
-//        h.toIPv4Address(&isIPV4);
-
-//        if (h != QHostAddress::LocalHost && isIPV4 && h.isInSubnet(QHostAddress("255.255.255"), 0))
-//        {
-//            hostAddress = ipAddressesList.at(i);
-//            ipAddress = ipAddressesList.at(i).toString();
-//            break;
-//        }
-//    }
-    QList<QHostAddress> list = QNetworkInterface::allAddresses();
-    QHostAddress ipAddress;
-    for (int nIter=0; nIter < list.count(); nIter++)
-    {
-        if(!list[nIter].isLoopback() &&
-            list[nIter] != QHostAddress::LocalHost &&
-            list[nIter].protocol() == QAbstractSocket::IPv4Protocol)
-        {
-            ipAddress = list[nIter];
-            qDebug() << list[nIter].toString();
-            break;
-        }
-
-    }
-
-    bool success = mServer->listen(QHostAddress::AnyIPv4, port);
+    // Start listening on both ipv4 and ipv6
+    bool success = mServer->listen(QHostAddress::Any, port);
     setAvailable(success);
-    qDebug() << "url:" << mServer->serverUrl()
-             << "address:" << mServer->serverAddress()
-             << "port:" << mServer->serverPort()
-             << "proxy:" << mServer->proxy()
-             << "error:" << mServer->errorString()
-             ;
 
-    QString hostAddressStr = ipAddress.toString() + ":" + QString::number(mServer->serverPort());
-//    QString hostAddressStr = mServer->serverAddress().toString() + ":" + QString::number(mServer->serverPort());
-    setHostAddress(hostAddressStr);
-    qDebug() << "Server is listening at" << hostAddressStr;
+    // Now we need to find what addresses will be seen by clients and report them to the user
 
+    // The server seemingly does not report the actual address(es) it is listening on
+    // Thus we cannot report exactly what address is "the good one"
+//    qDebug() << "url:" << mServer->serverUrl()
+//             << "address:" << mServer->serverAddress()
+//             << "port:" << mServer->serverPort()
+//             << "proxy:" << mServer->proxy()
+//             << "error:" << mServer->errorString()
+//             ;
+
+    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    QList<QHostAddress> filtered;
 
     for (auto&& interface: QNetworkInterface::allInterfaces())
     {
+        // Filter out invalid and localhost
+        if (!interface.isValid() ||
+             interface.type() == QNetworkInterface::Loopback)
+            continue;
+
         for (auto&& entry: interface.addressEntries())
         {
+            // Keep only DNS eligible addresses (idk if that's acceptable)
+            if (entry.dnsEligibility() != QNetworkAddressEntry::DnsEligible)
+                continue;
+
+            filtered << entry.ip();
+
             qDebug() << "interface:" << interface.humanReadableName();
             qDebug() << "\tentry: ip:" << entry.ip()
                      << ", broadcast:" << entry.broadcast()
@@ -95,6 +108,29 @@ bool ServerControl::startListening(int port)
         }
     }
 
+    QString hostAddressStr;
+    for (auto&& hostAddress: filtered)
+        hostAddressStr += hostAddress.toString() + "\n";
+//    QString hostAddressStr = ipAddress.toString() + ":" + QString::number(mServer->serverPort());
+//    QString hostAddressStr = mServer->serverAddress().toString() + ":" + QString::number(mServer->serverPort());
+    setHostAddress(hostAddressStr);
+    qDebug() << "Server is listening at" << hostAddressStr;
+
+
+//    for (auto&& interface: QNetworkInterface::allInterfaces())
+//    {
+//        for (auto&& entry: interface.addressEntries())
+//        {
+//            qDebug() << "interface:" << interface.humanReadableName();
+//            qDebug() << "\tentry: ip:" << entry.ip()
+//                     << ", broadcast:" << entry.broadcast()
+//                     << ", netmask:" << entry.netmask()
+//                     << ", dnsEligible:" << entry.dnsEligibility()
+//                     << ", permanent:" << entry.isPermanent()
+//                     ;
+//        }
+//    }
+
     return success;
 }
 
@@ -104,16 +140,32 @@ void ServerControl::onNewConnection()
     {
         //QTcpSocket *socket = server.nextPendingConnection();
         QWebSocket* socket = mServer->nextPendingConnection();
-        qDebug() << "NEW CONNECTION ESTABLISHED!" << socket;
+        qDebug() << "NEW CONNECTION ESTABLISHED!" << socket
+                                                  << socket->origin()
+                                                  << socket->peerName()
+                                                  << socket->peerAddress()
+                                                  << socket->peerPort();
 
         //socket->sendTextMessage("Hello from server");
         mClients.push_back(socket);
         setActiveClients(mClients.size());
 
-        connect(socket, &QWebSocket::disconnected, [=](){
+        connect(socket, &QWebSocket::disconnected, [=]()
+        {
             mClients.removeOne(socket);
             setActiveClients(mClients.size());
         });
+
+        connect(socket, QOverload<QAbstractSocket::SocketError>::of(&QWebSocket::error), [=](QAbstractSocket::SocketError error)
+        {
+            qDebug() << error;
+            if (error == QAbstractSocket::RemoteHostClosedError)
+            {
+                mClients.removeOne(socket);
+                setActiveClients(mClients.size());
+            }
+        });
+
     }
 }
 
@@ -210,12 +262,23 @@ void ServerControl::startBroadcasting()
     mUdpTimer.start(1000);
 }
 
+void ServerControl::stopBroadcasting()
+{
+    mUdpTimer.stop();
+}
+
+inline QString message(QString tag, QString content)
+{
+    return QString("<%1>%2</%1>").arg(tag).arg(content);
+}
+
 void ServerControl::broadcastDatagram()
 {
     static uint n = 0;
     ++n;
 
-    QByteArray datagram = "qmlplayground Broadcast message #" + QByteArray::number(n);
+    QString datagramStr = "qmlplayground " + message("id", m_serverId);
+    QByteArray datagram = QByteArray::fromStdString(datagramStr.toStdString());
     udpSocket4.writeDatagram(datagram, groupAddress4, 45454);
     if (udpSocket6.state() == QAbstractSocket::BoundState)
         udpSocket6.writeDatagram(datagram, groupAddress6, 45454);

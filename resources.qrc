@@ -54,5 +54,6 @@
         <file>img/database.svg</file>
         <file>img/overflow.svg</file>
         <file>ClickableLabel.qml</file>
+        <file>img/mobile.svg</file>
     </qresource>
 </RCC>

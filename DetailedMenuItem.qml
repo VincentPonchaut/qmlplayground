@@ -32,7 +32,8 @@ MenuItem {
                 fillMode: Image.PreserveAspectFit
                 sourceSize.width: width
                 sourceSize.height: height
-                mipmap: true
+//                mipmap: true
+                smooth: true
             }
 
             ColorOverlay {
