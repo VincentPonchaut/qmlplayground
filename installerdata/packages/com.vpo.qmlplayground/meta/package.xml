@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>QmlPlayground</DisplayName>
+    <Description>QmlPlayground is a fast prototyping application for Qt's QML language</Description>
+    <Version>0.9.0</Version>
+    <ReleaseDate>2019-06-16</ReleaseDate>
+		<Name>com.vpo.qmlplayground</Name>
+		<ForcedInstallation>true</ForcedInstallation>
+		<Checkable>false</Checkable>
+</Package>
