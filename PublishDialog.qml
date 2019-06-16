@@ -179,6 +179,7 @@ Item {
                 width: parent.remainingWidth
                 anchors.verticalCenter: parent.verticalCenter
 //                text: "C:/Qt/5.12.0/msvc2017_64/bin"
+                placeholderText: "Enter Qt directory, such as 'C:/Qt/5.12.0/msvc2017_64/bin'"
             }
         }
         FormField {
@@ -189,6 +190,7 @@ Item {
                 width: parent.remainingWidth
                 anchors.verticalCenter: parent.verticalCenter
 //                text: "C:/Program Files (x86)/Microsoft Visual Studio/2017/"
+                placeholderText: "Enter MSVC directory, such as 'C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build'"
             }
         }
 
