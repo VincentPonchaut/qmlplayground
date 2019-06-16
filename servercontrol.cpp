@@ -59,6 +59,7 @@ bool ServerControl::start()
 bool ServerControl::stop()
 {
     mServer->close();
+    stopBroadcasting();
     setAvailable(false);
     return true;
 }
