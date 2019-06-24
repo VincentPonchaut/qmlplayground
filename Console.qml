@@ -110,7 +110,6 @@ Pane {
         onPositionChanged: {
             var vIndex = listView.indexAt(mouseX + listView.contentX, mouseY + listView.contentY);
             if (vIndex != -1) {
-                print("vIndex is ", vIndex)
                 listView.currentIndex = vIndex
                 listView.haltScrolling = true
             }
