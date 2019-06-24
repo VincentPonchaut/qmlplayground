@@ -5,8 +5,11 @@ import QtQuick.Controls.Material 2.2
 Pane {
     id: root
 
-    property var messages: []
     property int unreadMessages: 0
+
+    ListModel {
+        id: messages
+    }
 
     Connections {
         target: appControl
@@ -24,9 +27,11 @@ Pane {
         anchors.fill: parent
         clip: true
 
-        model: root.messages
+        model: messages
         spacing: 5
         boundsBehavior: Flickable.StopAtBounds
+
+        property bool haltScrolling: false
 
         ScrollIndicator.vertical: ScrollIndicator {
             visible: listView.contentHeight > listView.height
@@ -44,6 +49,8 @@ Pane {
             width: parent.width
             height: clickableText.height + messageText.height //childrenRect.height
 
+            highlighted: ListView.isCurrentItem
+
             Image {
                 id: warningIcon
 
@@ -54,7 +61,7 @@ Pane {
 
                 fillMode: Image.PreserveAspectFit
 
-                visible: modelData.type === "warning"
+                visible: model.type === "warning"
 
                 source: "qrc:///img/exclamation-triangle.svg"
                 sourceSize.width: width
@@ -68,20 +75,11 @@ Pane {
                 anchors.leftMargin: warningIcon.anchors.leftMargin
                 anchors.right: parent.right
 
-                text: "%1 line %2".arg(modelData.file).arg(modelData.line)
-                color: parent.hovered ? "lightgrey" : "darkgrey"
+                text: "%1 line %2".arg(model.file).arg(model.line)
+                color: messageDelegate.highlighted ? "lightgrey" : "darkgrey"
                 font.family: messageText.font.family
-                font.underline: clickableText.hovered
+                font.underline: messageDelegate.highlighted
                 font.pointSize: messageText.font.pointSize - 2
-
-                property bool hovered: mouseArea.containsMouse
-
-                MouseArea {
-                    id: mouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: Qt.openUrlExternally(modelData.path)
-                }
             }
             Text {
                 id: messageText
@@ -92,14 +90,43 @@ Pane {
                     top: clickableText.bottom
                 }
 
-                text: "" + modelData.msg
+                text: "" + model.msg
                 wrapMode: Text.Wrap
                 font.family: "Consolas"
                 font.pointSize: 10
-                color: messageDelegate.hovered ? "yellow" :
-                                                 "white"
+                color: messageDelegate.highlighted ? "yellow" :
+                                                     "white"
             }
 
+        }
+    }
+
+    MouseArea {
+        id: mouseArea
+
+        anchors.fill: parent
+        hoverEnabled: true
+
+        onPositionChanged: {
+            var vIndex = listView.indexAt(mouseX + listView.contentX, mouseY + listView.contentY);
+            if (vIndex != -1) {
+                print("vIndex is ", vIndex)
+                listView.currentIndex = vIndex
+                listView.haltScrolling = true
+            }
+            else {
+                listView.haltScrolling = false
+            }
+        }
+        onClicked: {
+            if (listView.currentIndex > -1)
+            {
+                Qt.openUrlExternally(messages.get(listView.currentIndex).path)
+            }
+        }
+
+        onExited: {
+            listView.haltScrolling = false
         }
     }
 
@@ -173,9 +200,13 @@ Pane {
     }
 
     function pushMessage(pMsgObject) {
-        root.messages.push(pMsgObject);
-        root.messagesChanged();
-        listView.positionViewAtEnd();
+        var vCurrentContentY = listView.contentY
+        messages.append(pMsgObject)
+
+        if (!listView.haltScrolling)
+            listView.positionViewAtEnd();
+        else
+            listView.contentY = vCurrentContentY
 
         // Update unread count if not visible
         if (root.state == "closed") {
@@ -184,7 +215,7 @@ Pane {
     }
 
     function clearMessages() {
-        root.messages = []
+        messages.clear()
         unreadMessages = 0
     }
 
