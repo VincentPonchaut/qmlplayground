@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>QmlPlayground</Name>
+    <Version>0.9.0</Version>
+    <Title>QmlPlayground</Title>
+    <Publisher>Vincent Ponchaut</Publisher>
+    <StartMenuDir>QmlPlayground</StartMenuDir>
+    <MaintenanceToolName>QmlPlaygroundSetup</MaintenanceToolName>
+    <TargetDir>@ApplicationsDir@/QmlPlayground</TargetDir>
+    <RunProgram>@TargetDir@/bin/QmlPlayground</RunProgram>
+		<SupportsModify>true</SupportsModify>
+</Installer>

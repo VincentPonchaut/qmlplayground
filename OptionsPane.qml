@@ -72,20 +72,18 @@ Pane {
             }
         }
 
+        Item {
+            id: semanticBlank
+            width: 50
+            height: parent.height
+        }
+
         // Clear console checkbox
         CheckBox {
             id: clearConsoleCheckbox
             anchors.verticalCenter: parent.verticalCenter
 
             text: "Clear console on reload"
-        }
-
-        // Publish button
-        Button {
-            anchors.verticalCenter: parent.verticalCenter
-
-            text: "Publish"
-            onClicked: publishDialog.open()
         }
 
     } // end contentPageHeader

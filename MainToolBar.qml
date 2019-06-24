@@ -255,8 +255,14 @@ ToolBar {
                 DetailedMenuItem {
                     iconFile: "qrc:///img/mobile.svg"
                     text: "Live preview"
-                    description: "Show your content LIVE on devices from the same network"
+                    description: "Try your project LIVE on devices from the same network"
                     onTriggered: serverDialog.open()
+                }
+                DetailedMenuItem {
+                    iconFile: "qrc:///img/dolly-flatbed.svg"
+                    text: "Publish project"
+                    description: "Generates a Qt project and a runnable .exe file"
+                    onTriggered: publishDialog.open()
                 }
                 DetailedMenuItem {
                     iconFile: "qrc:///img/help.svg"
