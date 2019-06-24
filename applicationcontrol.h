@@ -8,25 +8,55 @@
 #include <QQmlComponent>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QThread>
+#include <QMutex>
 
 
+#include "macros.h"
 #include "servercontrol.h"
+
+class ApplicationControl: public QObject
+// -------------------------------------------------------------------
+
+class FileSystemWatcher: public QObject
+{
+    Q_OBJECT
+
+public slots:
+    void doWork();
+    void setWatchedDirectory(const QString& pDirectory);
+
+signals:
+    void needToReloadQml();
+    void needToReloadAssets();
+
+private:
+    void listFiles(QString path);
+
+    bool mNeedRefresh = false;
+    QMutex mMutex;
+    QString mWatchedDirectory;
+    QFileInfoList mQmlJsFiles;
+    QFileInfoList mAssets;
+    QMap<QString, QDateTime> mFileTimes;
+};
+
+// -------------------------------------------------------------------
+{
+    Q_OBJECT
 
 class ApplicationControl: public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QStringList folderList READ folderList WRITE setFolderList NOTIFY folderListChanged)
-
-    Q_PROPERTY(QString currentFile READ currentFile WRITE setCurrentFile NOTIFY currentFileChanged)
-    Q_PROPERTY(QString currentFolder READ currentFolder WRITE setCurrentFolder NOTIFY currentFolderChanged)
+    PROPERTY(QStringList, folderList, setFolderList)
+    PROPERTY(QString, currentFile, setCurrentFile)
+    PROPERTY(QString, currentFolder, setCurrentFolder)
 
 
 public:
     explicit ApplicationControl(QObject *parent = nullptr);
     ~ApplicationControl();
-
-    QStringList folderList() const;
 
     void start(const QString &pMainQmlPath,
                QQmlApplicationEngine* pEngine,
@@ -38,7 +68,7 @@ public:
     Q_INVOKABLE int runAsyncCommand(const QString& pCommand);
     Q_INVOKABLE int runCommandWithArgs(const QString& pCommand, const QStringList& pArgs);
     Q_INVOKABLE QStringList listFiles(const QString& pPath, const QStringList& pNameFilters = QStringList("*.qml"));
-    Q_INVOKABLE void openFileExternally(const QString& pPath);
+    Q_INVOKABLE void openFileExternally(QString pPath);
 
     Q_INVOKABLE bool createFolder(QString pPath, QString pFolderName);
     Q_INVOKABLE bool createFile(QString pPath, QString pFileName);
@@ -66,50 +96,42 @@ public:
 
     Q_INVOKABLE bool exists(const QString& path);
 
-    QString currentFile() const;
-    QString currentFolder() const;
+    Q_INVOKABLE void setCurrentFileAndFolder(QString folder, QString file);
 
 signals:
-    void folderListChanged(QStringList folderList);
     void fileChanged(const QString& pFilePath);
     void directoryChanged(const QString& pDirectoryPath);
-    void currentFileChanged(QString currentFile);
-    void currentFolderChanged(QString currentFolder);
+    void reloadRequest();
+
     void newConnection();
+
+    void startWatching(const QString& pDirectory);
 
     void logMessage(const QString& message, const QString& file, int line);
     void warningMessage(const QString& message, const QString& file, int line);
 
 public slots:
-    void setFolderList(QStringList folderList);
     void onFileChanged(const QString& pPath);
     void onDirectoryChanged(const QString& pPath);
-    void setCurrentFile(QString currentFile);
-    void setCurrentFolder(QString currentFolder);
 
 protected slots:
     void onFolderListChanged();
     void onZippedFolderReadyToSend();
+    void onNeedToReloadQml();
+    void onNeedToReloadAssets();
 
 protected:
-    void setupWatchOnFolder(const QString& pPath);
     QString newFileContent();
     bool addFileToMessage(const QString& path, QString& message);
-
     QString newFolderChangeMessage();
 
 private:
     // Owned
-    QQuickView *mQuickView = nullptr; // deprecated
     QQmlComponent* mQuickComponent = nullptr;
     QString mMainQmlPath;
-    QFileSystemWatcher mFileWatcher;
     ServerControl mServerControl;
-
-    // QProperties
-    QStringList mFolderList;
-    QString m_currentFile;
-    QString m_currentFolder;
+    QThread mWatcherThread;
+    QMutex mMutex;
 
     // External
     QQmlApplicationEngine* mEngine = nullptr;
@@ -117,7 +139,6 @@ private:
     // Zip task
     QFuture<QByteArray> mFuture;
     QFutureWatcher<QByteArray> mFutureWatcher;
-};
 };
 
 #endif // APPLICATIONCONTROL_H

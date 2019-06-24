@@ -13,6 +13,7 @@ Page {
     property int reloadCount: 0;
     function reload()
     {
+        contentLoader.active = false;
         contentLoader.source = "";
 
         var targetSrc = targetFile()
@@ -21,6 +22,7 @@ Page {
             targetSrc += "?" + reloadCount++;
 
         contentLoader.source = targetSrc
+        contentLoader.active = true;
     }
     function load() { reload() }
 
@@ -55,7 +57,8 @@ Page {
             id: contentLoader
             anchors.fill: parent
             visible: status == Loader.Ready
-            source: targetFile()
+//            source: targetFile()
+//            asynchronous: true
 
             property string errorText;
             
@@ -66,7 +69,7 @@ Page {
 
                 if (status == Loader.Error) {
                     contentLoader.errorText = "" + contentLoader.sourceComponent.errorString()
-                    contentLoader.errorText = contentLoader.errorText.replace(new RegExp(root.currentFolder, 'g'), "");
+                    contentLoader.errorText = contentLoader.errorText.replace(new RegExp(appControl.currentFolder, 'g'), "");
                 }
                 else {
                     contentLoader.errorText = ""

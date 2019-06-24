@@ -1,4 +1,4 @@
-#include "applicationcontrol.h"
+﻿#include "applicationcontrol.h"
 
 #include <QDebug>
 #include <QQmlContext>
@@ -18,7 +18,11 @@
 #include <private/qzipwriter_p.h>
 
 #include <QStandardPaths>
+#include <QMutexLocker>
 #include <iostream>
+#include <QDesktopServices>
+
+// --------------------------------------------------------------------------------
 
 inline QString beginTag(const QString& tag)
 {
@@ -136,37 +140,90 @@ QByteArray zipFolder(QString folder, QString newFolderChangeMessage)
     return binaryMessage;
 }
 
+// --------------------------------------------------------------------------------
+
 ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
 {
-    QObject::connect(&mFileWatcher,
-                     &QFileSystemWatcher::fileChanged,
-                     this,
-                     &ApplicationControl::onFileChanged);
-    QObject::connect(&mFileWatcher,
-                     &QFileSystemWatcher::directoryChanged,
-                     this,
-                     &ApplicationControl::onDirectoryChanged);
-
     // Self connection
     QObject::connect(this,
                      &ApplicationControl::folderListChanged,
                      this,
                      &ApplicationControl::onFolderListChanged);
 
-    connect(&mFutureWatcher, SIGNAL(finished()), this, SLOT(onZippedFolderReadyToSend));
+    connect(this, &ApplicationControl::currentFolderChanged, this, &ApplicationControl::sendZippedFolderToClients);
+
+    // Zip task
+    bool ok = connect(&mFutureWatcher, SIGNAL(finished()), this, SLOT(onZippedFolderReadyToSend()));
+    assert(ok);
+
+    // FileSystemWatcher
+    FileSystemWatcher* worker = new FileSystemWatcher();
+    worker->moveToThread(&mWatcherThread);
+    connect(&mWatcherThread, &QThread::finished, worker, &QObject::deleteLater);
+//    connect(this, &ApplicationControl::currentFolderChanged, this, &ApplicationControl::startWatching);
+
+//    connect(this, &ApplicationControl::startWatching, &mWatcherThread, &QThread::requestInterruption);
+    connect(this, &ApplicationControl::currentFolderChanged, [=]()
+    {
+//        if (mWatcherThread.isRunning())
+//        {
+//            mWatcherThread.requestInterruption();
+//            mWatcherThread.terminate();
+//            mWatcherThread.wait();
+//        }
+        QMutexLocker lock(&mMutex);
+        worker->setWatchedDirectory(m_currentFolder);
+//        mWatcherThread.start();
+    });
+//    connect(this, &ApplicationControl::startWatching, worker, &FileSystemWatcher::doWork);
+    connect(&mWatcherThread, &QThread::started, worker, &FileSystemWatcher::doWork);
+
+//    connect(worker, &FileSystemWatcher::needToReloadQml, this, [this]()
+//    {
+//        QMutexLocker lock(&mMutex);
+//        qDebug() << "needToReloadQml received" << QThread::currentThread();
+
+//        // refresh visual elements
+//        requestClearQmlComponentCache();
+//        emit this->reloadRequest();
+
+//        // notify clients
+//        sendFolderToClients("");
+//    });
+//    connect(worker, &FileSystemWatcher::needToReloadAssets, this, [=]()
+//    {
+//        QMutexLocker lock(&mMutex);
+//        qDebug() << "needToReloadAssets received in " << QThread::currentThread() << "from object" << worker << "that is in " << worker->thread();
+
+//        // refresh visual elements
+//        requestClearQmlComponentCache();
+//        emit this->reloadRequest();
+
+//        // notify clienst
+//        sendZippedFolderToClients(m_currentFolder);
+//    });
+
+    connect(worker, &FileSystemWatcher::needToReloadQml, this, &ApplicationControl::onNeedToReloadQml);
+    connect(worker, &FileSystemWatcher::needToReloadAssets, this, &ApplicationControl::onNeedToReloadAssets);
+
+
+    mWatcherThread.start();
 }
 
 ApplicationControl::~ApplicationControl()
 {
-    if (mQuickView)
-        mQuickView->deleteLater();
     if (mQuickComponent)
         mQuickComponent->deleteLater();
+
+    mWatcherThread.quit();
+    mWatcherThread.wait();
+
+    QSettings settings;
+    settings.setValue("currentFile", currentFile());
+    settings.setValue("currentFolder", currentFolder());
 }
 
-QStringList ApplicationControl::folderList() const
 {
-    return mFolderList;
 }
 
 void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngine* pEngine, int pServerPort)
@@ -215,6 +272,14 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     QVariant folderList = settings.value("folderList");
     QStringList folderListAsList = folderList.value<QStringList>();
     setFolderList(folderListAsList);
+
+    // BUG: bindings are not resolved at initialization
+    QString currentFolder = settings.value("currentFolder").value<QString>();
+    if (!currentFolder.isEmpty())
+        setCurrentFolder(currentFolder);
+    QString currentFile = settings.value("currentFile").value<QString>();
+    if (!currentFile.isEmpty())
+        setCurrentFile(currentFile);
 }
 
 void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -231,7 +296,7 @@ void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &
         {
             emit warningMessage(msg, file, context.line);
             break;
-    }
+        }
         default:
         {
             emit logMessage(msg, file, context.line);
@@ -313,7 +378,7 @@ QStringList ApplicationControl::listFiles(const QString &pPath, const QStringLis
 
 inline QString quoted(const QString& pToQuote) { return "\"" + pToQuote + "\""; }
 
-void ApplicationControl::openFileExternally(const QString &pPath)
+void ApplicationControl::openFileExternally(QString pPath)
 {
     QStringList lSrcPathFields = pPath.split("/");
     QStringList lDstPathFields;
@@ -330,12 +395,15 @@ void ApplicationControl::openFileExternally(const QString &pPath)
         }
     }
 
-    QString lCommandArg = pPath;// lDstPathFields.join("/");
+//    QString lCommandArg = QString(pPath).replace("file:///", "");// lDstPathFields.join("/");
 
-    qDebug() << "Opening external file: " << lCommandArg;
 
     //QProcess::execute("cmd /c" + quoted("start %1").arg(lCommandArg));
-    QProcess::execute("start", {lCommandArg});
+//    QProcess::execute("start", {lCommandArg});
+    qDebug() << "Opening external file: " << QUrl::fromLocalFile(pPath);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(pPath));
+}
+
 }
 
 bool ApplicationControl::createFolder(QString pPath, QString pFolderName)
@@ -484,20 +552,20 @@ bool ApplicationControl::saveImageAsIco(QString pSrcPath, QString pDstPath)
 
 void ApplicationControl::addToFolderList(const QString &pFolderPath)
 {
-    if (mFolderList.contains(pFolderPath))
+    if (m_folderList.contains(pFolderPath))
         return;
 
-    mFolderList.append(pFolderPath);
-    emit folderListChanged(mFolderList);
+    m_folderList.append(pFolderPath);
+    emit folderListChanged(m_folderList);
 }
 
 void ApplicationControl::removeFromFolderList(const QString &pFolderPath)
 {
-    if (!mFolderList.contains(pFolderPath))
+    if (!m_folderList.contains(pFolderPath))
         return;
 
-    mFolderList.removeAll(pFolderPath);
-    emit folderListChanged(mFolderList);
+    m_folderList.removeAll(pFolderPath);
+    emit folderListChanged(m_folderList);
 }
 
 void ApplicationControl::requestClearQmlComponentCache()
@@ -542,7 +610,11 @@ void ApplicationControl::addContextProperty(const QString &pKey, QVariant pData)
 void ApplicationControl::sendFolderToClients(const QString &folder)
 {
     Q_UNUSED(folder);
+    if (!mServerControl.isAvailable() ||
+         mServerControl.activeClients() == 0)
+        return;
 
+    qDebug() << "sendFolderToClients" << QThread::currentThread();
     QString message;
 
     // TODO: Handle non-text files
@@ -577,6 +649,11 @@ void ApplicationControl::sendFolderToClients(const QString &folder)
 
 void ApplicationControl::sendFileToClients(const QString &file)
 {
+    if (!mServerControl.isAvailable() ||
+         mServerControl.activeClients() == 0)
+        return;
+
+    qDebug() << "sendFileToClients" << QThread::currentThread();
     QString message;
 
     // Specify message type
@@ -596,6 +673,11 @@ void ApplicationControl::sendFileToClients(const QString &file)
 
 void ApplicationControl::sendDataMessage(const QString &data)
 {
+    if (!mServerControl.isAvailable() ||
+         mServerControl.activeClients() == 0)
+        return;
+
+    qDebug() << "sendDataMessage" << QThread::currentThread();
     QString message;
 
     // Specify message type
@@ -610,128 +692,27 @@ void ApplicationControl::sendDataMessage(const QString &data)
 
 void ApplicationControl::sendZippedFolderToClients(const QString &folder)
 {
-//    // Ensure source content exists
-//    QString folderPath = folder;
-//    folderPath = folderPath.replace("file:///", "");
-//    QDir srcDir(folderPath);
-//    if (!srcDir.exists())
-//        return;
-//    QString projectName = srcDir.dirName();
-
-//    // Prepare resulting file
-//    QString filePath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QString("/qmlplayground_cache/%1.zip").arg(projectName);
-
-//    QFileInfo fileInfo(filePath);
-
-//    // Ensure resulting directory exists
-//    if (!QDir().mkpath(fileInfo.absolutePath()))
-//    {
-//        return;
-//    }
-
-//    // Remove previous file if it exists
-//    if (fileInfo.exists() && !QFile::remove(filePath))
-//    {
-//        return;
-//    }
-
-//    // Create the resulting file
-//    QFile file(filePath);
-//    if (!file.open(QIODevice::ReadWrite))
-//    {
-//        return;
-//    }
-
-//    // zip the folder
-//    QZipWriter writer(&file);
-//    writer.setCreationPermissions(QFile::ReadOther | QFile::WriteOther | QFile::ExeOther);
-
-
-//    QStringList nameFilters;
-//    nameFilters << "*";
-
-//    QDirIterator it(folderPath, nameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
-//    QStringList invalidEntries;
-//    invalidEntries << folderPath + "/."
-//                   << folderPath + "/..";
-//    while (it.hasNext())
-//    {
-//        QString itPath = it.next();
-//        if (it.fileInfo().isDir() ||
-//            invalidEntries.contains(itPath) ||
-//            itPath.endsWith("/.") || itPath.endsWith("/..") ||
-//            itPath.split(".").last() == "qmlc")
-//        {
-////            qDebug() << itPath << "is invalid";
-//            continue;
-//        }
-
-//        QFile f(itPath);
-//        if (!f.open(QIODevice::ReadOnly))
-//        {
-//            qDebug() << itPath << "could not be opened";
-//            continue;
-//        }
-
-//        // Add the file to the archive while respecting
-//        // the hierarchy
-//        QString itFilePath = it.fileInfo().filePath();
-//        QString itSubPath = itFilePath.remove(folderPath);
-//        if (itSubPath.startsWith("/"))
-//            itSubPath.remove(0, 1);
-
-//        writer.addFile(itSubPath, f.readAll());
-//        f.close();
-//    }
-//    writer.close();
-//    file.close();
-
-//    // Now we have the zip file, we have to send it to clients
-//    if (!file.open(QIODevice::ReadOnly))
-//        return;
-
-////    QByteArray binaryMessage = file.readAll();
-////    mServerControl.sendByteArrayToClients(binaryMessage);
-
-//    // Prepare a datastream to compose the message
-//    QByteArray binaryMessage;
-//    QDataStream stream(&binaryMessage, QIODevice::WriteOnly);
-
-//    // Get relevant message parts
-//    QByteArray data = file.readAll();
-//    qint32 dataLength = data.length();
-
-//    // Write message, starting with project name and zip file byte length
-//    stream << projectName;
-//    stream << dataLength;
-//    stream << newFolderChangeMessage();
-//    binaryMessage.append(data);
-
-//    ZipTask* zipTask = new ZipTask();
-//    zipTask->folder = folder;
-//    zipTask->newFolderChangeMessage = newFolderChangeMessage();
-
-//    connect(zipTask, &ZipTask::finished, [=](QByteArray result)
-//    {
-//        qDebug() << "sending bytearray";
-//        mServerControl.sendByteArrayToClients(result);
-//    });
-
-//    QThreadPool::globalInstance()->start(zipTask);
+    if (!mServerControl.isAvailable() ||
+         mServerControl.activeClients() == 0)
+        return;
 
     if (mFutureWatcher.isRunning())
         return;
 
+    assert(folder == currentFolder());
+
+    qDebug() << "sendZippedFolderToClients" << QThread::currentThread();
     mFuture = QtConcurrent::run<QByteArray>(zipFolder, folder, newFolderChangeMessage());
     mFutureWatcher.setFuture(mFuture);
-
-    // Send the message
-//    mServerControl.sendByteArrayToClients(binaryMessage);
-
 }
 
 void ApplicationControl::sendFolderChangeMessage()
 {
+    if (!mServerControl.isAvailable() ||
+         mServerControl.activeClients() == 0)
+        return;
+
+    qDebug() << "sendFolderChangeMessage" << QThread::currentThread();
     QString message = newFolderChangeMessage();
     mServerControl.sendToClients(message);
 }
@@ -788,7 +769,7 @@ void ApplicationControl::onFileChanged(const QString &pPath)
     mQuickView->setSource(mMainQmlPath);
 //    mQuickView->show();
 #endif
-    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
+//    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
 //    qDebug() << "Still watching files ---------------------------------";
 //    qDebug() << mFileWatcher.files();
 //    qDebug() << "------------------------------------------------------";
@@ -805,12 +786,12 @@ void ApplicationControl::onDirectoryChanged(const QString &pPath)
     mEngine->trimComponentCache();
     mEngine->clearComponentCache();
 
-    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
+//    mFileWatcher.addPath(pPath); // BUG: sometimes file watcher remove paths once a signal has been emitted
 //    qDebug() << "Still watching directories ---------------------------";
 //    qDebug() << mFileWatcher.directories();
 //    qDebug() << "------------------------------------------------------";
 
-    emit directoryChanged(pPath);
+//    emit directoryChanged(pPath);
 
 //    // Notify clients of any change
     sendFolderToClients("");
@@ -824,41 +805,57 @@ void ApplicationControl::onDirectoryChanged(const QString &pPath)
 //        sendFileToClients(file);
 }
 
-void ApplicationControl::setCurrentFile(QString currentFile)
-{
-    if (m_currentFile == currentFile)
-        return;
-
-    m_currentFile = currentFile;
-    emit currentFileChanged(m_currentFile);
-}
-
-void ApplicationControl::setCurrentFolder(QString currentFolder)
-{
-    if (m_currentFolder == currentFolder)
-        return;
-
-    m_currentFolder = currentFolder;
-    emit currentFolderChanged(m_currentFolder);
-}
-
 void ApplicationControl::onFolderListChanged()
 {
-    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
-    for (QString iNewFolder: mFolderList)
-    {
-        QString lFolderPath = iNewFolder.remove("file:///");
-        setupWatchOnFolder(lFolderPath);
-    }
+//    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
+//    for (QString iNewFolder: m_folderList)
+//    {
+//        QString lFolderPath = iNewFolder.remove("file:///");
+//        setupWatchOnFolder(lFolderPath);
+//    }
+
+//    FileSystemModel* model = new FileSystemModel();
+//    model->setParent(this);
+//    model->parseFolderList(m_folderList);
+
 }
 
 void ApplicationControl::onZippedFolderReadyToSend()
 {
     if (mFuture.result().isNull())
         return;
+    qDebug() << "onZippedFolderReadyToSend" << QThread::currentThread();
     mServerControl.sendByteArrayToClients(mFuture.result());
 }
 
+void ApplicationControl::onNeedToReloadQml()
+{
+    QMutexLocker lock(&mMutex);
+    qDebug() << "needToReloadQml received" << QThread::currentThread();
+
+    // refresh visual elements
+    requestClearQmlComponentCache();
+    emit this->reloadRequest();
+
+    // notify clients
+    sendFolderToClients("");
+}
+
+void ApplicationControl::onNeedToReloadAssets()
+{
+    QMutexLocker lock(&mMutex);
+//    qDebug() << "needToReloadAssets received in " << QThread::currentThread() << "from object" << worker << "that is in " << worker->thread();
+
+    // refresh visual elements
+    requestClearQmlComponentCache();
+    emit this->reloadRequest();
+
+    // notify clienst
+    sendZippedFolderToClients(m_currentFolder);
+}
+
+
+#if 0
 void ApplicationControl::setupWatchOnFolder(const QString &pPath)
 {
     qDebug() << "setting up watch on " << pPath;
@@ -895,6 +892,7 @@ void ApplicationControl::setupWatchOnFolder(const QString &pPath)
     if (!lFileList.isEmpty())
         mFileWatcher.addPaths(lFileList);
 }
+#endif
 
 QString ApplicationControl::newFileContent()
 {
@@ -975,3 +973,139 @@ QString ApplicationControl::newFolderChangeMessage()
     return message;
 }
 
+void ApplicationControl::setCurrentFileAndFolder(QString folder, QString file)
+{
+    bool emitFolder = false;
+    bool emitFile = false;
+
+    if (folder != m_currentFolder)
+    {
+        m_currentFolder = folder;
+        emitFolder = true;
+    }
+    if (file != m_currentFile)
+    {
+        m_currentFile = file;
+        emitFile = true;
+    }
+
+    // Folder takes priority
+    if (emitFolder)
+    {
+        emit currentFolderChanged(m_currentFolder);
+        emit reloadRequest();
+    }
+    else if (emitFile)
+        emit currentFileChanged(m_currentFile);
+}
+
+void FileSystemWatcher::doWork()
+{
+    qDebug() << "\ndowork starts";
+
+    forever
+    {
+        mMutex.lock();
+        if (mNeedRefresh)
+        {
+            listFiles(mWatchedDirectory);
+            mNeedRefresh = false;
+        }
+        mMutex.unlock();
+
+//        auto before = QDateTime::currentMSecsSinceEpoch();
+//        qDebug() << "starting work in " << mWatchedDirectory;
+//        if (QThread::currentThread()->isInterruptionRequested())
+//        {
+//            qDebug() << "interruption request received.";
+//            return;
+//        }
+
+        bool qmlJsModified = false;
+        bool assetsModified = false;
+
+        for (auto&& qmlJsFile: mQmlJsFiles)
+        {
+            QFileInfo newFileInfo(qmlJsFile.absoluteFilePath());
+            if (mFileTimes[qmlJsFile.absoluteFilePath()] < newFileInfo.lastModified())
+            {
+                qmlJsModified = true;
+                mFileTimes[qmlJsFile.absoluteFilePath()] = newFileInfo.lastModified();
+            }
+        }
+        for (auto&& assetFile: mAssets)
+        {
+            QFileInfo newFileInfo(assetFile.absoluteFilePath());
+            if (mFileTimes[assetFile.absoluteFilePath()] < newFileInfo.lastModified())
+            {
+                assetsModified = true;
+                mFileTimes[assetFile.absoluteFilePath()] = newFileInfo.lastModified();
+            }
+        }
+
+        if (assetsModified)
+        {
+            emit this->needToReloadAssets();
+        }
+        else if (qmlJsModified)
+        {
+            emit this->needToReloadQml();
+        }
+
+//        auto after = QDateTime::currentMSecsSinceEpoch();
+//        qDebug() << "finished work in " << mWatchedDirectory << "elapsed:" << (after - before) << "ms";
+
+        QThread::msleep(16);
+    }
+}
+
+void FileSystemWatcher::setWatchedDirectory(const QString &pDirectory)
+{
+    QMutexLocker lock(&mMutex);
+
+    if (mWatchedDirectory == pDirectory)
+        return;
+
+    mWatchedDirectory = pDirectory;
+    mNeedRefresh = true;
+}
+
+void FileSystemWatcher::listFiles(QString path)
+{
+    QString actualPath = path;
+    actualPath.remove("file:///");
+
+    if (actualPath.isEmpty() || actualPath == "/" || !QDir(actualPath).exists())
+        return;
+
+    mQmlJsFiles.clear();
+    mAssets.clear();
+
+    QStringList nameFilters;
+    nameFilters << "*";
+
+    QStringList result;
+
+    QDirIterator it(actualPath, nameFilters, QDir::NoFilter, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        it.next();
+        QFileInfo fi = it.fileInfo();
+        QString ext = fi.suffix().toLower();
+
+        if (ext == "qmlc")
+        {
+            continue;
+        }
+        else if (ext == "qml" || ext == "js")
+        {
+            mQmlJsFiles << fi;
+        }
+        else
+        {
+            mAssets << fi;
+        }
+        // Store the filetime
+        mFileTimes[fi.absoluteFilePath()] = fi.lastModified();
+    }
+}

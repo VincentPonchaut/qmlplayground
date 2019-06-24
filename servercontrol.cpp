@@ -150,6 +150,7 @@ void ServerControl::onNewConnection()
         //socket->sendTextMessage("Hello from server");
         mClients.push_back(socket);
         setActiveClients(mClients.size());
+        emit newConnection();
 
         connect(socket, &QWebSocket::disconnected, [=]()
         {

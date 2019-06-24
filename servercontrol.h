@@ -43,7 +43,6 @@ public:
 public:
     bool isAvailable() const;
     QString hostAddress() const;
-
     int activeClients() const;
 
 public slots:
@@ -55,6 +54,7 @@ signals:
     void availableChanged(bool available);
     void hostAddressChanged(QString hostAddress);
     void activeClientsChanged(int activeClients);
+    void newConnection();
 
 private:
     void startBroadcasting();

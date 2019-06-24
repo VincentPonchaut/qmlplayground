@@ -8,7 +8,7 @@ import Qt.labs.platform 1.0 as Labs
 //Page {
 Pane {
     id: folderSelectorPane
-    
+
     // Settings
     property alias filterText: filterTextField.text
 
@@ -84,14 +84,17 @@ Pane {
             var vFilePath = listView.currentItem["filePath"]
             var vFolderPath = listView.currentItem["folderPath"]
 
-            appControl.currentFile = vFilePath
-            appControl.currentFolder = vFolderPath
+            print("setting currentfolder to", vFolderPath)
+            print("setting currentfile to", vFilePath)
+//            appControl.currentFolder = vFolderPath
+//            appControl.currentFile = vFilePath
+            appControl.setCurrentFileAndFolder(vFolderPath, vFilePath)
         }
     }
 
     Pane {
         id: folderSectionTitlePane
-        
+
         width: parent.width
         height: optionsPane.height
         
@@ -344,12 +347,11 @@ Pane {
                     ToolTip.text: "Stop watching folder"
 
                     onClicked: {
-                        appControl.removeFromFolderList(section)
-
                         if (folderSelectorPane.qmlFiles.count == 0) {
-                            appControl.currentFile = ""
                             appControl.currentFolder = ""
+                            appControl.currentFile = ""
                         }
+                        appControl.removeFromFolderList(section)
                     }
                 }
             }
@@ -430,7 +432,7 @@ Pane {
             }
 
         }
-        
+
     }
     RoundButton {
         id: addFolderButton
@@ -549,18 +551,18 @@ Pane {
         }
     ]
     state: "open"
-    
+
     transitions: Transition {
         from: "open"
         to: "closed"
         reversible: true
-        
+
         NumberAnimation {
             properties: "x";
             easing.type: Easing.InOutQuad
         }
     }
-    
+
     function toggle() {
         state = (state == "open" ? "closed" : "open");
     }

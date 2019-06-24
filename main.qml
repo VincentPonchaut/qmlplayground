@@ -19,14 +19,6 @@ ApplicationWindow {
     Binding { target: appControl; property: "folderList"; value: root.folderList; }
     Connections { target: appControl; onFolderListChanged: root.folderList = appControl.folderList; }
 
-    property string currentFolder;
-    Binding { target: appControl; property: "currentFolder"; value: root.currentFolder }
-    Connections { target: appControl; onCurrentFolderChanged: root.currentFolder = appControl.currentFolder; }
-
-    property string currentFile;
-    Binding { target: appControl; property: "currentFile"; value: root.currentFile }
-    Connections { target: appControl; onCurrentFileChanged: root.currentFile = appControl.currentFile; }
-
     property string currentFileContents;
 
     Settings {
@@ -34,8 +26,6 @@ ApplicationWindow {
 
         // Logic state
         property alias folderList: root.folderList
-        property alias currentFolder: root.currentFolder
-        property alias currentFile: root.currentFile
 
         // Options
         property alias showContentBackground: optionsPane.showBackground
@@ -191,7 +181,7 @@ ApplicationWindow {
 
     Labs.FolderDialog {
         id: folderDialog
-        folder: root.currentFolder
+        folder: appControl.currentFolder
         onAccepted: addToFolderList(currentFolder)
     }
 
@@ -229,7 +219,7 @@ ApplicationWindow {
 
         Labs.FolderDialog {
             id: folderCreationDialog
-            folder: root.currentFolder
+            folder: appControl.currentFolder
         }
 
         padding: 0
@@ -500,43 +490,47 @@ ApplicationWindow {
 
     Connections {
         target: appControl
-        onFileChanged: handleExternalChanges()
-        onDirectoryChanged: handleExternalChanges()
+//        onFileChanged: handleExternalChanges()
+//        onDirectoryChanged: handleExternalChanges()
         ///onLogMessage: consoleText.text += "\n" + message
+
+        onReloadRequest: {
+//            contentPage.load()
+            handleExternalChanges()
+        }
+
+        onCurrentFileChanged: {
+            print("current file changed " + appControl.currentFile)
+            root.currentFileContents = readFileContents(appControl.currentFile)
+            contentPage.load();
+
+//            appControl.sendFolderToClients("");
+        }
+
+        onCurrentFolderChanged: {
+            print("current folder changed " + appControl.currentFolder)
+
+//            appControl.sendZippedFolderToClients(appControl.currentFolder)
+        }
+    }
+    onCurrentFileContentsChanged: {
+//        appControl.sendFolderToClients("");
     }
 
     function handleExternalChanges() {
-        appControl.sendZippedFolderToClients(root.currentFolder)
-        root.currentFileChanged();
+        print("handleExternalChanges")
+        root.currentFileContents = readFileContents(appControl.currentFile)
+        contentPage.load();
     }
 
     function refreshActiveFolders() {
         folderSelectorPane.refresh();
     }
 
-    onCurrentFileChanged: {
-        print("current file changed " + root.currentFile)
-        root.currentFileContents = readFileContents(root.currentFile)
-        contentPage.load();
-
-        appControl.sendFolderToClients("");
-    }
-
-    onCurrentFolderChanged: {
-        print("current folder changed " + root.currentFolder)
-
-        appControl.sendZippedFolderToClients(root.currentFolder)
-        appControl.sendFolderToClients("");
-
-//        if (serverControl.available)
-//            serverControl.sendFilesToClients(appControl.listFiles(root.currentFolder));
-    }
-    onCurrentFileContentsChanged: {
-        appControl.sendFolderToClients("");
-    }
 
     function targetFile() {
-        return root.currentFile.length > 0 ? root.currentFile : "";
+        //return root.currentFile.length > 0 ? root.currentFile : "";
+        return appControl.currentFile.length > 0 ? appControl.currentFile : "";
     }
 
     function removeFromFolderList(pFolderIndex)
@@ -560,7 +554,7 @@ ApplicationWindow {
 
     function editCurrentFileExternally()
     {
-        var vUrl = root.currentFile.replace("file:///", "");
+        var vUrl = appControl.currentFile.replace("file:///", "");
         Qt.openUrlExternally(vUrl);
     }
 
@@ -578,7 +572,7 @@ ApplicationWindow {
 
     function editCurrentFileLocally()
     {
-        editFileLocally(root.currentFile);
+        editFileLocally(appControl.currentFile);
     }
 
     function quickEditor_save()
@@ -596,7 +590,7 @@ ApplicationWindow {
     }
     function notifyFileChanged(pFileUrl) {
         appControl.fileChanged(pFileUrl)
-        root.currentFileChanged()
+//        root.currentFileChanged()
     }
 
     function readFileContents(pPath)
