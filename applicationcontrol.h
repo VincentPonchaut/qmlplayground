@@ -14,8 +14,8 @@
 
 #include "macros.h"
 #include "servercontrol.h"
+#include "multirootfolderlistmodel.h"
 
-class ApplicationControl: public QObject
 // -------------------------------------------------------------------
 
 class FileSystemWatcher: public QObject
@@ -42,17 +42,16 @@ private:
 };
 
 // -------------------------------------------------------------------
-{
-    Q_OBJECT
 
 class ApplicationControl: public QObject
 {
     Q_OBJECT
 
-    PROPERTY(QStringList, folderList, setFolderList)
+    Q_PROPERTY(QStringList folderList READ folderList WRITE setFolderList NOTIFY folderListChanged)
     PROPERTY(QString, currentFile, setCurrentFile)
     PROPERTY(QString, currentFolder, setCurrentFolder)
 
+    PROPERTY(MultiRootFolderListModel*, folderModel, setFolderModel)
 
 public:
     explicit ApplicationControl(QObject *parent = nullptr);
@@ -76,8 +75,8 @@ public:
     Q_INVOKABLE bool copyFeaturePack(QString pFeaturePackPrefix, QString pDstPath);
     Q_INVOKABLE bool saveImageAsIco(QString pSrcPath, QString pDstPath);
 
-    Q_INVOKABLE void addToFolderList(const QString& pFolderPath);
-    Q_INVOKABLE void removeFromFolderList(const QString& pFolderPath);
+    Q_INVOKABLE void addToFolderList(QString pFolderPath);
+    Q_INVOKABLE void removeFromFolderList(QString pFolderPath);
 
     Q_INVOKABLE void requestClearQmlComponentCache();
 
@@ -98,21 +97,22 @@ public:
 
     Q_INVOKABLE void setCurrentFileAndFolder(QString folder, QString file);
 
+    QStringList folderList() const;
+
 signals:
     void fileChanged(const QString& pFilePath);
     void directoryChanged(const QString& pDirectoryPath);
     void reloadRequest();
-
     void newConnection();
-
     void startWatching(const QString& pDirectory);
-
     void logMessage(const QString& message, const QString& file, int line);
     void warningMessage(const QString& message, const QString& file, int line);
+    void folderListChanged(QStringList READ);
 
 public slots:
     void onFileChanged(const QString& pPath);
     void onDirectoryChanged(const QString& pPath);
+    void setFolderList(QStringList folderList);
 
 protected slots:
     void onFolderListChanged();
@@ -139,6 +139,7 @@ private:
     // Zip task
     QFuture<QByteArray> mFuture;
     QFutureWatcher<QByteArray> mFutureWatcher;
+    QStringList m_folderList;
 };
 
 #endif // APPLICATIONCONTROL_H

@@ -56,5 +56,7 @@
         <file>ClickableLabel.qml</file>
         <file>img/mobile.svg</file>
         <file>img/dolly-flatbed.svg</file>
+        <file>VisualItemDelegate.qml</file>
+        <file>Icon.qml</file>
     </qresource>
 </RCC>

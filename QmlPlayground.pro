@@ -31,6 +31,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     macros.h \
+    folderlistmodel.h \
+    multirootfolderlistmodel.h \
     tools/maskedmousearea.h \
     applicationcontrol.h \
     QMLHighlighter.h \
@@ -38,6 +40,8 @@ HEADERS += \
     servercontrol.h
 
 SOURCES += main.cpp \
+    folderlistmodel.cpp \
+    multirootfolderlistmodel.cpp \
     tools/maskedmousearea.cpp \
     applicationcontrol.cpp \
     QMLHighlighter.cpp \

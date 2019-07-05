@@ -152,6 +152,8 @@ ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
 
     connect(this, &ApplicationControl::currentFolderChanged, this, &ApplicationControl::sendZippedFolderToClients);
 
+    m_folderModel = new MultiRootFolderListModel(this);
+
     // Zip task
     bool ok = connect(&mFutureWatcher, SIGNAL(finished()), this, SLOT(onZippedFolderReadyToSend()));
     assert(ok);
@@ -445,8 +447,6 @@ void ApplicationControl::openFileExternally(QString pPath)
     QDesktopServices::openUrl(QUrl::fromLocalFile(pPath));
 }
 
-}
-
 bool ApplicationControl::createFolder(QString pPath, QString pFolderName)
 {
     QString lPath = pPath.replace("file:///", "");
@@ -591,21 +591,31 @@ bool ApplicationControl::saveImageAsIco(QString pSrcPath, QString pDstPath)
     return savePixmapsToICO(pixmapList, dstPath);
 }
 
-void ApplicationControl::addToFolderList(const QString &pFolderPath)
+void ApplicationControl::addToFolderList(QString pFolderPath)
 {
+    if (!pFolderPath.startsWith("file:///"))
+        pFolderPath = "file:///" + pFolderPath;
+
     if (m_folderList.contains(pFolderPath))
         return;
 
     m_folderList.append(pFolderPath);
+    m_folderModel->addFolder(pFolderPath);
+
     emit folderListChanged(m_folderList);
 }
 
-void ApplicationControl::removeFromFolderList(const QString &pFolderPath)
+void ApplicationControl::removeFromFolderList(QString pFolderPath)
 {
+    if (!pFolderPath.startsWith("file:///"))
+        pFolderPath = "file:///" + pFolderPath;
+
     if (!m_folderList.contains(pFolderPath))
         return;
 
     m_folderList.removeAll(pFolderPath);
+    m_folderModel->removeFolder(pFolderPath);
+
     emit folderListChanged(m_folderList);
 }
 
@@ -768,36 +778,6 @@ bool ApplicationControl::exists(const QString &path)
     return QDir(path).exists() || QFile::exists(path);
 }
 
-QString ApplicationControl::currentFile() const
-{
-    return m_currentFile;
-}
-
-QString ApplicationControl::currentFolder() const
-{
-    return m_currentFolder;
-}
-
-void ApplicationControl::setFolderList(QStringList folderList)
-{
-    if (mFolderList == folderList)
-        return;
-
-    mFolderList = folderList;
-
-//    // internal handle folder list changed
-//    QSet<QString> lAlreadyWatched = QSet<QString>::fromList(mFileWatcher.directories());
-//    QSet<QString> lNewFolders = QSet<QString>::fromList(mFolderList).subtract(lAlreadyWatched);
-//    for (QString iNewFolder: lNewFolders)
-//    {
-//        QString lFolderPath = iNewFolder.remove("file:///");
-//    }
-
-
-
-    emit folderListChanged(mFolderList);
-}
-
 void ApplicationControl::onFileChanged(const QString &pPath)
 {
 //    qDebug() << "file changed " << pPath;
@@ -846,12 +826,27 @@ void ApplicationControl::onDirectoryChanged(const QString &pPath)
 //        sendFileToClients(file);
 }
 
+void ApplicationControl::setFolderList(QStringList folderList)
+{
+    if (m_folderList == folderList)
+        return;
+
+    m_folderModel->clear();
+    for (auto& folder: folderList)
+    {
+        addToFolderList(folder);
+    }
+
+    emit folderListChanged(m_folderList);
+}
+
+
 void ApplicationControl::onFolderListChanged()
 {
-//    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
-//    for (QString iNewFolder: m_folderList)
-//    {
-//        QString lFolderPath = iNewFolder.remove("file:///");
+    //    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
+    //    for (QString iNewFolder: m_folderList)
+    //    {
+    //        QString lFolderPath = iNewFolder.remove("file:///");
 //        setupWatchOnFolder(lFolderPath);
 //    }
 
@@ -1036,8 +1031,13 @@ void ApplicationControl::setCurrentFileAndFolder(QString folder, QString file)
         emit currentFolderChanged(m_currentFolder);
         emit reloadRequest();
     }
-    else if (emitFile)
+    /*else*/ if (emitFile)
         emit currentFileChanged(m_currentFile);
+}
+
+QStringList ApplicationControl::folderList() const
+{
+    return m_folderList;
 }
 
 void FileSystemWatcher::doWork()

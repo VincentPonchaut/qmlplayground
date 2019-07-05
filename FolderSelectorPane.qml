@@ -14,45 +14,6 @@ Pane {
 
     // Data
     property var folders;
-    property ListModel qmlFiles: ListModel {}
-
-    function refresh() {
-//        print("refreshing FolderSelectorPane")
-        qmlFiles.clear();
-
-        folders.forEach(function(folder) {
-            var files = appControl.listFiles(folder);
-
-            files.forEach(function(file)
-            {
-                if (!String(file).toLowerCase().includes(folderSelectorPane.filterText.toLowerCase()))
-                    return;
-
-                qmlFiles.append({
-                                    "file" : file,
-                                    "folder" : folder
-                                });
-            })
-        });
-
-        var newCurrentIndex = 0;
-        for (var i = 0; i < qmlFiles.count; ++i) {
-            var qmlFile = qmlFiles.get(i);
-            if (qmlFile.file == appControl.currentFile) {
-                newCurrentIndex = i
-                break;
-            }
-        }
-        listView.currentIndex = newCurrentIndex
-    }
-    onFoldersChanged: {
-        print("foldersChanged from FolderSelectorPane")
-        refresh()
-    }
-    onFilterTextChanged: {
-        print("foldersChanged from FolderSelectorPane")
-        refresh()
-    }
 
     function focusFileFilter() {
         filterTextField.forceActiveFocus()
@@ -75,22 +36,38 @@ Pane {
         listView.incrementCurrentIndex()
     }
 
-    Connections {
-        target: listView
-        onCurrentIndexChanged: {
-            if (listView.currentIndex < 0)
-                return;
+//    Connections {
+//        target: listView
+//        onCurrentIndexChanged: {
+//            if (listView.currentIndex < 0)
+//                return;
 
-            var vFilePath = listView.currentItem["filePath"]
-            var vFolderPath = listView.currentItem["folderPath"]
+//            var vFilePath = listView.currentItem["filePath"]
+//            var vFolderPath = listView.currentItem["folderPath"]
 
-            print("setting currentfolder to", vFolderPath)
-            print("setting currentfile to", vFilePath)
-//            appControl.currentFolder = vFolderPath
-//            appControl.currentFile = vFilePath
-            appControl.setCurrentFileAndFolder(vFolderPath, vFilePath)
-        }
-    }
+//            print("setting currentfolder to", vFolderPath)
+//            print("setting currentfile to", vFilePath)
+////            appControl.currentFolder = vFolderPath
+////            appControl.currentFile = vFilePath
+//            appControl.setCurrentFileAndFolder(vFolderPath, vFilePath)
+//        }
+//    }
+    //    Connections {
+    //        target: listView
+    //        onCurrentIndexChanged: {
+    //            if (listView.currentIndex < 0)
+    //                return;
+
+    //            var vFilePath = listView.currentItem["filePath"]
+    //            var vFolderPath = listView.currentItem["folderPath"]
+
+    //            print("setting currentfolder to", vFolderPath)
+    //            print("setting currentfile to", vFilePath)
+    ////            appControl.currentFolder = vFolderPath
+    ////            appControl.currentFile = vFilePath
+    //            appControl.setCurrentFileAndFolder(vFolderPath, vFilePath)
+    //        }
+    //    }
 
     Pane {
         id: folderSectionTitlePane
@@ -202,9 +179,6 @@ Pane {
         
         width: parent.width
         height: parent.height - folderSectionTitlePane.height - filterPane.height
-
-        clip: true
-        
         anchors {
             top: filterPane.bottom
             left: parent.left
@@ -212,10 +186,23 @@ Pane {
             bottom: parent.bottom
         }
 
-        model: folderSelectorPane.qmlFiles
+        model: appControl.folderModel
 
-        property var foldedSections: []
+//        delegate: Rectangle {
+//            width: 50; height: 50;
+//            color: Qt.rgba(Math.random(),Math.random(),Math.random())
+//        }
+        clip: true
+        delegate: VisualItemDelegate {
+            width: parent.width
 
+//                text: model.path
+            textRole: "name"
+            childModel: entries
+            childCount: entries.rowCount();
+        }
+
+        /*
         section.property: "folder"
         section.delegate: ItemDelegate
         {
@@ -432,8 +419,9 @@ Pane {
             }
 
         }
+    */
+    } // ListView
 
-    }
     RoundButton {
         id: addFolderButton
         width: 60
