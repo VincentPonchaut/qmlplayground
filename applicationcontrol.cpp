@@ -223,7 +223,45 @@ ApplicationControl::~ApplicationControl()
     settings.setValue("currentFolder", currentFolder());
 }
 
+inline QString dpiCategory(qreal pDp)
 {
+    return pDp < 120 ? "ldpi"    :
+           pDp < 160 ? "mdpi"    :
+           pDp < 213 ? "tvdpi"   :
+           pDp < 240 ? "hdpi"    :
+           pDp < 320 ? "xhdpi"   :
+           pDp < 480 ? "xxhdpi"  :
+           pDp < 640 ? "xxxhdpi" :
+                       "nodpi"   ;
+}
+inline qreal dpiPixelRatio(QString pCategory)
+{
+    return pCategory == "ldpi"    ? 0.75 :
+           pCategory == "mdpi"    ? 1.00 :
+           pCategory == "tvdpi"   ? 1.33 :
+           pCategory == "hdpi"    ? 1.50 :
+           pCategory == "xhdpi"   ? 2.00 :
+           pCategory == "xxhdpi"  ? 3.00 :
+           pCategory == "xxxhdpi" ? 4.00 :
+                                    1.00 ;
+}
+inline void addDpiInfoToQmlContext(QQmlContext* pContext)
+{
+    qreal xDpi = QGuiApplication::primaryScreen()->physicalDotsPerInchX() * QGuiApplication::primaryScreen()->devicePixelRatio();
+    qreal yDpi = QGuiApplication::primaryScreen()->physicalDotsPerInchY() * QGuiApplication::primaryScreen()->devicePixelRatio();
+    qreal lDpi = QGuiApplication::primaryScreen()->physicalDotsPerInch()  * QGuiApplication::primaryScreen()->devicePixelRatio();
+
+    pContext->setContextProperty(QStringLiteral("mmX"), xDpi / 25.4f);
+    pContext->setContextProperty(QStringLiteral("mmY"), yDpi / 25.4f);
+    pContext->setContextProperty(QStringLiteral("mm"),  lDpi / 25.4f);
+
+    pContext->setContextProperty(QStringLiteral("cmX"), xDpi * 10.0f / 25.4f);
+    pContext->setContextProperty(QStringLiteral("cmY"), yDpi * 10.0f / 25.4f);
+    pContext->setContextProperty(QStringLiteral("cm"),  lDpi * 10.0f / 25.4f);
+
+    QString lCategory = dpiCategory(lDpi);
+    qreal lPixelRatio = dpiPixelRatio(lCategory);
+    pContext->setContextProperty(QStringLiteral("dp"), lPixelRatio);
 }
 
 void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngine* pEngine, int pServerPort)
@@ -235,6 +273,9 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     mEngine = pEngine;
 
     mEngine->rootContext()->setContextProperty("appControl", this);
+
+    // DPI Management
+    addDpiInfoToQmlContext(mEngine->rootContext());
 
     // Server management
     mEngine->rootContext()->setContextProperty("serverControl", &mServerControl);
