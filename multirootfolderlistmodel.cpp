@@ -16,6 +16,11 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
 
     FolderListModel* flm = new FolderListModel(this);
     connect(flm, &FolderListModel::updateNeeded, this, &MultiRootFolderListModel::updateNeeded);
+    connect(flm, &FolderListModel::dataChanged, [=]()
+    {
+        // TODO: only emit for relevant index (mFolderListModels.indexOf(flm)
+        emit this->dataChanged(index(0), index(rowCount() - 1));
+    });
     flm->setPath(folderPath);
 
     _appendFolderListModel(flm);

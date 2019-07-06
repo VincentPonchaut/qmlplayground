@@ -16,6 +16,8 @@ class FolderListModel: public QAbstractListModel
 // QAbstractItemModel interface
 public:
     explicit FolderListModel(QObject *parent = nullptr);
+    FolderListModel(const FolderListModel& other);
+    virtual ~FolderListModel();
 
     enum Roles
     {
@@ -28,7 +30,7 @@ public:
 
     QHash<int,QByteArray> roleNames() const override;
 
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    Q_INVOKABLE virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
     void setPath(QString path);
@@ -48,5 +50,11 @@ private:
     QVector<FolderListModel*> mFolderListModels;
 };
 
+//This macro makes the type Type known to QMetaType as long as it provides
+// 1. a public default constructor,
+// 2. a public copy constructor
+// 3. and a public destructor.
+// It is needed to use the type Type as a custom type in QVariant.
+Q_DECLARE_METATYPE(FolderListModel)
 
 #endif // FOLDERLISTMODEL_H

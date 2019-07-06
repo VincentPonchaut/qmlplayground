@@ -524,7 +524,7 @@ ApplicationWindow {
     }
 
     function refreshActiveFolders() {
-        folderSelectorPane.refresh();
+        //folderSelectorPane.refresh();
     }
 
 

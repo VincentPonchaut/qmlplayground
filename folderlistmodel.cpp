@@ -13,7 +13,8 @@ FolderListModel::FolderListModel(QObject *parent)
         // TODO: fire reload
         qDebug() << "model changed";
         loadEntries();
-        emit this->updateNeeded();
+//        emit this->updateNeeded();
+        qDebug() << "rowcount is now " << rowCount();
     });
 
     connect(&mWatcher, &QFileSystemWatcher::directoryChanged, [=](QString dirName)
@@ -28,6 +29,41 @@ FolderListModel::FolderListModel(QObject *parent)
         // To avoid reloading the full model
         mChangeNotifier.start();
     });
+}
+
+FolderListModel::FolderListModel(const FolderListModel &other)
+{
+    mChangeNotifier.setInterval(100);
+    mChangeNotifier.setSingleShot(true);
+
+    connect(&mChangeNotifier, &QTimer::timeout, [=]()
+    {
+        // TODO: fire reload
+        qDebug() << "model changed";
+        loadEntries();
+//        emit this->updateNeeded();
+        qDebug() << "rowcount is now " << rowCount();
+    });
+
+    connect(&mWatcher, &QFileSystemWatcher::directoryChanged, [=](QString dirName)
+    {
+        // TODO: find index from directory name
+        // To avoid reloading the full model
+        mChangeNotifier.start();
+    });
+    connect(&mWatcher, &QFileSystemWatcher::fileChanged, [=](QString fileName)
+    {
+        // TODO: find index from file name
+        // To avoid reloading the full model
+        mChangeNotifier.start();
+    });
+
+    setPath(other.mPath);
+}
+
+FolderListModel::~FolderListModel()
+{
+
 }
 
 QHash<int, QByteArray> FolderListModel::roleNames() const
@@ -130,7 +166,8 @@ void FolderListModel::loadEntries()
         if (dir.path() == mPath)
         {
             mEntries.append(dir);
-            mWatcher.addPath(dir.absoluteFilePath());
+            bool ok = mWatcher.addPath(dir.absoluteFilePath());
+            assert(ok);
 
             FolderListModel* flm = new FolderListModel(this);
             flm->setPath(directory);

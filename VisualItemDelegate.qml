@@ -12,20 +12,29 @@ ItemDelegate {
     property bool isExpandable: childCount > 0
     property bool isExpanded: state == "expanded"
 
-//    property var childModel;
-    property alias childModel: substepsDelegate.model
-    property int childCount: childModel.count
+    property var childModel;
+//    property alias childModel: substepsDelegate.model
+    property int childCount: typeof(model[childrenRole]) !== "undefined" ? model[childrenRole].rowCount() : 0//childModel.count
 
     property int rowHeight: 40
 
     property string textRole: "modelData"
+    property string childrenRole: "children"
 
-    property bool isCurrentFolder: (model.isDir && ("file:///" + model.path) == appControl.currentFolder)
-    property bool isCurrentFile: (!model.isDir && ("file:///" + model.path) == appControl.currentFile)
+    property bool isCurrentFolder: (model.isDir && fp(model.path) === appControl.currentFolder)
+    property bool isCurrentFile: (!model.isDir && fp(model.path) === appControl.currentFile)
 
     // --------------------------------------------------------------------------
     // Logic
     // --------------------------------------------------------------------------
+
+    // Hack because somehow the listview is not notified
+    onChildCountChanged:
+    {
+        substepsDelegate.model = []
+        itemDelegate.childModelChanged()
+        substepsDelegate.model = itemDelegate.childModel
+    }
 
     function toggleState() {
         state = state == "expanded" ? "folded" : "expanded"
@@ -326,7 +335,6 @@ ItemDelegate {
 //    }
 
 
-//    Column {
     ListView {
         id: substepsDelegate
         anchors.top: stepDelegateContentRow.bottom
@@ -339,12 +347,15 @@ ItemDelegate {
 
         visible: parent.state == "expanded"
 
-//        model: isExpandable ? childModel : 0
+//        model: typeof(itemDelegate.childModel) !== "undefined" ? itemDelegate.childModel : 0
+
+        Binding on model {
+            when: typeof(itemDelegate.childModel) !== "undefined"
+            value: itemDelegate.childModel
+        }
 
         delegate: Item {
             width: parent.width
-//            width: substepDelegateLoader.item.width
-            //height: Math.max(childrenRect.height, rowHeight)
             height: substepDelegateLoader.item.height // childrenRect.height
 
             Loader {
@@ -353,7 +364,7 @@ ItemDelegate {
                 height: childrenRect.height
 //                asynchronous: true // dont put async loader in listview
             }
-//            Text {
+//            Label {
 ////                anchors.fill: parent
 //                text: "cc(" + childCount + "), ssdheight: " + substepsDelegate.height + " idheight: " + itemDelegate.height
 //            }
@@ -362,35 +373,19 @@ ItemDelegate {
                 substepDelegateLoader.setSource("VisualItemDelegate.qml",
                                                 {
                                                     "textRole" : itemDelegate.textRole,
-                                                    "childModel" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries }) : [],
-                                                    "childCount" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries.rowCount()}) : 0
+                                                    //"childModel" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries }) : [],
+                                                    "childModel" : model.entries,
+                                                    "childrenRole": "entries"
+                                                    //"childCount" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries.rowCount()}) : 0
+//                                                    "childModel" : typeof(model.entries) != "undefined" ? model.entries : [],
+//                                                    "childCount" : typeof(model.entries) != "undefined" ? model.entries.rowCount() : 0
                                                 })
             }
         }
 
-//        Repeater {
-//            model: isExpandable ? childModel : 0
-
-//            Item {
-//                width: parent.width
-//                height: childrenRect.height
-
-//                Loader {
-//                    id: substepDelegateLoader
-//                    width: parent.width
-//                    height: childrenRect.height
-////                    asynchronous: true
-//                }
-
-//                Component.onCompleted: {
-//                    substepDelegateLoader.setSource("VisualItemDelegate.qml",
-//                                                   {
-//                                                        "textRole" : itemDelegate.textRole,
-//                                                        "childModel" : entries,
-//                                                        "childCount" : 0
-//                                                    })
-//                }
-//            }
+//        Text {
+//            anchors.centerIn: parent
+//            text: "ssc: " + substepsDelegate.count + "-" + childCount
 //        }
     }
 
