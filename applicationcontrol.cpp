@@ -144,72 +144,26 @@ QByteArray zipFolder(QString folder, QString newFolderChangeMessage)
 
 ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
 {
-    // Self connection
-    QObject::connect(this,
-                     &ApplicationControl::folderListChanged,
-                     this,
-                     &ApplicationControl::onFolderListChanged);
-
-    connect(this, &ApplicationControl::currentFolderChanged, this, &ApplicationControl::sendZippedFolderToClients);
-
+    // Prepare the file system model
     m_folderModel = new MultiRootFolderListModel(this);
-
-    // Zip task
-    bool ok = connect(&mFutureWatcher, SIGNAL(finished()), this, SLOT(onZippedFolderReadyToSend()));
-    assert(ok);
-
-    // FileSystemWatcher
-    FileSystemWatcher* worker = new FileSystemWatcher();
-    worker->moveToThread(&mWatcherThread);
-    connect(&mWatcherThread, &QThread::finished, worker, &QObject::deleteLater);
-//    connect(this, &ApplicationControl::currentFolderChanged, this, &ApplicationControl::startWatching);
-
-//    connect(this, &ApplicationControl::startWatching, &mWatcherThread, &QThread::requestInterruption);
-    connect(this, &ApplicationControl::currentFolderChanged, [=]()
-    {
-//        if (mWatcherThread.isRunning())
-//        {
-//            mWatcherThread.requestInterruption();
-//            mWatcherThread.terminate();
-//            mWatcherThread.wait();
-//        }
-        QMutexLocker lock(&mMutex);
-        worker->setWatchedDirectory(m_currentFolder);
-//        mWatcherThread.start();
+    connect(m_folderModel, &MultiRootFolderListModel::updateNeeded,
+    [=](){
+        onNeedToReloadQml();
     });
-//    connect(this, &ApplicationControl::startWatching, worker, &FileSystemWatcher::doWork);
-    connect(&mWatcherThread, &QThread::started, worker, &FileSystemWatcher::doWork);
-
-//    connect(worker, &FileSystemWatcher::needToReloadQml, this, [this]()
-//    {
-//        QMutexLocker lock(&mMutex);
-//        qDebug() << "needToReloadQml received" << QThread::currentThread();
-
-//        // refresh visual elements
-//        requestClearQmlComponentCache();
-//        emit this->reloadRequest();
-
-//        // notify clients
-//        sendFolderToClients("");
-//    });
-//    connect(worker, &FileSystemWatcher::needToReloadAssets, this, [=]()
-//    {
-//        QMutexLocker lock(&mMutex);
-//        qDebug() << "needToReloadAssets received in " << QThread::currentThread() << "from object" << worker << "that is in " << worker->thread();
-
-//        // refresh visual elements
-//        requestClearQmlComponentCache();
-//        emit this->reloadRequest();
-
-//        // notify clienst
-//        sendZippedFolderToClients(m_currentFolder);
-//    });
-
-    connect(worker, &FileSystemWatcher::needToReloadQml, this, &ApplicationControl::onNeedToReloadQml);
-    connect(worker, &FileSystemWatcher::needToReloadAssets, this, &ApplicationControl::onNeedToReloadAssets);
 
 
-    mWatcherThread.start();
+    // When the current folder changes, notify all clients if any
+    connect(this,
+            &ApplicationControl::currentFolderChanged,
+            this,
+            &ApplicationControl::sendZippedFolderToClients);
+
+    // Zip task: when thread finished zipping assets, send them to clients
+    bool ok = connect(&mFutureWatcher,
+                      SIGNAL(finished()),
+                      this,
+                      SLOT(onZippedFolderReadyToSend()));
+    assert(ok);
 }
 
 ApplicationControl::~ApplicationControl()
@@ -840,21 +794,6 @@ void ApplicationControl::setFolderList(QStringList folderList)
     emit folderListChanged(m_folderList);
 }
 
-
-void ApplicationControl::onFolderListChanged()
-{
-    //    mFileWatcher.removePaths(mFileWatcher.directories() + mFileWatcher.files());
-    //    for (QString iNewFolder: m_folderList)
-    //    {
-    //        QString lFolderPath = iNewFolder.remove("file:///");
-//        setupWatchOnFolder(lFolderPath);
-//    }
-
-//    FileSystemModel* model = new FileSystemModel();
-//    model->setParent(this);
-//    model->parseFolderList(m_folderList);
-
-}
 
 void ApplicationControl::onZippedFolderReadyToSend()
 {

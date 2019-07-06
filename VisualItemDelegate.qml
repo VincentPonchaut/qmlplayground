@@ -166,7 +166,7 @@ ItemDelegate {
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
-            onClicked: fileCreationPopup.openForFolder(section)
+            onClicked: fileCreationPopup.openForFolder(fp(model.path))
             imageSource: "qrc:///img/newFile.svg"
             ToolTip.text: "New file"
         }
@@ -177,7 +177,7 @@ ItemDelegate {
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
-            onClicked: Qt.openUrlExternally('file:///' + model.path)//appControl.runCommand("cmd /c explorer \"%1\"".arg(modelData))
+            onClicked: Qt.openUrlExternally(fp(model.path))//appControl.runCommand("cmd /c explorer \"%1\"".arg(modelData))
 
             Image {
                 anchors.fill: parent

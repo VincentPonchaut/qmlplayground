@@ -13,6 +13,7 @@ FolderListModel::FolderListModel(QObject *parent)
         // TODO: fire reload
         qDebug() << "model changed";
         loadEntries();
+        emit this->updateNeeded();
     });
 
     connect(&mWatcher, &QFileSystemWatcher::directoryChanged, [=](QString dirName)

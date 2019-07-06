@@ -29,6 +29,9 @@ public:
     void removeFolder(QString folderPath);
     void clear();
 
+signals:
+    void updateNeeded();
+
 // -------------------------------------------------------
 // QAbstractItemModel interface
 // -------------------------------------------------------

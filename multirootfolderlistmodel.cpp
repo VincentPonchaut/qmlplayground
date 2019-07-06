@@ -15,6 +15,7 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
         return;
 
     FolderListModel* flm = new FolderListModel(this);
+    connect(flm, &FolderListModel::updateNeeded, this, &MultiRootFolderListModel::updateNeeded);
     flm->setPath(folderPath);
 
     _appendFolderListModel(flm);

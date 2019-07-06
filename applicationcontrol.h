@@ -115,7 +115,6 @@ public slots:
     void setFolderList(QStringList folderList);
 
 protected slots:
-    void onFolderListChanged();
     void onZippedFolderReadyToSend();
     void onNeedToReloadQml();
     void onNeedToReloadAssets();

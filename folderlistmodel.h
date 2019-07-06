@@ -34,6 +34,9 @@ public:
     void setPath(QString path);
     const QFileInfo& root() const;
 
+signals:
+    void updateNeeded();
+
 private:
     void loadEntries();
 
