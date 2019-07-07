@@ -206,6 +206,8 @@ ItemDelegate {
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
+            visible: appControl.isInFolderList(fp(model.path))
+
             Image {
                 anchors.fill: parent
                 anchors.margins: 5

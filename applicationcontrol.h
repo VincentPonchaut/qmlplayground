@@ -77,6 +77,7 @@ public:
 
     Q_INVOKABLE void addToFolderList(QString pFolderPath);
     Q_INVOKABLE void removeFromFolderList(QString pFolderPath);
+    Q_INVOKABLE bool isInFolderList(QString pFolderPath);
 
     Q_INVOKABLE void requestClearQmlComponentCache();
 

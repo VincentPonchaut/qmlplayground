@@ -573,6 +573,12 @@ void ApplicationControl::removeFromFolderList(QString pFolderPath)
     emit folderListChanged(m_folderList);
 }
 
+bool ApplicationControl::isInFolderList(QString pFolderPath)
+{
+    return m_folderList.contains(pFolderPath) ||
+           m_folderList.contains("file:///" + pFolderPath);
+}
+
 void ApplicationControl::requestClearQmlComponentCache()
 {
     mEngine->clearComponentCache();
