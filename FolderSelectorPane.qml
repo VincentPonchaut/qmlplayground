@@ -153,8 +153,7 @@ Pane {
             bottom: parent.bottom
         }
 
-//        model: appControl.folderModel
-        model: mflm
+        model: appControl.folderModel
         clip: true
 
         delegate: VisualItemDelegate {

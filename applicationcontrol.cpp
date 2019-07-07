@@ -229,7 +229,6 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     mEngine = pEngine;
 
     mEngine->rootContext()->setContextProperty("appControl", this);
-    mEngine->rootContext()->setContextProperty("mflm", m_folderModel);
 
     // DPI Management
     addDpiInfoToQmlContext(mEngine->rootContext());
