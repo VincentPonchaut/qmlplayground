@@ -15,17 +15,14 @@ ApplicationWindow {
     // Data
     // -----------------------------------------------------------------------------
 
-    property var folderList: []
-    Binding { target: appControl; property: "folderList"; value: root.folderList; }
-    Connections { target: appControl; onFolderListChanged: root.folderList = appControl.folderList; }
-
     property string currentFileContents;
 
     Settings {
         id: settings
 
         // Logic state
-        property alias folderList: root.folderList
+//        property alias folderList: root.folderList
+        property var folderList;
 
         // Options
         property alias showContentBackground: optionsPane.showBackground
@@ -49,6 +46,13 @@ ApplicationWindow {
         property alias qtBinPath: publishDialogItem.qtBinPath
         property alias msvcCmdPath: publishDialogItem.msvcCmdPath
         property alias publishDir: publishDialogItem.publishDir
+
+        Component.onCompleted: {
+            appControl.folderList = JSON.parse(settings.folderList)
+        }
+        Component.onDestruction: {
+            settings.folderList = JSON.stringify(appControl.folderList)
+        }
     }
 
     DataManager {
@@ -66,8 +70,6 @@ ApplicationWindow {
     FolderSelectorPane {
         id: folderSelectorPane
 
-        folders: root.folderList
-
         height: parent.height
 
         anchors {
@@ -78,7 +80,7 @@ ApplicationWindow {
 
         Text {
             anchors.centerIn: parent
-            visible: root.folderList.length == 0
+            visible: appControl.folderList.length === 0
 
             text: "There are no active folders.\nCreate a new one or add an existing one to start."
             font.italic: true
@@ -182,7 +184,7 @@ ApplicationWindow {
     Labs.FolderDialog {
         id: folderDialog
         folder: appControl.currentFolder
-        onAccepted: addToFolderList(currentFolder)
+        onAccepted: appControl.addToFolderList(currentFolder)
     }
 
     Popup {
@@ -207,12 +209,12 @@ ApplicationWindow {
                 if (createMainQmlFileWithFolderCheckbox.checked)
                 {
                     appControl.createFile(vFolder, 'main.qml');
-                    refreshActiveFolders()
-                    appControl.currentFile = vFolder + "/main.qml";
-                    refreshActiveFolders()
+
+                    var vFile = vFolder + "/main.qml"
+                    appControl.setCurrentFileAndFolder(vFolder, vFile)
                     // TODO: Scroll to current File
                 }
-                addToFolderList(vFolder);
+                appControl.addToFolderList(vFolder);
             }
             folderCreationPopup.close()
         }
@@ -533,24 +535,24 @@ ApplicationWindow {
         return appControl.currentFile.length > 0 ? appControl.currentFile : "";
     }
 
-    function removeFromFolderList(pFolderIndex)
-    {
-        print("removing folder ", root.folderList[pFolderIndex])
+//    function removeFromFolderList(pFolderIndex)
+//    {
+//        print("removing folder ", root.folderList[pFolderIndex])
 
-        var copy = root.folderList.slice()
-        copy.splice(pFolderIndex,1)
-        root.folderList = copy
-        root.folderListChanged();
-    }
-    function addToFolderList(pFolder)
-    {
-        print("adding folder ", pFolder)
+//        var copy = root.folderList.slice()
+//        copy.splice(pFolderIndex,1)
+//        root.folderList = copy
+//        root.folderListChanged();
+//    }
+//    function addToFolderList(pFolder)
+//    {
+//        print("adding folder ", pFolder)
 
-        var copy = root.folderList.slice()
-        copy.push("" + pFolder)
-        root.folderList = copy
-        root.folderListChanged();
-    }
+//        var copy = root.folderList.slice()
+//        copy.push("" + pFolder)
+//        root.folderList = copy
+//        root.folderListChanged();
+//    }
 
     function editCurrentFileExternally()
     {

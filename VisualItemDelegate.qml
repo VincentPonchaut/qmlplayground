@@ -234,10 +234,10 @@ ItemDelegate {
     Row {
         id: fileActionsRow
 
+        anchors.top: parent.top
         anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height
-        visible: itemDelegate.hovered && !model.isDir
+        height: rowHeight
+        visible: itemDelegate.hovered && !model.isDir //&& String(model.path).length > 0
 
         IconButton {
             id: exploreToButton
@@ -278,69 +278,9 @@ ItemDelegate {
         // TODO: remove file
     }
 
-
-//    Row {
-//        id: delegateButtons
-//        anchors.verticalCenter: stepDelegateContentRow.verticalCenter
-//        anchors.right: stepDelegateContentRow.right
-//        anchors.rightMargin: 40
-//        spacing: 0
-
-//        visible: parent.hovered
-
-//        Label {
-//            anchors.verticalCenter: parent.verticalCenter
-
-//            text: childCount + " child" + (childCount > 1 ? "ren" : "")
-//            font.pointSize: 9
-//            font.family: "Segoe UI"
-//            font.italic: true
-//            rightPadding: 5
-//        }
-
-//        IconButton {
-//            id: expandButton
-
-//            height: stepDelegateContentRow.height
-//            anchors.verticalCenter: parent.verticalCenter
-
-//            text: isExpanded ? "-" : "+"
-//            font.family: "Montserrat, Segoe UI Light, Segoe UI"
-//            visible: modelData.children.length > 0
-
-//            ToolTip.text: isExpanded ? "Collapse" :
-//                                       "Expand %1 item".arg(childCount) + (childCount > 1 ? "s" : "")
-
-//            onClicked: toggleState()
-//        }
-
-//        IconButton {
-//            id: foldButton
-
-//            height: stepDelegateContentRow.height
-//            anchors.verticalCenter: parent.verticalCenter
-
-//            imageSource: isAnyChildCollapsed() ? "icons/expand_all.svg":
-//                                                 "icons/collapse_all.svg"
-//            margins: 12
-//            color: "white"
-
-//            font.family: "Montserrat, Segoe UI Light, Segoe UI"
-//            visible: modelData.children.length > 0
-
-//            ToolTip.text: isAnyChildCollapsed() ? "Expand All" :
-//                                                  "Collapse All"
-
-//            onClicked: isAnyChildCollapsed() ? expandAll() :
-//                                               collapseChildren()
-//        }
-//    }
-
-
     ListView {
         id: substepsDelegate
         anchors.top: stepDelegateContentRow.bottom
-//        anchors.bottom: parent.bottom
         height: childrenRect.height
         anchors.left: parent.left
         anchors.leftMargin: rowHeight / 3

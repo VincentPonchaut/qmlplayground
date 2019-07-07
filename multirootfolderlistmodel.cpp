@@ -14,9 +14,17 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
     if (!QDir().exists(folderPath))
         return;
 
-    FolderListModel* flm = new FolderListModel(this);
-    connect(flm, &FolderListModel::updateNeeded, this, &MultiRootFolderListModel::updateNeeded);
-    connect(flm, &FolderListModel::dataChanged, [=]()
+    auto flm = new FolderListModelProxy(this);
+    connect(this, &MultiRootFolderListModel::filterTextChanged, [=]()
+    {
+        flm->setFilterText(m_filterText);
+    });
+    if (!m_filterText.isEmpty())
+        flm->setFilterText(m_filterText);
+
+    connect(flm, &FolderListModelProxy::updateNeeded,
+            this, &MultiRootFolderListModel::updateNeeded);
+    connect(flm, &FolderListModelProxy::dataChanged, [=]()
     {
         // TODO: only emit for relevant index (mFolderListModels.indexOf(flm)
         emit this->dataChanged(index(0), index(rowCount() - 1));
@@ -60,7 +68,7 @@ QVariant MultiRootFolderListModel::data(const QModelIndex &index, int role) cons
         return QVariant();
 
 
-    const FolderListModel* flm = mFolderListModels.at(index.row());
+    auto flm = mFolderListModels.at(index.row());
     const QFileInfo& ref = flm->root();
 
     switch (role)
@@ -86,7 +94,7 @@ QVariant MultiRootFolderListModel::data(const QModelIndex &index, int role) cons
     return QVariant();
 }
 
-FolderListModel *MultiRootFolderListModel::_findFolderListModel(QString folderPath)
+FolderListModelProxy *MultiRootFolderListModel::_findFolderListModel(QString folderPath)
 {
     if (folderPath.startsWith("file:///"))
         folderPath.remove("file:///");
@@ -101,22 +109,45 @@ FolderListModel *MultiRootFolderListModel::_findFolderListModel(QString folderPa
     return nullptr;
 }
 
-void MultiRootFolderListModel::_appendFolderListModel(FolderListModel *flm)
+void MultiRootFolderListModel::_appendFolderListModel(FolderListModelProxy *flm)
 {
+    QModelIndex modelIndex = this->index(rowCount(), 0);
+    emit layoutAboutToBeChanged(QList<QPersistentModelIndex>() << modelIndex);
+
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     mFolderListModels.append(flm);
     endInsertRows();
+
+    emit layoutChanged(QList<QPersistentModelIndex>() << modelIndex);
+
+    // hack?
+//    _notify();
 }
 
-void MultiRootFolderListModel::_removeFolderListModel(FolderListModel *flm)
+void MultiRootFolderListModel::_removeFolderListModel(FolderListModelProxy *flm)
 {
     int index = mFolderListModels.indexOf(flm);
     if (index == -1)
         return;
 
+    QModelIndex modelIndex = this->index(index, 0);
+    emit layoutAboutToBeChanged(QList<QPersistentModelIndex>() << modelIndex);
+
     beginRemoveRows(QModelIndex(), index, index);
     mFolderListModels.removeAt(index);
     endRemoveRows();
+
+    emit layoutChanged(QList<QPersistentModelIndex>() << modelIndex);
+
+    // hack?
+//    _notify();
+}
+
+void MultiRootFolderListModel::_notify()
+{
+//    emit this->layoutChanged();
+    emit this->dataChanged(index(0),
+                           index(rowCount() - 1));
 }
 
 

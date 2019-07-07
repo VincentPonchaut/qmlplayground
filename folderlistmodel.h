@@ -6,8 +6,13 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QObject>
+#include <QSortFilterProxyModel>
 #include <QTimer>
 #include <QVariant>
+
+#include "macros.h"
+
+class FolderListModelProxy;
 
 class FolderListModel: public QAbstractListModel
 {
@@ -36,6 +41,9 @@ public:
     void setPath(QString path);
     const QFileInfo& root() const;
 
+    FolderListModelProxy *proxy() const;
+    void setProxy(FolderListModelProxy *proxy);
+
 signals:
     void updateNeeded();
 
@@ -47,7 +55,8 @@ private:
     QFileSystemWatcher mWatcher;
     QTimer mChangeNotifier;
     QVector<QFileInfo> mEntries;
-    QVector<FolderListModel*> mFolderListModels;
+    QVector<FolderListModelProxy*> mFolderListModels;
+    FolderListModelProxy* mProxy = nullptr;
 };
 
 //This macro makes the type Type known to QMetaType as long as it provides
@@ -56,5 +65,30 @@ private:
 // 3. and a public destructor.
 // It is needed to use the type Type as a custom type in QVariant.
 Q_DECLARE_METATYPE(FolderListModel)
+
+class FolderListModelProxy: public QSortFilterProxyModel
+{
+    Q_OBJECT
+
+    PROPERTY(QString, filterText, setFilterText)
+
+public:
+    explicit FolderListModelProxy(QObject* parent = nullptr);
+
+    FolderListModel *folderListModel() const;
+    void setFolderListModel(FolderListModel *folderListModel);
+
+    void setPath(QString path);
+    const QFileInfo& root() const;
+
+signals:
+    void updateNeeded();
+
+protected:
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+
+private:
+    FolderListModel* mFolderListModel = nullptr;
+};
 
 #endif // FOLDERLISTMODEL_H

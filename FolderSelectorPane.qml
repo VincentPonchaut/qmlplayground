@@ -12,9 +12,6 @@ Pane {
     // Settings
     property alias filterText: filterTextField.text
 
-    // Data
-    property var folders;
-
     function focusFileFilter() {
         filterTextField.forceActiveFocus()
     }
@@ -114,9 +111,12 @@ Pane {
             anchors.centerIn: parent
             placeholderText: "Filter files..."
             selectByMouse: true
-            onAccepted: {
-                if (quickEditor.state == "open")
-                    quickEditor.focus()
+//            onAccepted: {
+//                if (quickEditor.state == "open")
+//                    quickEditor.focus()
+//            }
+            onTextChanged: {
+                appControl.folderModel.setFilterText(text)
             }
         }
 
@@ -232,10 +232,10 @@ Pane {
                     text: "Create new folder"
                 }
             }
-            onHoveredChanged: {
-                if (hovered)
-                    focusTimer.restart()
-            }
+//            onHoveredChanged: {
+//                if (hovered)
+//                    focusTimer.restart()
+//            }
         }
         IconButton {
             id: watchAnotherFolderButton
@@ -258,10 +258,10 @@ Pane {
                     text: "Add existing folder"
                 }
             }
-            onHoveredChanged: {
-                if (hovered)
-                    focusTimer.restart()
-            }
+//            onHoveredChanged: {
+//                if (hovered)
+//                    focusTimer.restart()
+//            }
         }
     }
 

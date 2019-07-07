@@ -6,10 +6,13 @@
 #include <QVector>
 
 #include "folderlistmodel.h"
+#include "macros.h"
 
 class MultiRootFolderListModel : public QAbstractListModel
 {
     Q_OBJECT
+
+    PROPERTY(QString, filterText, setFilterText)
 
 public:
     explicit MultiRootFolderListModel(QObject* parent = nullptr);
@@ -39,25 +42,22 @@ public:
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     virtual QVariant data(const QModelIndex &index, int role) const override;
 
-protected:
-//    virtual bool insertRows(int row, int count, const QModelIndex &parent) override;
-
-
 // -------------------------------------------------------
 // Private methods
 // -------------------------------------------------------
 private:
-    FolderListModel* _findFolderListModel(QString folderPath);
+    FolderListModelProxy *_findFolderListModel(QString folderPath);
 
-    void _appendFolderListModel(FolderListModel* flm);
-    void _removeFolderListModel(FolderListModel* flm);
+    void _appendFolderListModel(FolderListModelProxy* flm);
+    void _removeFolderListModel(FolderListModelProxy* flm);
 
+    void _notify();
 
 // -------------------------------------------------------
 // Members
 // -------------------------------------------------------
 private:
-    QVector<FolderListModel*> mFolderListModels;
+    QVector<FolderListModelProxy*> mFolderListModels;
 };
 
 #endif // MULTIROOTFOLDERLISTMODEL_H

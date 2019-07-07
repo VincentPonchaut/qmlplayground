@@ -169,11 +169,22 @@ void FolderListModel::loadEntries()
             bool ok = mWatcher.addPath(dir.absoluteFilePath());
             assert(ok);
 
-            FolderListModel* flm = new FolderListModel(this);
+            auto flm = new FolderListModelProxy(this);
             flm->setPath(directory);
-            connect(flm, &FolderListModel::dataChanged,
+
+            assert(mProxy);
+            bool connexionsOk = true;
+
+            connexionsOk &= (bool) connect(mProxy, &FolderListModelProxy::filterTextChanged,
+                                           flm, &FolderListModelProxy::setFilterText);
+
+            connexionsOk &= (bool) connect(flm, &FolderListModelProxy::dataChanged,
             [=](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
             {
+                Q_UNUSED(topLeft)
+                Q_UNUSED(bottomRight)
+                Q_UNUSED(roles)
+
                 for (auto& entry: mEntries)
                 {
                     if (entry == flm->root())
@@ -182,6 +193,7 @@ void FolderListModel::loadEntries()
                     }
                 }
             });
+            assert(connexionsOk);
 
             mFolderListModels.append(flm);
         }
@@ -207,7 +219,144 @@ void FolderListModel::loadEntries()
                      index(rowCount() - 1, 0));
 }
 
+FolderListModelProxy *FolderListModel::proxy() const
+{
+    return mProxy;
+}
+
+void FolderListModel::setProxy(FolderListModelProxy *proxy)
+{
+    mProxy = proxy;
+}
+
 const QFileInfo &FolderListModel::root() const
 {
     return mRoot;
+}
+
+FolderListModelProxy::FolderListModelProxy(QObject *parent)
+    : QSortFilterProxyModel (parent)
+{
+    connect(this, &FolderListModelProxy::filterTextChanged, [=]()
+    {
+        invalidateFilter();
+    });
+}
+
+FolderListModel *FolderListModelProxy::folderListModel() const
+{
+    return mFolderListModel;
+}
+
+void FolderListModelProxy::setFolderListModel(FolderListModel *folderListModel)
+{
+    mFolderListModel = folderListModel;
+
+    if (mFolderListModel)
+    {
+        // Forward the signals
+        connect(mFolderListModel, &FolderListModel::updateNeeded, this, &FolderListModelProxy::updateNeeded);
+
+        // Set as source model
+        setSourceModel(mFolderListModel);
+    }
+}
+
+void FolderListModelProxy::setPath(QString path)
+{
+    // Create a new folder list model
+    if (mFolderListModel)
+        mFolderListModel->deleteLater();
+
+    auto flm = new FolderListModel();
+    flm->setProxy(this);
+    flm->setPath(path);
+
+    setFolderListModel(flm);
+}
+
+const QFileInfo &FolderListModelProxy::root() const
+{
+    return mFolderListModel->root();
+}
+
+inline bool fuzzy_match(const char* pattern, const char* str)
+{
+    while (*pattern != '\0' && *str != '\0')
+    {
+        if (tolower(*pattern) == tolower(*str))
+            ++pattern;
+        ++str;
+    }
+
+    return (*pattern == '\0');
+}
+
+inline bool fuzzySearch(QString needle, QString haystack, bool caseSensitive = false)
+{
+    if (!caseSensitive)
+    {
+        needle = needle.toLower();
+        haystack = haystack.toLower();
+    }
+
+    bool allFound = true;
+    for (auto&& n : needle.split(" "))
+    {
+        allFound &= haystack.contains(n);
+    }
+
+    return allFound;
+}
+
+inline bool fuzzyLookUp(FolderListModel* root, QString filterText)
+{
+    for (int i = 0; i < root->rowCount(); ++i)
+    {
+        QModelIndex index = root->index(i);
+
+        QString name = root->data(index, FolderListModel::NameRole).toString();
+        if (fuzzySearch(filterText, name))
+            return true;
+
+        bool isDir = root->data(index, FolderListModel::IsDirRole).toBool();
+        if (isDir)
+        {
+//            FolderListModel* ff = root->data(index, FolderListModel::EntriesRole).value<FolderListModel*>();
+            FolderListModelProxy* ffp = root->data(index, FolderListModel::EntriesRole).value<FolderListModelProxy*>();
+            FolderListModel* ff = qobject_cast<FolderListModel*>(ffp->sourceModel());
+            if (fuzzyLookUp(ff, filterText))
+                return true;
+        }
+    }
+    return false;
+}
+
+bool FolderListModelProxy::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    // If there is no filter, accept all rows
+    if (m_filterText.isEmpty())
+        return true;
+
+    // Retrieve underlying data
+    QModelIndex sourceIndex = mFolderListModel->index(source_row, 0, source_parent);
+    if (!sourceIndex.isValid())
+        return false;
+
+    // if path itself contains the text, accept the row
+    QString entryName = mFolderListModel->root().absoluteFilePath();
+    QString name = mFolderListModel->data(sourceIndex, FolderListModel::NameRole).toString();
+    if (fuzzySearch(m_filterText, name))
+        return true;
+
+    bool isDir = mFolderListModel->data(sourceIndex, FolderListModel::IsDirRole).toBool();
+    if (isDir)
+    {
+        FolderListModelProxy* ffp = mFolderListModel->data(sourceIndex, FolderListModel::EntriesRole).value<FolderListModelProxy*>();
+        FolderListModel* ff = qobject_cast<FolderListModel*>(ffp->sourceModel());
+        if (fuzzyLookUp(ff, m_filterText))
+            return true;
+    }
+
+    return false;
 }
