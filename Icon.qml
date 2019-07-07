@@ -7,6 +7,7 @@ Item {
 
     property alias source: image.source
     property alias color: colorOverlay.color
+    property int margins;
 
     // Square
     width: height
@@ -16,6 +17,7 @@ Item {
         id: image
 
         anchors.fill: parent
+        anchors.margins: root.margins
         fillMode: Image.PreserveAspectFit
 
         visible: false
@@ -27,7 +29,7 @@ Item {
     ColorOverlay {
         id: colorOverlay
 
-        anchors.fill: parent
+        anchors.fill: image
         source: image
     }
 }

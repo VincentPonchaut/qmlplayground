@@ -9,16 +9,56 @@ import Qt.labs.platform 1.0 as Labs
 Pane {
     id: folderSelectorPane
 
+    // ---------------------------------------------------------------
+    // Data
+    // ---------------------------------------------------------------
+
     // Settings
     property alias filterText: filterTextField.text
+
+    // ---------------------------------------------------------------
+    // Logic
+    // ---------------------------------------------------------------
 
     function focusFileFilter() {
         filterTextField.forceActiveFocus()
     }
 
+    function qmlRecursiveCall(pRootItem, pFunctionName) {
+        if (typeof(pRootItem) === "undefined")
+            return;
+
+//        print("try to call " + pFunctionName + " on " + pRootItem)
+        if (typeof(pRootItem[pFunctionName]) === "function") {
+//            print("\tcalling " + pFunctionName + " on " + pRootItem)
+            pRootItem[pFunctionName]();
+        }
+
+        for (var i = 0; i < pRootItem.children.length; ++i)
+        {
+            var child = pRootItem.children[i];
+            if (typeof(child) === "undefined")
+                continue;
+
+            qmlRecursiveCall(child, pFunctionName);
+        }
+    }
+
+    function foldAll() {
+        qmlRecursiveCall(listView.contentItem, "collapse")
+    }
+
+    function unfoldAll() {
+        qmlRecursiveCall(listView.contentItem, "expand")
+    }
+
+    // ---------------------------------------------------------------
+    // View
+    // ---------------------------------------------------------------
+
     width: parent.width * 1/4
     Material.theme: Material.Dark
-    Material.elevation: 15
+    Material.elevation: 10
     z: contentPage.z + 10
     padding: 0
 
@@ -39,9 +79,11 @@ Pane {
         width: parent.width
         height: optionsPane.height
         
-        Material.elevation: 10
+        Material.elevation: parent.Material.elevation + 1
         
         background: Rectangle { color: Qt.darker(Material.background, 1.25) }
+        topPadding: 0
+        bottomPadding: 0
         
         anchors {
             top: parent.top
@@ -49,105 +91,99 @@ Pane {
             right: parent.right
         }
         
-        Row {
-            id: titleRow
+        ColumnLayout {
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: parent.width / 2
+//            spacing: 10
 
-            anchors.centerIn: parent
-            height: parent.height
-            
-            Image {
-                height: parent.height
-                anchors.margins: 5
-                fillMode: Image.PreserveAspectFit
-                source: "qrc:///img/folder.svg"
-            }
-            
             Label {
-                text: "Active Folders"
-                anchors.verticalCenter: parent.verticalCenter
-                color: Material.accent
+                topPadding: 10
+
+                text: appControl.folderList.length > 0 ? appControl.folderList.length +  " Active Folders" :
+                                                         "No active folders"
+                verticalAlignment: Label.AlignVCenter
+                font.family: "Montserrat, Segoe UI"
+                color: "lightgrey"
+                font.capitalization: Font.AllUppercase
             }
 
+            Row {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                spacing: 5
 
+                Icon {
+                    height: parent.height * 0.66
+                    margins: 5
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: "img/search.svg"
+                    color: filterTextField.text.length > 0 ? "white" : "#60605F"
+                }
+
+                TextField {
+                    id: filterTextField
+
+                    width: parent.width
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    placeholderText: "Filter files..."
+
+                    selectByMouse: true
+                    onTextChanged: {
+                        appControl.folderModel.setFilterText(text)
+                    }
+                    onAccepted: {
+                        focus = false
+                    }
+                }
+            }
         }
-        SoftIconButton {
-            id: filterToggleButton
 
-            height: parent.height * 0.8
-            anchors.right: parent.right
+        Row {
             anchors.verticalCenter: parent.verticalCenter
-            checked: filterPane.visible
-            visible: checked || folderSectionTitlePane.hovered
+            anchors.right: parent.right
+//            height: parent.height
+            spacing: 0
 
-            imageSource: "qrc:///img/search.svg"
-            margins: 10
-            ToolTip.text: "%1 search field".arg(filterPane.visible ? "Hide" :
-                                                                     "Show")
+            IconButton {
+                id: foldAll
+                height: folderSectionTitlePane.height * 0.5
+                width: height
 
-            onClicked: filterPane.toggle()
+                text: "-"
+                ToolTip.text: "Fold all"
+
+                onClicked: {
+                    folderSelectorPane.foldAll()
+                }
+
+                flat: true
+            }
+            IconButton {
+                id: unfoldAll
+                height: folderSectionTitlePane.height * 0.5
+                width: height
+
+                text: "+"
+                ToolTip.text: "Unfold all"
+
+                onClicked: {
+                    folderSelectorPane.unfoldAll()
+                }
+
+                flat: true
+            }
         }
     }
     
-    Pane {
-        id: filterPane
-        width: parent.width
-        height: optionsPane.height
-
-        anchors {
-            top: folderSectionTitlePane.bottom
-            left: parent.left
-            right: parent.right
-        }
-
-        function toggle() {
-            state = state == "open" ? "closed" : "open"
-            if (state == "open")
-                filterTextField.forceActiveFocus()
-        }
-
-        TextField {
-            id: filterTextField
-            width: parent.width * 0.77
-            anchors.centerIn: parent
-            placeholderText: "Filter files..."
-            selectByMouse: true
-//            onAccepted: {
-//                if (quickEditor.state == "open")
-//                    quickEditor.focus()
-//            }
-            onTextChanged: {
-                appControl.folderModel.setFilterText(text)
-            }
-        }
-
-        states: [
-            State {
-                name: "open"
-                PropertyChanges {
-                    target: filterPane
-                    height: optionsPane.height
-                    visible: true
-                }
-            },
-            State {
-                name: "closed"
-                PropertyChanges {
-                    target: filterPane
-                    height: 0
-                    visible: false
-                }
-            }
-        ]
-        state: "closed"
-    }
-
     ListView {
         id: listView
         
         width: parent.width
-        height: parent.height - folderSectionTitlePane.height - filterPane.height
+        height: parent.height - folderSectionTitlePane.height
         anchors {
-            top: filterPane.bottom
+            top: folderSectionTitlePane.bottom
             left: parent.left
             right: parent.right
             bottom: parent.bottom
