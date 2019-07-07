@@ -280,6 +280,43 @@ const QFileInfo &FolderListModelProxy::root() const
     return mFolderListModel->root();
 }
 
+inline bool fastSearch(QString searchString, QString contentString, bool caseSensitive = false)
+{
+    if (!caseSensitive)
+    {
+        searchString = searchString.toLower();
+        contentString = contentString.toLower();
+    }
+    return contentString.contains(searchString);
+}
+
+bool FolderListModelProxy::containsDir(QString pFolderPath)
+{
+    return _containsDir(mFolderListModel, pFolderPath);
+}
+
+bool FolderListModelProxy::_containsDir(FolderListModel *flm, QString pFolderPath)
+{
+    for (int i = 0; i < flm->rowCount(); ++i)
+    {
+        QModelIndex index = flm->index(i);
+
+        bool isDir = flm->data(index, FolderListModel::IsDirRole).toBool();
+        if (isDir)
+        {
+            QString path = flm->data(index, FolderListModel::PathRole).toString();
+            if (fastSearch(pFolderPath, path))
+                return true;
+
+            FolderListModelProxy* ffp = flm->data(index, FolderListModel::EntriesRole).value<FolderListModelProxy*>();
+            FolderListModel* ff = qobject_cast<FolderListModel*>(ffp->sourceModel());
+            if (_containsDir(ff, pFolderPath))
+                return true;
+        }
+    }
+    return false;
+}
+
 inline bool fuzzy_match(const char* pattern, const char* str)
 {
     while (*pattern != '\0' && *str != '\0')
@@ -309,7 +346,7 @@ inline bool fuzzySearch(QString needle, QString haystack, bool caseSensitive = f
     return allFound;
 }
 
-inline bool fuzzyLookUp(FolderListModel* root, QString filterText)
+bool FolderListModelProxy::fuzzyLookUp(FolderListModel* root, QString filterText) const
 {
     for (int i = 0; i < root->rowCount(); ++i)
     {

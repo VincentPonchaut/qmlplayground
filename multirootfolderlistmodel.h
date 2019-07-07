@@ -32,6 +32,8 @@ public:
     void removeFolder(QString folderPath);
     void clear();
 
+    bool containsDir(QString pFolderPath);
+
 signals:
     void updateNeeded();
 

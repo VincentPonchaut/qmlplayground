@@ -184,7 +184,17 @@ ApplicationWindow {
     Labs.FolderDialog {
         id: folderDialog
         folder: appControl.currentFolder
-        onAccepted: appControl.addToFolderList(currentFolder)
+        onAccepted: {
+            if (appControl.isAlreadyWatched(currentFolder))
+            {
+                // TODO: Send warning
+                print("warning: %1 is already being watched.".arg(currentFolder))
+            }
+            else
+            {
+                appControl.addToFolderList(currentFolder)
+            }
+        }
     }
 
     Popup {
@@ -202,6 +212,13 @@ ApplicationWindow {
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
 
         function validate() {
+            if (appControl.isAlreadyWatched(folderCreationDialog.folder))
+            {
+                print("warning: Cannot create a folder inside a watched folder yet.")
+                errorMessage.text = "Cannot create a folder inside a watched folder yet."
+                return;
+            }
+
             var success = appControl.createFolder(folderCreationDialog.folder, newFolderNameTextField.text);
             if (success)
             {
@@ -222,6 +239,7 @@ ApplicationWindow {
         Labs.FolderDialog {
             id: folderCreationDialog
             folder: appControl.currentFolder
+            onAccepted: errorMessage.text = ""
         }
 
         padding: 0
@@ -292,6 +310,15 @@ ApplicationWindow {
 
                     text: "Create a 'main.qml' file"
                     checked: true
+                }
+
+                Label {
+                    id: errorMessage
+                    anchors.top: createMainQmlFileWithFolderCheckbox.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    visible: text.length > 0
+                    color: "red"
                 }
             }
 

@@ -81,6 +81,9 @@ public:
     void setPath(QString path);
     const QFileInfo& root() const;
 
+    bool containsDir(QString pFolderPath);
+    bool fuzzyLookUp(FolderListModel *root, QString filterText) const;
+
 signals:
     void updateNeeded();
 
@@ -88,6 +91,8 @@ protected:
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
 private:
+    bool _containsDir(FolderListModel *flm, QString pFolderPath);
+
     FolderListModel* mFolderListModel = nullptr;
 };
 

@@ -48,6 +48,21 @@ void MultiRootFolderListModel::clear()
     mFolderListModels.clear();
 }
 
+bool MultiRootFolderListModel::containsDir(QString pFolderPath)
+{
+    if (pFolderPath.startsWith("file:///"))
+        pFolderPath.remove("file:///");
+
+    for (auto& flmp: mFolderListModels)
+    {
+        if (flmp->containsDir(pFolderPath))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 int MultiRootFolderListModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
