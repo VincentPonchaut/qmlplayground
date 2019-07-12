@@ -22,7 +22,7 @@ ApplicationWindow {
 
         // Logic state
 //        property alias folderList: root.folderList
-        property var folderList;
+//        property string folderList//: JSON.stringify(appControl.folderList);
 
         // Options
         property alias showContentBackground: optionsPane.showBackground
@@ -46,13 +46,6 @@ ApplicationWindow {
         property alias qtBinPath: publishDialogItem.qtBinPath
         property alias msvcCmdPath: publishDialogItem.msvcCmdPath
         property alias publishDir: publishDialogItem.publishDir
-
-        Component.onCompleted: {
-            appControl.folderList = JSON.parse(settings.folderList)
-        }
-        Component.onDestruction: {
-            settings.folderList = JSON.stringify(appControl.folderList)
-        }
     }
 
     DataManager {
