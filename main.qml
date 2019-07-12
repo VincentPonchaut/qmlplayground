@@ -71,11 +71,17 @@ ApplicationWindow {
             top: parent.top
         }
 
-        Text {
-            anchors.centerIn: parent
+        Label {
+            anchors.fill: parent
+
             visible: appControl.folderList.length === 0
 
             text: "There are no active folders.\nCreate a new one or add an existing one to start."
+            wrapMode: Text.Wrap
+
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            padding: 40
             font.italic: true
             color: "white"
         }
