@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QObject>
 #include <QVector>
+#include <QTimer>
 
 #include "folderlistmodel.h"
 #include "macros.h"
@@ -132,7 +133,7 @@ public:
     Q_INVOKABLE int roleFromString(QString roleName);
 
     // QAbstractItemModel interface
-    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    virtual QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const override;
     virtual QModelIndex parent(const QModelIndex &child) const override;
     virtual int rowCount(const QModelIndex &parent= QModelIndex()) const override;
     virtual int columnCount(const QModelIndex &parent= QModelIndex()) const override;
@@ -150,10 +151,13 @@ public:
 
 protected:
     void loadEntries();
+    void _loadEntries();
 
 private:
     FsEntry* rootItem = nullptr;
     QString mPath;
+    QFileSystemWatcher mWatcher;
+    QTimer mChangeTimer;
 };
 
 class FsProxyModel: public QSortFilterProxyModel

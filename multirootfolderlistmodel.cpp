@@ -22,12 +22,16 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
     fsModel->setPath(folderPath);
 
     auto notify = [=](){
+        qDebug() << "notify";
 //        emit this->layoutChanged();
-        emit this->dataChanged(index(0), index(rowCount() - 1));
+//        emit this->dataChanged(index(0), index(rowCount() - 1));
+//        beginResetModel();
+//        endResetModel();
     };
 
 //    connect(fsModel, &FsProxyModel::dataChanged, notify);
-//    connect(fsModel, &FsProxyModel::layoutChanged, notify);
+    connect(fsModel, &FsProxyModel::layoutChanged, notify);
+//    connect(fsModel, &FsProxyModel::sourceModelChanged, notify);
 
     fsModel->setFilterText(m_filterText);
     connect(this, &MultiRootFolderListModel::filterTextChanged, fsModel, &FsProxyModel::setFilterText);
@@ -231,6 +235,7 @@ FsEntry::FsEntry(const QFileInfo &fileInfo, FsEntry *parent)
     setPath(fileInfo.absoluteFilePath());
     setName(fileInfo.fileName());
     setExpandable(fileInfo.isDir() || fileInfo.isSymLink());
+    setExpanded(expandable()); // TODO: read from settings
     setParent(parent);
 
     qDebug() << "Creating entry for " << path();
@@ -263,7 +268,29 @@ int FsEntry::row() const
 FsEntryModel::FsEntryModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
+    mChangeTimer.setSingleShot(true);
+    mChangeTimer.setInterval(16);
 
+    auto handleFileSystemChange = [=]()
+    {
+        qDebug() << "file system change";
+        loadEntries();
+
+        // TODO: find only the relevant indexes
+//        emit this->dataChanged(index(0), index(rowCount()));
+//        emit this->layoutChanged();
+//        beginResetModel();
+//        endResetModel();
+    };
+    auto startChangeTimer = [=]()
+    {
+        // If the timer is already running, it will be stopped and restarted.
+        mChangeTimer.start();
+    };
+    connect(&mChangeTimer, &QTimer::timeout, handleFileSystemChange);
+
+    connect(&mWatcher, &QFileSystemWatcher::directoryChanged, startChangeTimer);
+    connect(&mWatcher, &QFileSystemWatcher::fileChanged, startChangeTimer);
 }
 
 int FsEntryModel::roleFromString(QString roleName)
@@ -484,8 +511,31 @@ inline bool fuzzymatch(QString str, QString filter)
     return allFound;
 }
 
+inline void recursiveAddToWatcher(const FsEntry* root, QFileSystemWatcher& watcher)
+{
+    watcher.addPath(root->path());
+    for (const FsEntry* c: root->children)
+    {
+        recursiveAddToWatcher(c, watcher);
+    }
+}
+
 void FsEntryModel::loadEntries()
 {
+    if (!mWatcher.directories().empty())
+        mWatcher.removePaths(mWatcher.directories());
+    if (!mWatcher.files().empty())
+        mWatcher.removePaths(mWatcher.files());
+
+    _loadEntries();
+
+    recursiveAddToWatcher(rootItem, mWatcher);
+}
+
+void FsEntryModel::_loadEntries()
+{
+    beginResetModel();
+
     if (rootItem)
         rootItem->deleteLater();
 
@@ -493,6 +543,7 @@ void FsEntryModel::loadEntries()
     assert(rootInfo.exists());
 
     rootItem = new FsEntry(rootInfo);
+    endResetModel();
 }
 
 FsEntry *FsEntryModel::root() const
@@ -528,6 +579,19 @@ void FsProxyModel::setPath(const QString &path)
     {
         fsModel = new FsEntryModel(this);
         fsModel->setPath(path);
+
+        /*
+        connect(fsModel, &FsEntryModel::modelReset, [=]()
+        {
+            beginResetModel();
+            invalidateFilter();
+            endResetModel();
+
+            emit this->dataChanged(index(0,0), index(rowCount(),0));
+            emit this->layoutChanged();
+        });
+        */
+
         setSourceModel(fsModel);
     }
 }
