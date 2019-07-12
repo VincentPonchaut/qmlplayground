@@ -58,5 +58,13 @@
         <file>img/dolly-flatbed.svg</file>
         <file>VisualItemDelegate.qml</file>
         <file>Icon.qml</file>
+        <file>FsEntryDelegate.qml</file>
+        <file>fonts/product-sans/google-product-sans.jpg</file>
+        <file>fonts/product-sans/opengraph_color_1200dp.png</file>
+        <file>fonts/product-sans/photo.jpg</file>
+        <file>fonts/product-sans/Product Sans Bold Italic.ttf</file>
+        <file>fonts/product-sans/Product Sans Bold.ttf</file>
+        <file>fonts/product-sans/Product Sans Italic.ttf</file>
+        <file>fonts/product-sans/Product Sans Regular.ttf</file>
     </qresource>
 </RCC>

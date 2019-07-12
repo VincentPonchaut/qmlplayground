@@ -14,15 +14,14 @@ ApplicationWindow {
     // -----------------------------------------------------------------------------
     // Data
     // -----------------------------------------------------------------------------
-
-    property string currentFileContents;
+    property string currentFileContents
 
     Settings {
         id: settings
 
         // Logic state
-//        property alias folderList: root.folderList
-//        property string folderList//: JSON.stringify(appControl.folderList);
+        //        property alias folderList: root.folderList
+        //        property string folderList//: JSON.stringify(appControl.folderList);
 
         // Options
         property alias showContentBackground: optionsPane.showBackground
@@ -52,10 +51,18 @@ ApplicationWindow {
         id: dataManager
     }
 
+    QtObject {
+        id: ui
+
+        property string defaultFont: productSans.name
+        property FontLoader productSans: FontLoader {
+            source: "qrc:/fonts/product-sans/Product Sans Regular.ttf"
+        }
+    }
+
     // -----------------------------------------------------------------------------
     // View
     // -----------------------------------------------------------------------------
-
     header: MainToolBar {
         id: mainToolBar
     }
@@ -131,8 +138,7 @@ ApplicationWindow {
                 ContentPage {
                     id: contentPage
                     width: parent.width
-                    height: theConsole.state == "open" ? parent.height * 0.66:
-                                                         parent.height
+                    height: theConsole.state == "open" ? parent.height * 0.66 : parent.height
                 }
 
                 Console {
@@ -147,50 +153,49 @@ ApplicationWindow {
 
                 height: parent.height
                 Behavior on width {
-                    NumberAnimation { easing.type: Easing.OutCubic; duration: 500 }
+                    NumberAnimation {
+                        easing.type: Easing.OutCubic
+                        duration: 500
+                    }
                 }
 
                 text: root.currentFileContents
                 onRequestFileSave: {
-                    print("quick editor requested file save");
-                    root.quickEditor_save();
-                    print("quick editor requested file save end");
+                    print("quick editor requested file save")
+                    root.quickEditor_save()
+                    print("quick editor requested file save end")
                 }
-//                Pane {
-//                    width: quickEditor.width
-//                    height: quickEditor.height
+                //                Pane {
+                //                    width: quickEditor.width
+                //                    height: quickEditor.height
 
-//                    background: Rectangle {
-//                        color: "black"
-//                    }
+                //                    background: Rectangle {
+                //                        color: "black"
+                //                    }
 
-//                    Text {
-//                        id: consoleText
-//                        anchors.fill: parent
-//                        font.family: "Consolas"
-//                        color: "white"
-//                    }
-//                }
+                //                    Text {
+                //                        id: consoleText
+                //                        anchors.fill: parent
+                //                        font.family: "Consolas"
+                //                        color: "white"
+                //                    }
+                //                }
             }
-
         } // end contentRow
     } // end Pane
 
     // -----------------------------------------------------------------------------
     // Other Views
     // -----------------------------------------------------------------------------
-
     Labs.FolderDialog {
         id: folderDialog
         folder: appControl.currentFolder
         onAccepted: {
-            if (appControl.isAlreadyWatched(currentFolder))
-            {
+            if (appControl.isAlreadyWatched(currentFolder)) {
                 // TODO: Send warning
-                print("warning: %1 is already being watched.".arg(currentFolder))
-            }
-            else
-            {
+                print("warning: %1 is already being watched.".arg(
+                          currentFolder))
+            } else {
                 appControl.addToFolderList(currentFolder)
             }
         }
@@ -211,26 +216,24 @@ ApplicationWindow {
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
 
         function validate() {
-            if (appControl.isAlreadyWatched(folderCreationDialog.folder))
-            {
+            if (appControl.isAlreadyWatched(folderCreationDialog.folder)) {
                 print("warning: Cannot create a folder inside a watched folder yet.")
                 errorMessage.text = "Cannot create a folder inside a watched folder yet."
-                return;
+                return
             }
 
-            var success = appControl.createFolder(folderCreationDialog.folder, newFolderNameTextField.text);
-            if (success)
-            {
+            var success = appControl.createFolder(folderCreationDialog.folder,
+                                                  newFolderNameTextField.text)
+            if (success) {
                 var vFolder = folderCreationDialog.folder + "/" + newFolderNameTextField.text
-                if (createMainQmlFileWithFolderCheckbox.checked)
-                {
-                    appControl.createFile(vFolder, 'main.qml');
+                if (createMainQmlFileWithFolderCheckbox.checked) {
+                    appControl.createFile(vFolder, 'main.qml')
 
                     var vFile = vFolder + "/main.qml"
                     appControl.setCurrentFileAndFolder(vFolder, vFile)
                     // TODO: Scroll to current File
                 }
-                appControl.addToFolderList(vFolder);
+                appControl.addToFolderList(vFolder)
             }
             folderCreationPopup.close()
         }
@@ -270,15 +273,21 @@ ApplicationWindow {
                     Label {
                         id: baseFolderLabel
                         anchors.verticalCenter: parent.verticalCenter
-                        text: String(folderCreationDialog.folder).substring(String(folderCreationDialog.folder).lastIndexOf("/") + 1) + "/"
+                        text: String(folderCreationDialog.folder).substring(
+                                  String(
+                                      folderCreationDialog.folder).lastIndexOf(
+                                      "/") + 1) + "/"
                         font.pointSize: 11
 
                         property bool hovered: baseFolderLabelMouseArea.containsMouse
 
-                        color: hovered ? Material.accent: Material.foreground
+                        color: hovered ? Material.accent : Material.foreground
 
                         ToolTip.visible: hovered
-                        ToolTip.text: "%1\nClick to change".arg(String(folderCreationDialog.folder).replace("file:///",""))
+                        ToolTip.text: "%1\nClick to change".arg(
+                                          String(
+                                              folderCreationDialog.folder).replace(
+                                              "file:///", ""))
 
                         MouseArea {
                             id: baseFolderLabelMouseArea
@@ -329,7 +338,6 @@ ApplicationWindow {
                     spacing: 10
 
                     // TODO: checkbox "Create main.qml file" ou mieux : une liste editable de fichiers à génerer
-
                     Button {
                         text: "Create"
                         onClicked: folderCreationPopup.validate()
@@ -341,8 +349,6 @@ ApplicationWindow {
                 }
             }
         } //  end page
-
-
     }
 
     Popup {
@@ -360,24 +366,22 @@ ApplicationWindow {
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
 
-        property string folder;
+        property string folder
 
         function openForFolder(pFolderPath) {
-            folder = pFolderPath;
-            open();
+            folder = pFolderPath
+            open()
         }
 
         function validate() {
-            var folder = fileCreationPopup.folder.replace("file:///","") + "/"
+            var folder = fileCreationPopup.folder.replace("file:///", "") + "/"
             var file = newFileNameTextField.text + ".qml"
 
-            var success = appControl.createFile(folder, file);
-            if (success)
-            {
+            var success = appControl.createFile(folder, file)
+            if (success) {
                 // Refresh active folders
-                appControl.currentFile = "file:///" + folder + file;
-                refreshActiveFolders();
-
+                appControl.currentFile = "file:///" + folder + file
+                refreshActiveFolders()
             }
             fileCreationPopup.close()
         }
@@ -399,12 +403,14 @@ ApplicationWindow {
             }
 
             Row {
-                anchors.centerIn:  parent
+                anchors.centerIn: parent
                 spacing: 20
 
                 Label {
                     id: baseFolderForFileCreationLabel
-                    text: fileCreationPopup.folder.substring(fileCreationPopup.folder.lastIndexOf("/") + 1) + "/";
+                    text: fileCreationPopup.folder.substring(
+                              fileCreationPopup.folder.lastIndexOf(
+                                  "/") + 1) + "/"
                     font.pointSize: 11
 
                     MouseArea {
@@ -415,7 +421,8 @@ ApplicationWindow {
                     property bool hovered: baseFolderForFileCreationLabelMouseArea.containsMouse
 
                     ToolTip.visible: hovered
-                    ToolTip.text: fileCreationPopup.folder.replace("file:///","")
+                    ToolTip.text: fileCreationPopup.folder.replace("file:///",
+                                                                   "")
                 }
                 TextField {
                     id: newFileNameTextField
@@ -451,8 +458,6 @@ ApplicationWindow {
                 }
             }
         }
-
-
     }
 
     // Publish Dialog
@@ -478,13 +483,11 @@ ApplicationWindow {
             height: publishDialog.height * 0.9
             anchors.centerIn: parent
         }
-
     }
 
     // -----------------------------------------------------------------------------
     // Logic
     // -----------------------------------------------------------------------------
-
     Shortcut {
         id: shortcutFolderSelectorPane
         sequence: "Ctrl+Tab"
@@ -518,112 +521,105 @@ ApplicationWindow {
 
     Connections {
         target: appControl
-//        onFileChanged: handleExternalChanges()
-//        onDirectoryChanged: handleExternalChanges()
-        ///onLogMessage: consoleText.text += "\n" + message
 
+        //        onFileChanged: handleExternalChanges()
+        //        onDirectoryChanged: handleExternalChanges()
+        ///onLogMessage: consoleText.text += "\n" + message
         onReloadRequest: {
-//            contentPage.load()
+            //            contentPage.load()
             handleExternalChanges()
         }
 
         onCurrentFileChanged: {
             print("current file changed " + appControl.currentFile)
             root.currentFileContents = readFileContents(appControl.currentFile)
-            contentPage.load();
+            contentPage.load()
 
-//            appControl.sendFolderToClients("");
+            //            appControl.sendFolderToClients("");
         }
 
         onCurrentFolderChanged: {
             print("current folder changed " + appControl.currentFolder)
 
-//            appControl.sendZippedFolderToClients(appControl.currentFolder)
+            //            appControl.sendZippedFolderToClients(appControl.currentFolder)
         }
     }
     onCurrentFileContentsChanged: {
-//        appControl.sendFolderToClients("");
+
+        //        appControl.sendFolderToClients("");
     }
 
     function handleExternalChanges() {
         print("handleExternalChanges")
         root.currentFileContents = readFileContents(appControl.currentFile)
-        contentPage.load();
+        contentPage.load()
     }
 
-    function refreshActiveFolders() {
-        //folderSelectorPane.refresh();
+    function refreshActiveFolders() {//folderSelectorPane.refresh();
     }
-
 
     function targetFile() {
         //return root.currentFile.length > 0 ? root.currentFile : "";
-        return appControl.currentFile.length > 0 ? appControl.currentFile : "";
+        return appControl.currentFile.length > 0 ? appControl.currentFile : ""
     }
 
-//    function removeFromFolderList(pFolderIndex)
-//    {
-//        print("removing folder ", root.folderList[pFolderIndex])
+    //    function removeFromFolderList(pFolderIndex)
+    //    {
+    //        print("removing folder ", root.folderList[pFolderIndex])
 
-//        var copy = root.folderList.slice()
-//        copy.splice(pFolderIndex,1)
-//        root.folderList = copy
-//        root.folderListChanged();
-//    }
-//    function addToFolderList(pFolder)
-//    {
-//        print("adding folder ", pFolder)
+    //        var copy = root.folderList.slice()
+    //        copy.splice(pFolderIndex,1)
+    //        root.folderList = copy
+    //        root.folderListChanged();
+    //    }
+    //    function addToFolderList(pFolder)
+    //    {
+    //        print("adding folder ", pFolder)
 
-//        var copy = root.folderList.slice()
-//        copy.push("" + pFolder)
-//        root.folderList = copy
-//        root.folderListChanged();
-//    }
-
-    function editCurrentFileExternally()
-    {
-        var vUrl = appControl.currentFile.replace("file:///", "");
-        Qt.openUrlExternally(vUrl);
+    //        var copy = root.folderList.slice()
+    //        copy.push("" + pFolder)
+    //        root.folderList = copy
+    //        root.folderListChanged();
+    //    }
+    function editCurrentFileExternally() {
+        var vUrl = appControl.currentFile.replace("file:///", "")
+        Qt.openUrlExternally(vUrl)
     }
 
-    function editFileLocally(pFile)
-    {
+    function editFileLocally(pFile) {
         // ensure we do not edit anything that is not current
         appControl.currentFile = pFile
 
         // ...
         //var vFileContent = readFileContents(pFile) // TODO remove
         //quickEditor.text = vFileContent
-
         quickEditor.show()
     }
 
-    function editCurrentFileLocally()
-    {
-        editFileLocally(appControl.currentFile);
+    function editCurrentFileLocally() {
+        editFileLocally(appControl.currentFile)
     }
 
-    function quickEditor_save()
-    {
+    function quickEditor_save() {
         if (!quickEditor.visible)
-            return;
+            return
         if (!quickEditor.text.length > 0)
-            return;
+            return
 
-        writeFileContents(appControl.currentFile,
-                          quickEditor.text,
-                          notifyFileChanged); // emit signal when writing is done
-//        appControl.fileChanged(appControl.currentFile)
-//        contentPage.load() // TODO: should we reload everything instead ?
+        writeFileContents(appControl.currentFile, quickEditor.text,
+                          notifyFileChanged) // emit signal when writing is done
+        //        appControl.fileChanged(appControl.currentFile)
+        //        contentPage.load() // TODO: should we reload everything instead ?
     }
     function notifyFileChanged(pFileUrl) {
         appControl.fileChanged(pFileUrl)
-//        root.currentFileChanged()
+        //        root.currentFileChanged()
     }
 
-    function readFileContents(pPath)
-    {
-        return appControl.readFileContents(pPath); // make it synchronous
+    function readFileContents(pPath) {
+        return appControl.readFileContents(pPath) // make it synchronous
+
+
         /*
         var xhr = new XMLHttpRequest;
         xhr.open("GET", "" + appControl.currentFile, false);
@@ -633,14 +629,15 @@ ApplicationWindow {
         */
     }
 
-    function writeFileContents(fileUrl, text, callback)
-    {
+    function writeFileContents(fileUrltextcallback) {
         if (appControl.writeFileContents(fileUrl, text))
             callback.call(fileUrl)
         else
             print("Could not write to " + fileUrl)
 
         // Until I know how to write it synchronously
+
+
         /*
         var request = new XMLHttpRequest();
         request.open("PUT", fileUrl, false);

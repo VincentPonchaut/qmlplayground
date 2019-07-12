@@ -4,6 +4,7 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
+import QtQml.Models 2.2
 
 //Page {
 Pane {
@@ -19,28 +20,26 @@ Pane {
     // ---------------------------------------------------------------
     // Logic
     // ---------------------------------------------------------------
-
     function focusFileFilter() {
         filterTextField.forceActiveFocus()
     }
 
-    function qmlRecursiveCall(pRootItem, pFunctionName) {
-        if (typeof(pRootItem) === "undefined")
-            return;
+    function qmlRecursiveCall(pRootItempFunctionName) {
+        if (typeof (pRootItem) === "undefined")
+            return
 
-//        print("try to call " + pFunctionName + " on " + pRootItem)
-        if (typeof(pRootItem[pFunctionName]) === "function") {
-//            print("\tcalling " + pFunctionName + " on " + pRootItem)
-            pRootItem[pFunctionName]();
+        //        print("try to call " + pFunctionName + " on " + pRootItem)
+        if (typeof (pRootItem[pFunctionName]) === "function") {
+            //            print("\tcalling " + pFunctionName + " on " + pRootItem)
+            pRootItem[pFunctionName]()
         }
 
-        for (var i = 0; i < pRootItem.children.length; ++i)
-        {
-            var child = pRootItem.children[i];
-            if (typeof(child) === "undefined")
-                continue;
+        for (; i < pRootItem.children.length; ++i) {
+            var child = pRootItem.children[i]
+            if (typeof (child) === "undefined")
+                continue
 
-            qmlRecursiveCall(child, pFunctionName);
+            qmlRecursiveCall(child, pFunctionName)
         }
     }
 
@@ -55,8 +54,7 @@ Pane {
     // ---------------------------------------------------------------
     // View
     // ---------------------------------------------------------------
-
-    width: parent.width * 1/4
+    width: parent.width * 1 / 4
     Material.theme: Material.Dark
     Material.elevation: 10
     z: contentPage.z + 10
@@ -68,7 +66,7 @@ Pane {
         print("Up pressed")
         listView.decrementCurrentIndex()
     }
-    Keys.onDownPressed:  {
+    Keys.onDownPressed: {
         print("Down pressed")
         listView.incrementCurrentIndex()
     }
@@ -78,108 +76,121 @@ Pane {
 
         width: parent.width
         height: optionsPane.height
-        
+
         Material.elevation: parent.Material.elevation + 1
-        
-        background: Rectangle { color: Qt.darker(Material.background, 1.25) }
+
+        background: Rectangle {
+            color: Qt.darker(Material.background, 1.25)
+        }
         topPadding: 0
         bottomPadding: 0
-        
+
         anchors {
             top: parent.top
             left: parent.left
             right: parent.right
         }
-        
-        ColumnLayout {
+
+        Label {
+            id: activeFoldersLabel
             anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            width: parent.width / 2
-//            spacing: 10
+            topPadding: 10
 
-            Label {
-                topPadding: 10
-
-                text: appControl.folderList.length > 0 ? appControl.folderList.length +  " Active Folders" :
-                                                         "No active folders"
-                verticalAlignment: Label.AlignVCenter
-                font.family: "Montserrat, Segoe UI"
-                color: "lightgrey"
-                font.capitalization: Font.AllUppercase
-            }
-
-            Row {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                spacing: 5
-
-                Icon {
-                    height: parent.height * 0.66
-                    margins: 5
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "img/search.svg"
-                    color: filterTextField.text.length > 0 ? "white" : "#60605F"
-                }
-
-                TextField {
-                    id: filterTextField
-
-                    width: parent.width
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    placeholderText: "Filter files..."
-
-                    selectByMouse: true
-                    onTextChanged: {
-                        appControl.folderModel.setFilterText(text)
-                    }
-                    onAccepted: {
-                        focus = false
-                    }
-                }
-            }
+            text: appControl.folderList.length
+                  > 0 ? appControl.folderList.length + " Active Folders" : "No active folders"
+            verticalAlignment: Label.AlignVCenter
+            font.family: "Montserrat, Segoe UI"
+            color: "lightgrey"
+            font.capitalization: Font.AllUppercase
         }
 
         Row {
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.top: activeFoldersLabel.bottom
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
             anchors.right: parent.right
-//            height: parent.height
-            spacing: 0
+            anchors.leftMargin: spacing
+            anchors.rightMargin: spacing
+            spacing: 5
 
-            IconButton {
-                id: foldAll
-                height: folderSectionTitlePane.height * 0.5
-                width: height
-
-                text: "-"
-                ToolTip.text: "Fold all"
-
-                onClicked: {
-                    folderSelectorPane.foldAll()
-                }
-
-                flat: true
+            Icon {
+                id: searchIcon
+                height: filterTextField.height * 0.4
+                //                margins: 5
+                anchors.verticalCenter: parent.verticalCenter
+                //                Layout.alignment: Qt.AlignVCenter
+                source: "img/search.svg"
+                color: filterTextField.text.length > 0 ? "white" : "#60605F"
             }
-            IconButton {
-                id: unfoldAll
-                height: folderSectionTitlePane.height * 0.5
-                width: height
 
-                text: "+"
-                ToolTip.text: "Unfold all"
+            TextField {
+                id: filterTextField
 
-                onClicked: {
-                    folderSelectorPane.unfoldAll()
+                //                width: parent.width
+                //                Layout.alignment: Qt.AlignVCenter //| Qt.AlignBaseline
+                //                Layout.fillWidth: true
+                width: parent.width - otherActionsRow.width - searchIcon.width
+                //                height: parent.height
+                //                anchors.baseline: searchIcon.bottom
+                anchors.baseline: searchIcon.bottom
+                anchors.baselineOffset: -searchIcon.height / 4
+
+                placeholderText: "Filter files..."
+
+                selectByMouse: true
+                onTextChanged: {
+                    appControl.folderModel.setFilterText(text)
+                    if (text.length > 0)
+                        folderSelectorPane.unfoldAll()
                 }
+                onAccepted: {
+                    focus = false
+                }
+            }
 
-                flat: true
+            Row {
+                id: otherActionsRow
+                height: parent.height
+                spacing: 0
+
+                IconButton {
+                    id: foldAllBtn
+                    height: folderSectionTitlePane.height * 0.5
+                    width: height
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    text: "-"
+                    ToolTip.text: "Fold all"
+
+                    onClicked: {
+                        folderSelectorPane.foldAll()
+                    }
+
+                    flat: true
+                }
+                IconButton {
+                    id: unfoldAllBtn
+                    height: folderSectionTitlePane.height * 0.5
+                    width: height
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    text: "+"
+                    ToolTip.text: "Unfold all"
+
+                    onClicked: {
+                        folderSelectorPane.unfoldAll()
+                    }
+
+                    flat: true
+                }
             }
         }
     }
-    
+
     ListView {
         id: listView
-        
+
         width: parent.width
         height: parent.height - folderSectionTitlePane.height
         anchors {
@@ -189,15 +200,30 @@ Pane {
             bottom: parent.bottom
         }
 
+        interactive: false
+
         model: appControl.folderModel
-        clip: true
-
-        delegate: VisualItemDelegate {
+        delegate: Item {
             width: parent.width
+            height: childrenRect.height
 
-            textRole: "name"
-            childModel: entries
-            childCount: entries.rowCount();
+            DelegateModel {
+                id: visualModel
+                model: entries
+                delegate: FsEntryDelegate {
+                    property var fsProxy: entries
+                    modelIndex: visualModel.modelIndex(index)
+                    parentIndex: visualModel.parentModelIndex()
+                }
+            }
+
+            ListView {
+                width: parent.width
+                height: childrenRect.height
+                interactive: false
+
+                model: visualModel
+            }
         }
     } // ListView
 
@@ -207,13 +233,13 @@ Pane {
         height: width
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-//        text: checked ? "x" : "+"
 
+        //        text: checked ? "x" : "+"
         Image {
             id: addFolderButtonImage
             anchors.fill: parent
             fillMode: Image.PreserveAspectFit
-            source: "qrc:///img/plus.svg";
+            source: "qrc:///img/plus.svg"
             anchors.margins: 15
             rotation: addFolderButton.checked ? -45 - 90 : 0
 
@@ -261,17 +287,19 @@ Pane {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.left
 
-                background: Rectangle { color: Qt.rgba(0,0,0,.6) }
+                background: Rectangle {
+                    color: Qt.rgba(0, 0, 0, .6)
+                }
 
                 Label {
                     anchors.centerIn: parent
                     text: "Create new folder"
                 }
             }
-//            onHoveredChanged: {
-//                if (hovered)
-//                    focusTimer.restart()
-//            }
+            //            onHoveredChanged: {
+            //                if (hovered)
+            //                    focusTimer.restart()
+            //            }
         }
         IconButton {
             id: watchAnotherFolderButton
@@ -287,17 +315,19 @@ Pane {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.left
 
-                background: Rectangle { color: Qt.rgba(0,0,0,.6) }
+                background: Rectangle {
+                    color: Qt.rgba(0, 0, 0, .6)
+                }
 
                 Label {
                     anchors.centerIn: parent
                     text: "Add existing folder"
                 }
             }
-//            onHoveredChanged: {
-//                if (hovered)
-//                    focusTimer.restart()
-//            }
+            //            onHoveredChanged: {
+            //                if (hovered)
+            //                    focusTimer.restart()
+            //            }
         }
     }
 
@@ -325,12 +355,12 @@ Pane {
         reversible: true
 
         NumberAnimation {
-            properties: "x";
+            properties: "x"
             easing.type: Easing.InOutQuad
         }
     }
 
     function toggle() {
-        state = (state == "open" ? "closed" : "open");
+        state = (state == "open" ? "closed" : "open")
     }
 }
