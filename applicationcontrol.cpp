@@ -208,13 +208,13 @@ inline void addDpiInfoToQmlContext(QQmlContext* pContext)
     qreal yDpi = QGuiApplication::primaryScreen()->physicalDotsPerInchY() * QGuiApplication::primaryScreen()->devicePixelRatio();
     qreal lDpi = QGuiApplication::primaryScreen()->physicalDotsPerInch()  * QGuiApplication::primaryScreen()->devicePixelRatio();
 
-    pContext->setContextProperty(QStringLiteral("mmX"), xDpi / 25.4f);
-    pContext->setContextProperty(QStringLiteral("mmY"), yDpi / 25.4f);
-    pContext->setContextProperty(QStringLiteral("mm"),  lDpi / 25.4f);
+    pContext->setContextProperty(QStringLiteral("mmX"), xDpi / 25.4);
+    pContext->setContextProperty(QStringLiteral("mmY"), yDpi / 25.4);
+    pContext->setContextProperty(QStringLiteral("mm"),  lDpi / 25.4);
 
-    pContext->setContextProperty(QStringLiteral("cmX"), xDpi * 10.0f / 25.4f);
-    pContext->setContextProperty(QStringLiteral("cmY"), yDpi * 10.0f / 25.4f);
-    pContext->setContextProperty(QStringLiteral("cm"),  lDpi * 10.0f / 25.4f);
+    pContext->setContextProperty(QStringLiteral("cmX"), xDpi * 10.0 / 25.4);
+    pContext->setContextProperty(QStringLiteral("cmY"), yDpi * 10.0 / 25.4);
+    pContext->setContextProperty(QStringLiteral("cm"),  lDpi * 10.0 / 25.4);
 
     QString lCategory = dpiCategory(lDpi);
     qreal lPixelRatio = dpiPixelRatio(lCategory);
