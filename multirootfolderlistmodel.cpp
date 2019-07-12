@@ -1,6 +1,7 @@
 #include "multirootfolderlistmodel.h"
 
 #include <QDebug>
+#include <QQmlEngine>
 
 MultiRootFolderListModel::MultiRootFolderListModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -18,6 +19,21 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
 
     auto fsModel = new FsProxyModel(this);
     fsModel->setPath(folderPath);
+
+    auto notify = [=](){
+//        emit this->layoutChanged();
+        emit this->dataChanged(index(0), index(rowCount() - 1));
+    };
+
+//    connect(fsModel, &FsProxyModel::dataChanged, notify);
+//    connect(fsModel, &FsProxyModel::layoutChanged, notify);
+
+    fsModel->setFilterText(m_filterText);
+    connect(this, &MultiRootFolderListModel::filterTextChanged, fsModel, &FsProxyModel::setFilterText);
+//    connect(fsModel, &FsProxyModel::filterTextChanged, [=](){
+//        emit fsModel->layoutChanged();
+//        emit this->layoutChanged();
+//    });
 
     _appendFolderListModel(fsModel);
 }
@@ -114,7 +130,7 @@ FsProxyModel *MultiRootFolderListModel::_findFolderListModel(QString folderPath)
 
 void MultiRootFolderListModel::_appendFolderListModel(FsProxyModel *flm)
 {
-    QModelIndex modelIndex = this->index(rowCount(), 0);
+//    QModelIndex modelIndex = this->index(rowCount(), 0);
 //    emit layoutAboutToBeChanged(QList<QPersistentModelIndex>() << modelIndex);
 
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
@@ -353,6 +369,8 @@ QVariant FsEntryModel::data(const QModelIndex &index, int role) const
     }
     case EntryRole:
     {
+//        QVariant v = QVariant::fromValue(fs);
+        QQmlEngine::setObjectOwnership(fs, QQmlEngine::CppOwnership);
         return QVariant::fromValue(fs);
     }
     }
@@ -477,9 +495,14 @@ void FsProxyModel::setFilterText(QString filterText)
         return;
 
     m_filterText = filterText;
-    emit filterTextChanged(m_filterText);
 
+    beginResetModel();
+//    layoutAboutToBeChanged();
     invalidateFilter();
+//    layoutChanged();
+    endResetModel();
+
+    emit filterTextChanged(m_filterText);
 }
 
 bool FsProxyModel::containsDir(const QString &path)
@@ -508,6 +531,9 @@ bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_pa
 
     FsEntry* entry = static_cast<FsEntry*>(index.internalPointer());
     if (!entry)
+        return false;
+
+    if (entry->expandable())
         return false;
 
     return fuzzymatch(entry->name(), m_filterText);

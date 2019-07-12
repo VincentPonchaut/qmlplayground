@@ -2,6 +2,9 @@ import QtQuick 2.13
 import QtQuick.Controls 2.13
 import QtQuick.Controls.Material 2.12
 import QtQml.Models 2.13
+import QtQml 2.13
+
+import "Utils.js" as Utils
 
 ItemDelegate {
     id: root
@@ -15,36 +18,18 @@ ItemDelegate {
     property var itemData: fsProxy.data(modelIndex,
                                         fsProxy.roleFromString("entry"))
 
-    property bool isCurrentFolder
-    property bool isCurrentFile
-    property bool isExpandable
-    property bool isExpanded
+    property bool isValid: Utils.isNotNull(itemData)
 
-    Binding on isCurrentFolder {
-        value: itemData.expandable && root.fp(
-                   itemData.path) === appControl.currentFolder
-        when: typeof (itemData) !== "undefined"
-    }
-    Binding on isCurrentFile {
-        value: !itemData.expandable && root.fp(
-                   itemData.path) === appControl.currentFile
-        when: typeof (itemData) !== "undefined"
-    }
-    Binding on isExpandable {
-        value: itemData.expandable
-        when: typeof (itemData) !== "undefined"
-    }
-    Binding on isExpanded {
-        value: itemData.expanded
-        when: typeof (itemData) !== "undefined"
-    }
+    property bool isCurrentFolder: isValid ? itemData.expandable && root.fp(itemData.path) === appControl.currentFolder : false
+    property bool isCurrentFile:   isValid ? !itemData.expandable && root.fp(itemData.path) === appControl.currentFile : false
+    property bool isExpandable:    isValid ? itemData.expandable : false
+    property bool isExpanded:      isValid ? itemData.expanded : false
 
     // ---------------------------------------------------------------
     // Logic
     // ---------------------------------------------------------------
     onClicked: {
-        print("cette bonne vieille zitoune")
-        if (typeof (itemData) == "undefined")
+        if (Utils.isNull(itemData))
             return
 
         if (itemData.expandable) {
@@ -90,10 +75,7 @@ ItemDelegate {
             height: parent.height
             verticalAlignment: Text.AlignVCenter
 
-            Binding on text {
-                value: itemData.name
-                when: typeof (itemData) !== "undefined"
-            }
+            text: root.isValid ? root.itemData.name : "error"
 
             color: _.textColor()
             font.bold: root.isCurrentFile || root.isCurrentFolder
@@ -108,7 +90,7 @@ ItemDelegate {
         anchors.top: parent.top
         anchors.right: parent.right
         height: _.rowHeight
-        visible: root.hovered && itemData.expandable
+        visible: root.isValid && root.hovered && itemData.expandable
 
         IconButton {
             id: newFileButton
@@ -149,7 +131,8 @@ ItemDelegate {
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
-            visible: appControl.isInFolderList(fp(itemData.path))
+            visible: Utils.isNotNull(itemData) && appControl.isInFolderList(
+                         fp(itemData.path))
 
             Image {
                 anchors.fill: parent
@@ -180,7 +163,7 @@ ItemDelegate {
         anchors.top: parent.top
         anchors.right: parent.right
         height: _.rowHeight
-        visible: root.hovered && !itemData.expandable
+        visible: root.isValid && root.hovered && !itemData.expandable
 
         IconButton {
             id: exploreToButton
@@ -241,7 +224,7 @@ ItemDelegate {
                 id: childrenLoader
                 width: parent.width
                 height: childrenRect.height
-                //                asynchronous: true
+//                asynchronous: true
             }
 
             Component.onCompleted: {
@@ -308,6 +291,9 @@ ItemDelegate {
         }
 
         function iconColor() {
+            if (!root.isValid)
+                return "red";
+
             if (root.isCurrentFolder) {
                 return Material.accent
             } else if (root.isCurrentFile) {
