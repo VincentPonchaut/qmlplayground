@@ -177,6 +177,7 @@ ApplicationControl::~ApplicationControl()
     QSettings settings;
     settings.setValue("currentFile", currentFile());
     settings.setValue("currentFolder", currentFolder());
+    settings.setValue("folderList", folderList());
 }
 
 inline QString dpiCategory(qreal pDp)
