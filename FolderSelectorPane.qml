@@ -44,11 +44,13 @@ Pane {
     }
 
     function foldAll() {
-        qmlRecursiveCall(listView.contentItem, "collapse")
+//        qmlRecursiveCall(listView.contentItem, "collapse")
+        appControl.folderModel.collapseAll();
     }
 
     function unfoldAll() {
-        qmlRecursiveCall(listView.contentItem, "expand")
+//        qmlRecursiveCall(listView.contentItem, "expand")
+        appControl.folderModel.expandAll();
     }
 
     // ---------------------------------------------------------------

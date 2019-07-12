@@ -36,6 +36,9 @@ public:
 
     bool containsDir(QString pFolderPath);
 
+    Q_INVOKABLE void expandAll();
+    Q_INVOKABLE void collapseAll();
+
 signals:
     void updateNeeded();
 
@@ -140,6 +143,9 @@ public:
 
     bool containsDir(const QString& path);
 
+    void expandAll();
+    void collapseAll();
+
     FsEntry* root() const;
 
 protected:
@@ -167,6 +173,9 @@ public:
     bool containsDir(const QString& path);
     FsEntry* root() const;
     Q_INVOKABLE int roleFromString(QString roleName);
+
+    void expandAll();
+    void collapseAll();
 
 signals:
     void filterTextChanged(QString filterText);

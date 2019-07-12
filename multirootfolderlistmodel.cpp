@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QQmlEngine>
+#include <functional>
 
 MultiRootFolderListModel::MultiRootFolderListModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -65,6 +66,22 @@ bool MultiRootFolderListModel::containsDir(QString pFolderPath)
         }
     }
     return false;
+}
+
+void MultiRootFolderListModel::expandAll()
+{
+    for (auto&& flm: mFolderListModels)
+    {
+        flm->expandAll();
+    }
+}
+
+void MultiRootFolderListModel::collapseAll()
+{
+    for (auto&& flm: mFolderListModels)
+    {
+        flm->collapseAll();
+    }
 }
 
 int MultiRootFolderListModel::rowCount(const QModelIndex &parent) const
@@ -426,6 +443,37 @@ bool FsEntryModel::containsDir(const QString &path)
     return recursiveMatch(rootItem, path, FsEntryModel::PathRole);
 }
 
+inline void recursiveCallback(FsEntry* root, const std::function<void(FsEntry*)>& callback)
+{
+    if (!root)
+        return;
+
+    callback(root);
+
+    for (auto&& c: root->children)
+    {
+        recursiveCallback(c, callback);
+    }
+}
+
+void FsEntryModel::expandAll()
+{
+    recursiveCallback(rootItem,
+    [](FsEntry* entry) {
+        if (entry->expandable())
+            entry->setExpanded(true);
+    });
+}
+
+void FsEntryModel::collapseAll()
+{
+    recursiveCallback(rootItem,
+    [](FsEntry* entry) {
+        if (entry->expandable())
+            entry->setExpanded(false);
+    });
+}
+
 inline bool fuzzymatch(QString str, QString filter)
 {
     bool allFound = true;
@@ -521,6 +569,18 @@ int FsProxyModel::roleFromString(QString roleName)
 {
     auto fsModel = qobject_cast<FsEntryModel*>(sourceModel());
     return fsModel->roleFromString(roleName);
+}
+
+void FsProxyModel::expandAll()
+{
+    auto fsModel = qobject_cast<FsEntryModel*>(sourceModel());
+    fsModel->expandAll();
+}
+
+void FsProxyModel::collapseAll()
+{
+    auto fsModel = qobject_cast<FsEntryModel*>(sourceModel());
+    fsModel->collapseAll();
 }
 
 bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
