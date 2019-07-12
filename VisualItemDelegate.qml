@@ -14,7 +14,13 @@ ItemDelegate {
 
     property var childModel;
 //    property alias childModel: substepsDelegate.model
-    property int childCount: typeof(model[childrenRole]) !== "undefined" ? model[childrenRole].rowCount() : 0//childModel.count
+//    property int childCount: typeof(model[childrenRole]) !== "undefined" ? model[childrenRole].rowCount() : 0//childModel.count
+    property int childCount;
+    Binding on childCount {
+        when: typeof(modelData[childrenRole]) !== "undefined"
+//        when: (model.hasModelChildren)
+        value: modelData[childrenRole].rowCount()
+    }
 
     property int rowHeight: 40
 
@@ -23,6 +29,10 @@ ItemDelegate {
 
     property bool isCurrentFolder: (model.isDir && fp(model.path) === appControl.currentFolder)
     property bool isCurrentFile: (!model.isDir && fp(model.path) === appControl.currentFile)
+
+    property var modelIndex: visualModel.modelIndex(index)
+    property var parentIndex: visualModel.parentModelIndex()
+    property var modelData: visualModel.model.data(modelIndex)
 
     // --------------------------------------------------------------------------
     // Logic
@@ -44,19 +54,6 @@ ItemDelegate {
     }
     function collapse() {
         state = "folded"
-    }
-
-    function callOnChildren(pFunction) {
-        for (var i = 0; i < substepsDelegate.children.length; ++i) {
-            var child = substepsDelegate.children[i]
-
-            if (getType(child) == "Loader")
-                child = child.item
-
-            if (typeof(child[pFunction]) == "function") {
-                child[pFunction]();
-            }
-        }
     }
 
     function expandAll() {
@@ -90,7 +87,7 @@ ItemDelegate {
 
     onClicked: {
         // Handle click for folders
-        if (model.isDir)
+        if (modelData.isDir)
         {
             if (!isExpanded)
                 expand()
@@ -98,9 +95,9 @@ ItemDelegate {
                 collapse()
             return;
         }
-        else if (model.path.endsWith("qml"))
+        else if (modelData.path.endsWith("qml"))
         {
-            var path = "file:///" + String(model.path)
+            var path = "file:///" + String(modelData.path)
             var folder = path.substring(0, path.lastIndexOf("/"));
 
             appControl.setCurrentFileAndFolder(folder, path)
@@ -132,153 +129,155 @@ ItemDelegate {
             height: parent.height * 0.8
             anchors.verticalCenter: parent.verticalCenter
 
-            source: isExpanded && model.isDir ? "img/folderOpen.svg" :
-                                  model.isDir ? "img/folder.svg" :
+            source: isExpanded && modelData.isDir ? "img/folderOpen.svg" :
+                                  modelData.isDir ? "img/folder.svg" :
                                                 "img/newFile.svg";
             color: isCurrentFolder ? Material.accent :
                    isCurrentFile ? "#f9a825" :
-                   model.isDir ? "white" :
-                   model.path.endsWith("qml") ? "#81d4fa" :
+                   modelData.isDir ? "white" :
+                   modelData.path.endsWith("qml") ? "#81d4fa" :
                                                 "#69f0ae"
         }
 
         Label {
             height: parent.height
-            text: model[textRole]
+//            text: model[textRole]
+            text: modelData[textRole]
 
             opacity: itemDelegate.isExpandable && itemDelegate.state === "expanded" ? 0.6 : 1
-            font.bold: model.isDir
+            font.bold: modelData.isDir
             font.italic: itemDelegate.isExpandable && itemDelegate.state === "expanded"
             font.family: "Montserrat, Segoe UI, Arial"
             verticalAlignment: Text.AlignVCenter
         }
 
-//        Text {
-//            id: debugInfo
-//            text: ""+ typeof(model.entries) != "undefined" ? model.entries.rowCount() : ""
+        Text {
+            id: debugInfo
+            text: ""+ typeof(modelData.entries) != "undefined" ? modelData.entries.rowCount() : ""
+        }
+    }
+
+//    // Contextual folder actions
+//    Row {
+//        id: folderActionsRow
+
+//        anchors.top: parent.top
+//        anchors.right: parent.right
+//        height: rowHeight
+//        visible: itemDelegate.hovered && modelData.isDir
+
+//        IconButton {
+//            id: newFileButton
+
+//            height: parent.height
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
+
+//            onClicked: fileCreationPopup.openForFolder(fp(modelData.path))
+//            imageSource: "qrc:///img/newFile.svg"
+//            ToolTip.text: "New file"
 //        }
-    }
 
-    // Contextual folder actions
-    Row {
-        id: folderActionsRow
+//        RoundButton {
+//            id: infoButton
+//            height: parent.height
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
 
-        anchors.top: parent.top
-        anchors.right: parent.right
-        height: rowHeight
-        visible: itemDelegate.hovered && model.isDir
+//            onClicked: Qt.openUrlExternally(fp(modelData.path))//appControl.runCommand("cmd /c explorer \"%1\"".arg(modelData))
 
-        IconButton {
-            id: newFileButton
+//            Image {
+//                anchors.fill: parent
+//                anchors.margins: 5
 
-            height: parent.height
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
+//                fillMode: Image.PreserveAspectFit
+//                smooth: true
+//                source: "qrc:///img/folder.svg"
+//            }
 
-            onClicked: fileCreationPopup.openForFolder(fp(model.path))
-            imageSource: "qrc:///img/newFile.svg"
-            ToolTip.text: "New file"
-        }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "Open in explorer"
+//        }
+//        RoundButton {
+//            id: trashButton
+//            height: parent.height
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
 
-        RoundButton {
-            id: infoButton
-            height: parent.height
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
+//            visible: appControl.isInFolderList(fp(modelData.path))
 
-            onClicked: Qt.openUrlExternally(fp(model.path))//appControl.runCommand("cmd /c explorer \"%1\"".arg(modelData))
+//            Image {
+//                anchors.fill: parent
+//                anchors.margins: 5
 
-            Image {
-                anchors.fill: parent
-                anchors.margins: 5
+//                fillMode: Image.PreserveAspectFit
+//                smooth: true
+//                source: "qrc:///img/eye_off.svg"
+//            }
 
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                source: "qrc:///img/folder.svg"
-            }
+//            ToolTip.visible: hovered
+//            ToolTip.text: "Stop watching folder"
 
-            ToolTip.visible: hovered
-            ToolTip.text: "Open in explorer"
-        }
-        RoundButton {
-            id: trashButton
-            height: parent.height
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
+//            onClicked: {
+//                if (isCurrentFolder || isCurrentFile) {
+//                    appControl.setCurrentFileAndFolder("", "");
+//                }
 
-            visible: appControl.isInFolderList(fp(model.path))
+//                appControl.removeFromFolderList(modelData.path)
+//            }
+//        }
+//    }
 
-            Image {
-                anchors.fill: parent
-                anchors.margins: 5
+//    // Contextual file actions
+//    Row {
+//        id: fileActionsRow
 
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                source: "qrc:///img/eye_off.svg"
-            }
+//        anchors.top: parent.top
+//        anchors.right: parent.right
+//        height: rowHeight
+//        visible: itemDelegate.hovered && !modelData.isDir //&& String(modelData.path).length > 0
 
-            ToolTip.visible: hovered
-            ToolTip.text: "Stop watching folder"
+//        IconButton {
+//            id: exploreToButton
 
-            onClicked: {
-                if (isCurrentFolder || isCurrentFile) {
-                    appControl.setCurrentFileAndFolder("", "");
-                }
+//            height: parent.height * 0.9
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
 
-                appControl.removeFromFolderList(model.path)
-            }
-        }
-    }
+//            onClicked: Qt.openUrlExternally(fp(parentFolder(modelData.path)))
+//            imageSource: "qrc:///img/folder.svg"
+//            ToolTip.text: "Open in explorer"
+//        }
 
-    // Contextual file actions
-    Row {
-        id: fileActionsRow
+//        IconButton {
+//            id: editFileButton
 
-        anchors.top: parent.top
-        anchors.right: parent.right
-        height: rowHeight
-        visible: itemDelegate.hovered && !model.isDir //&& String(model.path).length > 0
+//            height: parent.height * 0.9
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
 
-        IconButton {
-            id: exploreToButton
+//            onClicked: Qt.openUrlExternally(fp(modelData.path))
+//            imageSource: "qrc:///img/edit.svg"
+//            ToolTip.text: "Open file in external editor"
+//        }
 
-            height: parent.height * 0.9
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
+//        IconButton {
+//            id: editFileContentButton
 
-            onClicked: Qt.openUrlExternally(fp(parentFolder(model.path)))
-            imageSource: "qrc:///img/folder.svg"
-            ToolTip.text: "Open in explorer"
-        }
+//            height: parent.height * 0.9
+//            width: height
+//            anchors.verticalCenter: parent.verticalCenter
 
-        IconButton {
-            id: editFileButton
-
-            height: parent.height * 0.9
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
-
-            onClicked: Qt.openUrlExternally(fp(model.path))
-            imageSource: "qrc:///img/edit.svg"
-            ToolTip.text: "Open file in external editor"
-        }
-
-        IconButton {
-            id: editFileContentButton
-
-            height: parent.height * 0.9
-            width: height
-            anchors.verticalCenter: parent.verticalCenter
-
-            onClicked: editFileLocally(fp(model.path));
-            imageSource: "qrc:///img/code.svg"
-            ToolTip.text: "Quick edit"
-        }
-        // TODO: clone file
-        // TODO: remove file
-    }
+//            onClicked: editFileLocally(fp(modelData.path));
+//            imageSource: "qrc:///img/code.svg"
+//            ToolTip.text: "Quick edit"
+//        }
+//        // TODO: clone file
+//        // TODO: remove file
+//    }
 
     ListView {
+//    Column {
         id: substepsDelegate
         anchors.top: stepDelegateContentRow.bottom
         height: childrenRect.height
@@ -290,10 +289,14 @@ ItemDelegate {
         visible: parent.state == "expanded"
 
 //        model: typeof(itemDelegate.childModel) !== "undefined" ? itemDelegate.childModel : 0
-
+//Repeater {
+//        Binding on model {
+//            when: typeof(itemDelegate.childModel) !== "undefined"
+//            value: itemDelegate.childModel
+//        }
         Binding on model {
             when: typeof(itemDelegate.childModel) !== "undefined"
-            value: itemDelegate.childModel
+            value: itemDelegate.childModel.rowCount(modelIndex)
         }
 
         delegate: Item {
@@ -305,20 +308,24 @@ ItemDelegate {
                 width: parent.width
                 height: childrenRect.height
 //                asynchronous: true // dont put async loader in listview
+//                asynchronous: appControl.folderModel.filterText.length > 0
             }
-//            Label {
-////                anchors.fill: parent
-//                text: "cc(" + childCount + "), ssdheight: " + substepsDelegate.height + " idheight: " + itemDelegate.height
-//            }
+            Label {
+//                anchors.fill: parent
+                text: "cc(" + childCount + "), ssdheight: " + substepsDelegate.height + " idheight: " + itemDelegate.height
+                Component.onCompleted: {
+                    print("" + Object.keys(model.entries))
+                }
+            }
 
             Component.onCompleted: {
                 substepDelegateLoader.setSource("VisualItemDelegate.qml",
                                                 {
                                                     "textRole" : itemDelegate.textRole,
-                                                    //"childModel" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries }) : [],
-                                                    "childModel" : model.entries,
-                                                    "childrenRole": "entries"
-                                                    //"childCount" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries.rowCount()}) : 0
+                                                    //"childModel" : typeof(modelData.entries) != "undefined" ? Qt.binding(function(){ return model.entries }) : [],
+                                                    "childModel" : modelData.entries,
+                                                    "childrenRole": "entries",
+//                                                    "childCount" : typeof(model.entries) != "undefined" ? Qt.binding(function(){ return model.entries.rowCount()}) : 0
 //                                                    "childModel" : typeof(model.entries) != "undefined" ? model.entries : [],
 //                                                    "childCount" : typeof(model.entries) != "undefined" ? model.entries.rowCount() : 0
                                                 })
@@ -329,6 +336,7 @@ ItemDelegate {
 //            anchors.centerIn: parent
 //            text: "ssc: " + substepsDelegate.count + "-" + childCount
 //        }
+//} // Repeater
     }
 
     states: [
