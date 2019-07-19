@@ -11,10 +11,8 @@ ItemDelegate {
 
     property int row: index
     property var parentIndex: null
-    property var modelIndex: parentIndex != null ? fsProxy.index(
-                                                       row, 0,
-                                                       parentIndex) : fsProxy.index(
-                                                       row, 0)
+    property var modelIndex: parentIndex != null ? fsProxy.index(row, 0,parentIndex) :
+                                                   fsProxy.index(row, 0)
     property var itemData: fsProxy.data(modelIndex,
                                         fsProxy.roleFromString("entry"))
 
