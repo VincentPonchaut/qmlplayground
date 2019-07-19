@@ -149,6 +149,9 @@ public:
 
     FsEntry* root() const;
 
+signals:
+    void fileSystemChange();
+
 protected:
     void loadEntries();
     void _loadEntries();
@@ -183,6 +186,7 @@ public:
 
 signals:
     void filterTextChanged(QString filterText);
+    void fileSystemChange();
 
 protected:
     // QSortFilterProxyModel interface

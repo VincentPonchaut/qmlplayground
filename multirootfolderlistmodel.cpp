@@ -32,6 +32,7 @@ void MultiRootFolderListModel::addFolder(QString folderPath)
 //    connect(fsModel, &FsProxyModel::dataChanged, notify);
     connect(fsModel, &FsProxyModel::layoutChanged, notify);
 //    connect(fsModel, &FsProxyModel::sourceModelChanged, notify);
+    connect(fsModel, &FsProxyModel::fileSystemChange, this, &MultiRootFolderListModel::updateNeeded);
 
     fsModel->setFilterText(m_filterText);
     connect(this, &MultiRootFolderListModel::filterTextChanged, fsModel, &FsProxyModel::setFilterText);
@@ -64,10 +65,14 @@ bool MultiRootFolderListModel::containsDir(QString pFolderPath)
 
     for (auto& flmp: mFolderListModels)
     {
+        if (pFolderPath.startsWith(flmp->root()->path(), Qt::CaseInsensitive))
+            return true;
+        /*
         if (flmp->containsDir(pFolderPath))
         {
             return true;
         }
+        */
     }
     return false;
 }
@@ -262,6 +267,68 @@ int FsEntry::row() const
 
 
 // ---------------------------------------------------------------
+// FsEntryModel Utils
+// ---------------------------------------------------------------
+
+inline bool recursiveMatch(FsEntry* root, QString val, int role = FsEntryModel::PathRole)
+{
+    if (!root)
+        return false;
+
+    QString entryVal;
+    if (role == FsEntryModel::PathRole)
+    {
+        entryVal = root->path();
+    }
+    else if (role == FsEntryModel::NameRole)
+    {
+        entryVal = root->name();
+    }
+
+    if (entryVal.contains(val, Qt::CaseInsensitive))
+        return true;
+    else
+    {
+        for (auto&& c: root->children)
+        {
+            if (recursiveMatch(c, val, role))
+                return true;
+        }
+    }
+    return false;
+}
+inline void recursiveCallback(FsEntry* root, const std::function<void(FsEntry*)>& callback)
+{
+    if (!root)
+        return;
+
+    callback(root);
+
+    for (auto&& c: root->children)
+    {
+        recursiveCallback(c, callback);
+    }
+}
+inline bool fuzzymatch(QString str, QString filter)
+{
+    bool allFound = true;
+    for (auto&& s: filter.split(" "))
+    {
+        allFound &= str.contains(s, Qt::CaseInsensitive);
+    }
+    return allFound;
+}
+
+inline void recursiveAddToWatcher(const FsEntry* root, QFileSystemWatcher& watcher)
+{
+    watcher.addPath(root->path());
+    for (const FsEntry* c: root->children)
+    {
+        recursiveAddToWatcher(c, watcher);
+    }
+}
+
+// ---------------------------------------------------------------
 // FsEntryModel
 // ---------------------------------------------------------------
 
@@ -275,6 +342,7 @@ FsEntryModel::FsEntryModel(QObject *parent)
     {
         qDebug() << "file system change";
         loadEntries();
+        emit this->fileSystemChange();
 
         // TODO: find only the relevant indexes
 //        emit this->dataChanged(index(0), index(rowCount()));
@@ -434,53 +502,21 @@ void FsEntryModel::setPath(const QString &path)
         loadEntries();
 }
 
-inline bool recursiveMatch(FsEntry* root, QString val, int role = FsEntryModel::PathRole)
-{
-    if (!root)
-        return false;
-
-    QString entryVal;
-    if (role == FsEntryModel::PathRole)
-    {
-        entryVal = root->path();
-    }
-    else if (role == FsEntryModel::NameRole)
-    {
-        entryVal = root->name();
-    }
-
-    if (entryVal.contains(val, Qt::CaseInsensitive))
-        return true;
-    else
-    {
-        for (auto&& c: root->children)
-        {
-            if (recursiveMatch(c, val, role))
-                return true;
-        }
-    }
-    return false;
-}
-
 bool FsEntryModel::containsDir(const QString &path)
 {
-    if (path.isEmpty() || !rootItem)
+    if (path.isEmpty())
         return false;
 
-    return recursiveMatch(rootItem, path, FsEntryModel::PathRole);
-}
-
-inline void recursiveCallback(FsEntry* root, const std::function<void(FsEntry*)>& callback)
-{
-    if (!root)
-        return;
-
-    callback(root);
-
-    for (auto&& c: root->children)
+    for (auto&& dir: mWatcher.directories())
     {
-        recursiveCallback(c, callback);
+        if (dir.contains(path, Qt::CaseInsensitive))
+            return true;
     }
+    return false;
+//    if (path.isEmpty() || !rootItem)
+//        return false;
+
+//    return recursiveMatch(rootItem, path, FsEntryModel::PathRole);
 }
 
 void FsEntryModel::expandAll()
@@ -499,25 +535,6 @@ void FsEntryModel::collapseAll()
         if (entry->expandable())
             entry->setExpanded(false);
     });
-}
-
-inline bool fuzzymatch(QString str, QString filter)
-{
-    bool allFound = true;
-    for (auto&& s: filter.split(" "))
-    {
-        allFound &= str.contains(s, Qt::CaseInsensitive);
-    }
-    return allFound;
-}
-
-inline void recursiveAddToWatcher(const FsEntry* root, QFileSystemWatcher& watcher)
-{
-    watcher.addPath(root->path());
-    for (const FsEntry* c: root->children)
-    {
-        recursiveAddToWatcher(c, watcher);
-    }
 }
 
 void FsEntryModel::loadEntries()
@@ -551,6 +568,9 @@ FsEntry *FsEntryModel::root() const
     return rootItem;
 }
 
+// ---------------------------------------------------------------
+// FsProxyModel
+// ---------------------------------------------------------------
 
 FsProxyModel::FsProxyModel(QObject *parent)
     : QSortFilterProxyModel (parent)
@@ -579,6 +599,8 @@ void FsProxyModel::setPath(const QString &path)
     {
         fsModel = new FsEntryModel(this);
         fsModel->setPath(path);
+
+        connect(fsModel, &FsEntryModel::fileSystemChange, this, &FsProxyModel::fileSystemChange);
 
         /*
         connect(fsModel, &FsEntryModel::modelReset, [=]()

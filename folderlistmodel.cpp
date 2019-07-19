@@ -13,7 +13,7 @@ FolderListModel::FolderListModel(QObject *parent)
         // TODO: fire reload
         qDebug() << "model changed";
         loadEntries();
-//        emit this->updateNeeded();
+        emit this->updateNeeded();
         qDebug() << "rowcount is now " << rowCount();
     });
 
@@ -21,12 +21,14 @@ FolderListModel::FolderListModel(QObject *parent)
     {
         // TODO: find index from directory name
         // To avoid reloading the full model
+        qDebug() << "directory changed " << dirName;
         mChangeNotifier.start();
     });
     connect(&mWatcher, &QFileSystemWatcher::fileChanged, [=](QString fileName)
     {
         // TODO: find index from file name
         // To avoid reloading the full model
+        qDebug() << "file changed " << fileName;
         mChangeNotifier.start();
     });
 }
@@ -101,8 +103,10 @@ void FolderListModel::setPath(QString path)
     }
     mPath = path;
     mRoot = QFileInfo(mPath);
-    if (!mPath.isNull() && !mPath.isEmpty())
+    if (!mPath.isEmpty())
+    {
         mWatcher.addPath(path);
+    }
 
     loadEntries();
 }
@@ -126,6 +130,11 @@ void FolderListModel::loadEntries()
         directories.insert(dirit.fileInfo().absolutePath());
     }
 
+//    if (!mWatcher.files().isEmpty())
+//        mWatcher.removePaths(mWatcher.files());
+//    if (!mWatcher.directories().isEmpty())
+//        mWatcher.removePaths(mWatcher.directories());
+
     // Insert the directories in entries
     mFolderListModels.clear();
     for (auto directory: directories)
@@ -137,7 +146,7 @@ void FolderListModel::loadEntries()
         {
             mEntries.append(dir);
             bool ok = mWatcher.addPath(dir.absoluteFilePath());
-            assert(ok);
+//            assert(ok);
 
             auto flm = new FolderListModelProxy(this);
             flm->setPath(directory);
@@ -159,6 +168,8 @@ void FolderListModel::loadEntries()
                 {
                     if (entry == flm->root())
                     {
+                        emit this->layoutChanged();
+                        emit this->dataChanged(index(0), index(rowCount() - 1));
                         emit this->dataChanged(index(mEntries.indexOf(entry)), index(rowCount()));
                     }
                 }
@@ -182,7 +193,8 @@ void FolderListModel::loadEntries()
         it.next();
 
         mEntries.append(it.fileInfo());
-        mWatcher.addPath(it.filePath());
+        bool ok = mWatcher.addPath(it.fileInfo().absoluteFilePath());
+//        assert(ok);
     }
 
     emit dataChanged(index(0,0),
@@ -226,6 +238,13 @@ void FolderListModelProxy::setFolderListModel(FolderListModel *folderListModel)
     {
         // Forward the signals
         connect(mFolderListModel, &FolderListModel::updateNeeded, this, &FolderListModelProxy::updateNeeded);
+
+        connect(mFolderListModel, &FolderListModel::dataChanged, this,
+        [=](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
+        {
+            emit this->layoutChanged();
+            emit this->dataChanged(mapFromSource(topLeft), mapFromSource(bottomRight), roles);
+        });
 
         // Set as source model
         setSourceModel(mFolderListModel);
