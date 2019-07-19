@@ -139,20 +139,11 @@ Pane {
 
                 placeholderText: "Filter files..."
 
-                Timer {
-                    id: inputTimer
-                    interval: 500
-                    onTriggered: {
-                        appControl.folderModel.setFilterText(filterTextField.text)
-                        if (filterTextField.text.length > 0)
-                            folderSelectorPane.unfoldAll()
-                    }
-                }
-
                 selectByMouse: true
                 onTextChanged: {
-                    if (!inputTimer.running)
-                        inputTimer.start()
+                    appControl.folderModel.setFilterText(filterTextField.text)
+                    if (filterTextField.text.length > 0)
+                        folderSelectorPane.unfoldAll()
                 }
                 onAccepted: {
                     focus = false

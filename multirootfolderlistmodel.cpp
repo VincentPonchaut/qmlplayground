@@ -328,6 +328,38 @@ inline void recursiveAddToWatcher(const FsEntry* root, QFileSystemWatcher& watch
     }
 }
 
+inline void recursiveFetchLeaves(QVector<FsEntry*> &leaves, FsEntry* root)
+{
+    if (!root)
+        return;
+
+    for (auto child: root->children)
+    {
+        if (child->expandable())
+            recursiveFetchLeaves(leaves, child);
+        else
+            leaves.append(child);
+    }
+}
+
+inline void setActiveHierarchy(FsEntry* leaf, bool active)
+{
+    if (!leaf)
+        return;
+
+    leaf->setActive(active);
+
+    if (!active)
+        return;
+
+    auto parent = leaf->parent();
+    while (parent)
+    {
+        parent->setActive(true);
+        parent = parent->parent();
+    }
+}
+
 // ---------------------------------------------------------------
 // FsEntryModel
 // ---------------------------------------------------------------
@@ -601,6 +633,7 @@ void FsProxyModel::setPath(const QString &path)
         fsModel->setPath(path);
 
         connect(fsModel, &FsEntryModel::fileSystemChange, this, &FsProxyModel::fileSystemChange);
+        connect(fsModel, &FsEntryModel::dataChanged, this, [=](){ fetchLeaves(); });
 
         /*
         connect(fsModel, &FsEntryModel::modelReset, [=]()
@@ -615,6 +648,7 @@ void FsProxyModel::setPath(const QString &path)
         */
 
         setSourceModel(fsModel);
+        fetchLeaves();
     }
 }
 
@@ -630,11 +664,24 @@ void FsProxyModel::setFilterText(QString filterText)
 
     m_filterText = filterText;
 
-    beginResetModel();
+//    beginResetModel();
 //    layoutAboutToBeChanged();
-    invalidateFilter();
+//    invalidateFilter();
 //    layoutChanged();
-    endResetModel();
+//    endResetModel();
+
+//    recursiveCallback(root(), [&filterText](FsEntry* entry)
+//    {
+//        bool active = fuzzymatch(entry->name(), filterText);
+//        entry->setActive();
+////       entry->setActive(entry->name().contains(filterText(), Qt::CaseInsensitive));
+//    });
+    recursiveCallback(root(), [](FsEntry* entry) { entry->setActive(false); });
+    for (auto entry: mLeaves)
+    {
+        bool active = fuzzymatch(entry->name(), filterText);
+        setActiveHierarchy(entry, active);
+    }
 
     emit filterTextChanged(m_filterText);
 }
@@ -669,18 +716,25 @@ void FsProxyModel::collapseAll()
     fsModel->collapseAll();
 }
 
-bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+void FsProxyModel::fetchLeaves()
 {
-    QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    if (!index.isValid())
-        return false;
-
-    FsEntry* entry = static_cast<FsEntry*>(index.internalPointer());
-    if (!entry)
-        return false;
-
-    if (entry->expandable())
-        return false;
-
-    return fuzzymatch(entry->name(), m_filterText);
+    mLeaves.clear();
+//    mLeaves.reserve(200);
+    recursiveFetchLeaves(mLeaves, root());
 }
+
+//bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+//{
+//    QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+//    if (!index.isValid())
+//        return false;
+
+//    FsEntry* entry = static_cast<FsEntry*>(index.internalPointer());
+//    if (!entry)
+//        return false;
+
+//    if (entry->expandable())
+//        return false;
+
+//    return fuzzymatch(entry->name(), m_filterText);
+//}
