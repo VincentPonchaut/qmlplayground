@@ -629,7 +629,7 @@ ApplicationWindow {
         */
     }
 
-    function writeFileContents(fileUrltextcallback) {
+    function writeFileContents(fileUrl, text, callback) {
         if (appControl.writeFileContents(fileUrl, text))
             callback.call(fileUrl)
         else
