@@ -1,4 +1,5 @@
 set PATH=%PATH%;C:\Qt\5.13.0\msvc2017_64\bin;C:\Qt\Tools\QtInstallerFramework\3.1\bin
+cd %~dp0
 cd ..
 
 rem copy release folder contents to installerdata/packages/com.vpo.qmlplayground/data
