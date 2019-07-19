@@ -82,7 +82,6 @@ class FsEntry: public QObject
     PROPERTY(FsEntry*, parent, setParent)
     PROPERTY(bool, expandable, setExpandable)
     PROPERTY(bool, expanded, setExpanded)
-    PROPERTY(bool, active, setActive)
 
 public:
     FsEntry();
@@ -191,12 +190,10 @@ signals:
 
 protected:
     // QSortFilterProxyModel interface
-//    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
-    void fetchLeaves();
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
 private:
     QString m_filterText;
-    QVector<FsEntry*> mLeaves;
 
 };
 

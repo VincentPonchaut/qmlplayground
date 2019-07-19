@@ -44,8 +44,7 @@ ItemDelegate {
     // View
     // ---------------------------------------------------------------
     width: parent.width
-    height: isValid && itemData.active ? childrenRect.height : 0
-    visible: isValid && itemData.active
+    height: childrenRect.height
 
     highlighted: isCurrentFolder || isCurrentFile
     padding: 0
