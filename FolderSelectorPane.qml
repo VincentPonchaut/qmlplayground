@@ -362,16 +362,19 @@ Pane {
     ]
     state: "open"
 
-    transitions: Transition {
-        from: "open"
-        to: "closed"
-        reversible: true
+//    transitions: Transition {
+//        from: "open"
+//        to: "closed"
+//        reversible: true
 
-        NumberAnimation {
-            properties: "x"
-            easing.type: Easing.InOutQuad
-        }
-    }
+//        SmoothedAnimation {
+//            properties: "x"
+////            easing.type: Easing.InOutQuad
+//            easing.type: Easing.Linear
+//            duration: 350
+//            reversingMode: SmoothedAnimation.Immediate
+//        }
+//    }
 
     function toggle() {
         state = (state == "open" ? "closed" : "open")

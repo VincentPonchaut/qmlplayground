@@ -152,12 +152,6 @@ ApplicationWindow {
                 id: quickEditor
 
                 height: parent.height
-                Behavior on width {
-                    NumberAnimation {
-                        easing.type: Easing.OutCubic
-                        duration: 500
-                    }
-                }
 
                 text: root.currentFileContents
                 onRequestFileSave: {
