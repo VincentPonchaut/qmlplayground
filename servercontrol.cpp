@@ -34,6 +34,21 @@ bool ServerControl::start()
     // Then, start broadcasting the availability on the network
     // ----------------------------------------------------------
 
+    if (udpSocket4.state() != QAbstractSocket::UnconnectedState)
+    {
+//        qDebug() << "\n\nUDP SOCKET 4 is not unconnnected. " << udpSocket4.state();
+//        udpSocket4.close();
+        udpSocket4.disconnectFromHost();
+        udpSocket4.waitForDisconnected();
+    }
+    if (udpSocket6.state() != QAbstractSocket::UnconnectedState)
+    {
+//        qDebug() << "\n\nUDP SOCKET 6 is not unconnnected. " << udpSocket6.state();
+//        udpSocket6.close();
+        udpSocket6.disconnectFromHost();
+        udpSocket6.waitForDisconnected();
+    }
+
     // force binding to their respective families
     udpSocket4.bind(QHostAddress(QHostAddress::AnyIPv4), 0);
     udpSocket6.bind(QHostAddress(QHostAddress::AnyIPv6), udpSocket4.localPort());
@@ -111,7 +126,7 @@ bool ServerControl::startListening(int port)
 
     QString hostAddressStr;
     for (auto&& hostAddress: filtered)
-        hostAddressStr += hostAddress.toString() + "\n";
+        hostAddressStr += hostAddress.toString() + ":12345\n";
 //    QString hostAddressStr = ipAddress.toString() + ":" + QString::number(mServer->serverPort());
 //    QString hostAddressStr = mServer->serverAddress().toString() + ":" + QString::number(mServer->serverPort());
     setHostAddress(hostAddressStr);
@@ -278,6 +293,8 @@ void ServerControl::broadcastDatagram()
 {
     static uint n = 0;
     ++n;
+
+    qDebug() << "broadcasting datagram" << n;
 
     QString datagramStr = "qmlplayground " + message("id", m_serverId);
     QByteArray datagram = QByteArray::fromStdString(datagramStr.toStdString());
