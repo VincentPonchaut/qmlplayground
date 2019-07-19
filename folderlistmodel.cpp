@@ -31,36 +31,6 @@ FolderListModel::FolderListModel(QObject *parent)
     });
 }
 
-FolderListModel::FolderListModel(const FolderListModel &other)
-{
-    mChangeNotifier.setInterval(100);
-    mChangeNotifier.setSingleShot(true);
-
-    connect(&mChangeNotifier, &QTimer::timeout, [=]()
-    {
-        // TODO: fire reload
-        qDebug() << "model changed";
-        loadEntries();
-//        emit this->updateNeeded();
-        qDebug() << "rowcount is now " << rowCount();
-    });
-
-    connect(&mWatcher, &QFileSystemWatcher::directoryChanged, [=](QString dirName)
-    {
-        // TODO: find index from directory name
-        // To avoid reloading the full model
-        mChangeNotifier.start();
-    });
-    connect(&mWatcher, &QFileSystemWatcher::fileChanged, [=](QString fileName)
-    {
-        // TODO: find index from file name
-        // To avoid reloading the full model
-        mChangeNotifier.start();
-    });
-
-    setPath(other.mPath);
-}
-
 FolderListModel::~FolderListModel()
 {
 

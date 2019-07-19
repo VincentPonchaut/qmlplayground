@@ -21,8 +21,7 @@ class FolderListModel: public QAbstractListModel
 // QAbstractItemModel interface
 public:
     explicit FolderListModel(QObject *parent = nullptr);
-    FolderListModel(const FolderListModel& other);
-    virtual ~FolderListModel();
+    virtual ~FolderListModel() override;
 
     enum Roles
     {
@@ -58,13 +57,6 @@ private:
     QVector<FolderListModelProxy*> mFolderListModels;
     FolderListModelProxy* mProxy = nullptr;
 };
-
-//This macro makes the type Type known to QMetaType as long as it provides
-// 1. a public default constructor,
-// 2. a public copy constructor
-// 3. and a public destructor.
-// It is needed to use the type Type as a custom type in QVariant.
-Q_DECLARE_METATYPE(FolderListModel)
 
 class FolderListModelProxy: public QSortFilterProxyModel
 {
