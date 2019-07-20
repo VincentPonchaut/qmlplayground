@@ -78,6 +78,7 @@ Pane {
 
         width: parent.width
         height: optionsPane.height
+        clip: true
 
         Material.elevation: parent.Material.elevation + 1
 
@@ -212,7 +213,8 @@ Pane {
             bottom: parent.bottom
         }
 
-        ScrollBar.vertical: ScrollBar {}
+        //ScrollBar.vertical: ScrollBar {}
+        ScrollIndicator.vertical: ScrollIndicator{}
         clip: true
 
         model: appControl.folderModel
