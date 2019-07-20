@@ -11,3 +11,4 @@ object_script.QmlPlayground.*
 .vscode/
 *.autosave
 resources_qmlcache.qrc
+*.opt
