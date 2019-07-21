@@ -1,0 +1,19 @@
+# v1 Qmlplayground
+## Important 
++ Navigation clavier apres recherche (fleche du bas et haut pour naviguer dans les fichiers resultats) -> reutiliser le currentIndex
++ Performance de la recherche (indexer sous forme de liste a plat et activer les elements dans le modele, et dans la listview mettre height:0 visible:false)
++ Mettre a jour les liens vers le client windows et android
++ Permettre de visualiser une liste filtrable d'exemples de QML, et de les "cloner" en local
++ Ameliorer le wizard de creation de dossier (définir une racine commune aux projets QML ?)
++ Permettre d'émuler des ListModel et des QAbstractListModel qui auraient l'API c++
++ faire fonctionner le client sur android 9
+
+## Nice to have
++ Themes editeur
++ La treeview clignote trop lorsqu'il y a trop de profondeur
++ Le chargement initial est synchrone et trop long : animer un logo qml playground pendant le chargement
++ autoformat dans le QuickEditor
+
+# v2 QmlPlayground
++ Finir le composer qml
++ integrer un panneau bibliotheque
