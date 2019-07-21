@@ -8,5 +8,5 @@
     <MaintenanceToolName>QmlPlaygroundSetup</MaintenanceToolName>
     <TargetDir>@ApplicationsDir@/QmlPlayground</TargetDir>
     <RunProgram>@TargetDir@/bin/QmlPlayground</RunProgram>
-		<SupportsModify>true</SupportsModify>
+	<SupportsModify>true</SupportsModify>
 </Installer>
