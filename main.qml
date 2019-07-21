@@ -181,6 +181,33 @@ ApplicationWindow {
     // -----------------------------------------------------------------------------
     // Other Views
     // -----------------------------------------------------------------------------
+
+    Pane {
+        id: loadingOverlay
+
+        anchors.fill: parent
+        visible: folderSelectorPane.loading
+
+        Material.theme: Material.Dark
+        background: Rectangle { color: Qt.rgba(0,0,0, 1.0) }
+        z: 999999999
+
+        BusyIndicator {
+            id: busyIndicator
+            anchors.centerIn: parent
+            width: 100
+            height: 100
+            running: visible
+        }
+
+        Label {
+            anchors.top: busyIndicator.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "QmlPlayground is loading..."
+            font.pointSize: 18
+        }
+    }
+
     Labs.FolderDialog {
         id: folderDialog
         folder: appControl.currentFolder
