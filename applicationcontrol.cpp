@@ -260,7 +260,8 @@ void ApplicationControl::start(const QString& pMainQmlPath, QQmlApplicationEngin
     mQuickComponent = new QQmlComponent(mEngine, nullptr);
     mQuickComponent->loadUrl(mMainQmlPath);
 
-    if (!mQuickComponent->create())
+    mQuickRootObject = mQuickComponent->create();
+    if (!mQuickRootObject)
     {
         qDebug() << mQuickComponent->errorString();
     }
@@ -958,6 +959,11 @@ QString ApplicationControl::newFolderChangeMessage()
     message += beginTag("currentfile") + currentFile() + endTag("currentfile");
 
     return message;
+}
+
+QObject *ApplicationControl::quickRootObject() const
+{
+    return mQuickRootObject;
 }
 
 void ApplicationControl::setCurrentFileAndFolder(QString folder, QString file)

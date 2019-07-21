@@ -58,7 +58,7 @@ ItemDelegate {
         anchors.left: parent.left
         anchors.leftMargin: spacing
 
-        spacing: 10
+        spacing: 0
 
         Icon {
             height: parent.height * 0.8
@@ -89,6 +89,7 @@ ItemDelegate {
         anchors.right: parent.right
         height: _.rowHeight
         visible: root.isValid && root.hovered && itemData.expandable
+        spacing: -7
 
         IconButton {
             id: newFileButton
@@ -102,7 +103,7 @@ ItemDelegate {
             ToolTip.text: "New file"
         }
 
-        RoundButton {
+        IconButton {
             id: infoButton
             height: parent.height
             width: height
@@ -111,38 +112,19 @@ ItemDelegate {
             onClicked: Qt.openUrlExternally(
                            fp(itemData.path)) //appControl.runCommand("cmd /c explorer \"%1\"".arg(itemData))
 
-            Image {
-                anchors.fill: parent
-                anchors.margins: 5
+            imageSource: "qrc:///img/folder.svg"
+            margins: 5
 
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                source: "qrc:///img/folder.svg"
-            }
-
-            ToolTip.visible: hovered
             ToolTip.text: "Open in explorer"
         }
-        RoundButton {
+        IconButton {
             id: trashButton
             height: parent.height
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
-            visible: Utils.isNotNull(itemData) && appControl.isInFolderList(
-                         fp(itemData.path))
-
-            Image {
-                anchors.fill: parent
-                anchors.margins: 5
-
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                source: "qrc:///img/eye_off.svg"
-            }
-
-            ToolTip.visible: hovered
-            ToolTip.text: "Stop watching folder"
+            visible: Utils.isNotNull(itemData) &&
+                     appControl.isInFolderList(fp(itemData.path))
 
             onClicked: {
                 if (isCurrentFolder || isCurrentFile) {
@@ -151,6 +133,10 @@ ItemDelegate {
 
                 appControl.removeFromFolderList(itemData.path)
             }
+            imageSource: "qrc:///img/eye_off.svg"
+            margins: 5
+
+            ToolTip.text: "Stop watching folder"
         }
     }
 
@@ -161,6 +147,8 @@ ItemDelegate {
         anchors.top: parent.top
         anchors.right: parent.right
         height: _.rowHeight
+        spacing: -7
+
         visible: root.isValid && root.hovered && !itemData.expandable
 
         IconButton {
@@ -210,7 +198,7 @@ ItemDelegate {
         anchors.right: parent.right
         height: childrenRect.height
 
-        anchors.leftMargin: 20
+        anchors.leftMargin: 10
         interactive: false
 
         model: fsProxy.rowCount(modelIndex)

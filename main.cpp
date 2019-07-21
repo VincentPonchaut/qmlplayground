@@ -72,7 +72,72 @@ int main(int argc, char *argv[])
     // Set style for QtQuickControls 2
     QQuickStyle::setStyle("Material");
 
+
+#ifdef QT_NO_DEBUG
     appControl.start("qrc:/main.qml", &engine);
+#else
+    QDirIterator it(":",
+                    QStringList() << "*.qml" << "*.js" << "*.png" << "*.svg",
+                    QDir::NoFilter,
+                    QDirIterator::Subdirectories);
+
+    QDir appDir = QDir::current();
+
+    // Generate actual files from QRC
+    QStringList toBeWatched;
+    while (it.hasNext())
+    {
+        it.next();
+
+        // Read source file
+        QFileInfo qrcFileInfo = it.fileInfo();
+        qDebug() << qrcFileInfo;
+
+        QFile qrcFile(qrcFileInfo.absoluteFilePath());
+        bool openSrc = qrcFile.open(QIODevice::ReadOnly | QFile::Text);
+        assert(openSrc);
+
+        QString qrcPath = qrcFileInfo.absolutePath().remove(":");
+        QString localPath = "qmldebug" + qrcPath;
+        appDir.mkpath(localPath);
+
+        // Write source file contents into a new local file
+        QFile diskFile(localPath + "/" + it.fileName());
+        bool openDst = diskFile.open(QIODevice::WriteOnly | QFile::Text);
+        assert(openDst);
+
+        diskFile.write(qrcFile.readAll());
+
+        QFileInfo diskFileInfo(diskFile);
+        toBeWatched << diskFileInfo.absoluteFilePath();
+    }
+
+    // Add newly created paths to the watcher
+    QFileSystemWatcher watcher;
+
+    auto loadApp = [&appControl, &engine, &watcher](QString path)
+    {
+        qDebug() << "Loading app";
+        // BUG: watcher removes the path once a change has been detected...
+        watcher.addPath(path);
+
+        QObject* rootObject = appControl.quickRootObject();
+        if (rootObject)
+        {
+            rootObject->setProperty("visible", false);
+//            rootObject->deleteLater();
+//            delete rootObject;
+        }
+        engine.clearComponentCache();
+        appControl.start("qmldebug/main.qml", &engine);
+    };
+    QObject::connect(&watcher, &QFileSystemWatcher::fileChanged, loadApp);
+    QObject::connect(&watcher, &QFileSystemWatcher::directoryChanged, loadApp);
+
+    watcher.addPaths(toBeWatched);
+
+    loadApp("");
+#endif
 
     return app.exec();
 }

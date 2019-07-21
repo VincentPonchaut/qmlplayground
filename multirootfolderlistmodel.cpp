@@ -671,11 +671,11 @@ void FsProxyModel::collapseAll()
 
 bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-    QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+    const QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
     if (!index.isValid())
         return false;
 
-    FsEntry* entry = static_cast<FsEntry*>(index.internalPointer());
+    const FsEntry* entry = static_cast<const FsEntry*>(index.internalPointer());
     if (!entry)
         return false;
 

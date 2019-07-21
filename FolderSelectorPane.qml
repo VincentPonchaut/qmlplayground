@@ -1,5 +1,5 @@
-import QtQuick 2.6
-import QtQuick.Controls 2.2
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
@@ -78,6 +78,7 @@ Pane {
 
         width: parent.width
         height: optionsPane.height
+        clip: true
 
         Material.elevation: parent.Material.elevation + 1
 
@@ -212,7 +213,8 @@ Pane {
             bottom: parent.bottom
         }
 
-        interactive: false
+        //ScrollBar.vertical: ScrollBar {}
+        ScrollIndicator.vertical: ScrollIndicator{}
         clip: true
 
         model: appControl.folderModel

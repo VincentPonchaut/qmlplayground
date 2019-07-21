@@ -101,6 +101,8 @@ public:
 
     QStringList folderList() const;
 
+    QObject *quickRootObject() const;
+
 signals:
     void fileChanged(const QString& pFilePath);
     void directoryChanged(const QString& pDirectoryPath);
@@ -129,6 +131,7 @@ protected:
 private:
     // Owned
     QQmlComponent* mQuickComponent = nullptr;
+    QObject* mQuickRootObject = nullptr;
     QString mMainQmlPath;
     ServerControl mServerControl;
     QThread mWatcherThread;

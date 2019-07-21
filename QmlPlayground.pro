@@ -13,6 +13,8 @@ QT += \
     charts \
     concurrent
 
+#QMAKE_CXXFLAGS += -O2
+
 # For ZipReader & ZipWriter
 QT += gui-private
 
