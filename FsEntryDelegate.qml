@@ -198,7 +198,7 @@ ItemDelegate {
         anchors.right: parent.right
         height: childrenRect.height
 
-        anchors.leftMargin: 10
+        anchors.leftMargin: (settings.windowWidth / 50) * dp
         interactive: false
 
         model: fsProxy.rowCount(modelIndex)
@@ -264,7 +264,7 @@ ItemDelegate {
     QtObject {
         id: _
 
-        property int rowHeight: 40
+        property int rowHeight: 50 * dp
 
         function icon() {
             if (root.isExpandable) {
