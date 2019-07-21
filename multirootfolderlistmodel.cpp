@@ -243,7 +243,7 @@ FsEntry::FsEntry(const QFileInfo &fileInfo, FsEntry *parent)
     setExpanded(expandable()); // TODO: read from settings
     setParent(parent);
 
-    qDebug() << "Creating entry for " << path();
+//    qDebug() << "Creating entry for " << path();
 
     if (this->expandable())
     {

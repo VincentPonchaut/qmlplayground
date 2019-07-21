@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
         // Read source file
         QFileInfo qrcFileInfo = it.fileInfo();
-        qDebug() << qrcFileInfo;
+//        qDebug() << qrcFileInfo;
 
         QFile qrcFile(qrcFileInfo.absoluteFilePath());
         bool openSrc = qrcFile.open(QIODevice::ReadOnly | QFile::Text);
