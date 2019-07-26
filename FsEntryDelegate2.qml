@@ -37,6 +37,9 @@ ItemDelegate {
     // ---------------------------------------------------------------
 
     width: parent.width
+//    height: _.rowHeight
+    clip: true
+
     highlighted: isCurrentFolder || isCurrentFile
     padding: 0
 
@@ -186,14 +189,14 @@ ItemDelegate {
         anchors.right: parent.right
 
         Repeater {
-            width: parent.width
-            height: childrenRect.height
+//            width: parent.width
+//            height: childrenRect.height
 
-            model: itemData ? itemData.entries : 0
+            model: itemDelegate.itemData ? itemDelegate.itemData.entries : 0
 
             delegate: Loader {
                 width: parent.width
-                height: item ? item.height : 0
+//                height: item ? item.height : 0
                 source: "FsEntryDelegate2.qml"
                 onLoaded: {
                     item.itemData = modelData
@@ -206,15 +209,26 @@ ItemDelegate {
     // States
     // ---------------------------------------------------------------
 
+//    Component.onDestruction: {
+//        print(this + "is being destroyed")
+//    }
+
+//    onStateChanged: {
+//        print(this + " state is now " + state + "(height: %1)".arg(itemDelegate.height))
+//    }
+
+//    onHeightChanged: {
+//        print(this + " height is now " + height)
+//    }
+
     states: [
         State {
             name: "hidden"
             when: itemData && (!itemData.visible)
             PropertyChanges {
                 target: itemDelegate
-                clip: true
-                height: 1
-                restoreEntryValues: false
+                height: Number.MIN_VALUE
+                restoreEntryValues: true
             }
         },
         State {
@@ -223,7 +237,8 @@ ItemDelegate {
             PropertyChanges {
                 target: itemDelegate
                 height: contentRow.height + childrenColumn.height
-                restoreEntryValues: false
+//                restoreEntryValues: false
+                restoreEntryValues: true
             }
         },
         State {
@@ -232,8 +247,9 @@ ItemDelegate {
                                (!itemData.expandable))
             PropertyChanges {
                 target: itemDelegate
-                height: contentRow.height
+                height: _.rowHeight
                 restoreEntryValues: false
+//                restoreEntryValues: true
             }
         }
     ]

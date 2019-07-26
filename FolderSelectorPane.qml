@@ -85,13 +85,13 @@ Loader {
         listView.incrementCurrentIndex()
     }
 
-    asynchronous: true
-    sourceComponent: Pane {
-        padding: 0
+//    asynchronous: true
+    sourceComponent: Page {
 
         property Item filterItem: filterTextField
+        padding: 0
 
-        Pane {
+        header: Pane {
             id: folderSectionTitlePane
 
             width: parent.width
@@ -155,7 +155,7 @@ Loader {
                     onTextChanged: {
                         if (text.length !== 0)
                             folderSelectorPane.unfoldAll()
-                        appControl.folderModel.setFilterText(text)
+                        appControl.folderModel.setFilterText("" + text)
                     }
                     onAccepted: {
                         focus = false
@@ -205,23 +205,23 @@ Loader {
         ScrollView {
             id: listView
 
+            anchors.fill: parent
             clip: true
-            width: parent.width
-            //            height: parent.height - folderSectionTitlePane.height
-            anchors {
-                top: folderSectionTitlePane.bottom
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
-            }
 
             Column {
+                id: rootCol
                 width: parent.width
-                clip: true
+
+//                onHeightChanged: {
+//                    print("\nroot col height is now " + height + " crh is " + childrenRect.height)
+//                }
 
                 Repeater {
-                    anchors.fill: parent
-                    //                    model: appControl.folderModel
+
+//                    onHeightChanged: {
+//                        print("\nroot loader height is now " + height)
+//                    }
+
                     Binding on model {
 //                        value: appControl.folderModel
                         value: appControl.folderList.length
@@ -230,6 +230,10 @@ Loader {
                     delegate: Column {
                         id: colgate
                         width: parent.width
+
+                        onHeightChanged: {
+                            print("\ncolgate %1 height is now ".arg(index) + height + " crh is now " + childrenRect.height)
+                        }
 
                         property var modelIndex: appControl.folderModel.index(index,0)
                         property int rowCount: appControl.folderModel.rowCount(modelIndex)
@@ -257,6 +261,7 @@ Loader {
                         Loader {
                             id: loader
                             width: parent.width
+                            height: item ? item.height : 0
                             sourceComponent: FsEntryDelegate2 {}
 
                             Binding {
