@@ -148,6 +148,7 @@ ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
     m_folderModel = new MultiRootFolderListModel(this);
     connect(m_folderModel, &MultiRootFolderListModel::updateNeeded,
     [=](){
+        emit folderModelChanged(m_folderModel);
         onNeedToReloadQml();
     });
 
@@ -164,6 +165,11 @@ ApplicationControl::ApplicationControl(QObject *parent) : QObject(parent)
                       this,
                       SLOT(onZippedFolderReadyToSend()));
     assert(ok);
+
+    connect(m_folderModel, &MultiRootFolderListModel::dataChanged, [this]()
+    {
+        emit this->folderModelChanged(m_folderModel);
+    });
 }
 
 ApplicationControl::~ApplicationControl()

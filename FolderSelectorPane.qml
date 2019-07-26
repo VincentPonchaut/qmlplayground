@@ -33,7 +33,7 @@ Loader {
 
     function focusFileFilter() {
         folderSelectorPane.item.filterItem.forceActiveFocus()
-//        filterTextField.forceActiveFocus()
+        //        filterTextField.forceActiveFocus()
     }
 
     function qmlRecursiveCall(pRootItempFunctionName) {
@@ -56,12 +56,12 @@ Loader {
     }
 
     function foldAll() {
-//        qmlRecursiveCall(listView.contentItem, "collapse")
+        //        qmlRecursiveCall(listView.contentItem, "collapse")
         appControl.folderModel.collapseAll();
     }
 
     function unfoldAll() {
-//        qmlRecursiveCall(listView.contentItem, "expand")
+        //        qmlRecursiveCall(listView.contentItem, "expand")
         appControl.folderModel.expandAll();
     }
 
@@ -72,7 +72,7 @@ Loader {
     Material.theme: Material.Dark
     Material.elevation: 10
     z: contentPage.z + 10
-//    padding: 0
+    //    padding: 0
 
     focus: state == "open"
 
@@ -146,33 +146,16 @@ Loader {
                 TextField {
                     id: filterTextField
 
-                    //                width: parent.width
-                    //                Layout.alignment: Qt.AlignVCenter //| Qt.AlignBaseline
-                    //                Layout.fillWidth: true
                     width: parent.width - otherActionsRow.width - searchIcon.width
-                    //                height: parent.height
-                    //                anchors.baseline: searchIcon.bottom
-                    anchors.baseline: searchIcon.bottom
                     anchors.baselineOffset: -searchIcon.height / 4
 
                     placeholderText: "Filter files..."
 
-                    Timer {
-                        id: inputTimer
-                        interval: 200
-                        onTriggered: {
-                            appControl.folderModel.setFilterText(filterTextField.text)
-                            if (filterTextField.text.length > 0)
-                                folderSelectorPane.unfoldAll()
-                        }
-                    }
-
                     selectByMouse: true
                     onTextChanged: {
-                        if (text.length === 0)
-                            appControl.folderModel.setFilterText("")
-                        else //if (!inputTimer.running)
-                            inputTimer.restart()
+                        if (text.length !== 0)
+                            folderSelectorPane.unfoldAll()
+                        appControl.folderModel.setFilterText(text)
                     }
                     onAccepted: {
                         focus = false
@@ -219,11 +202,12 @@ Loader {
             }
         }
 
-        ListView {
+        ScrollView {
             id: listView
 
+            clip: true
             width: parent.width
-            height: parent.height - folderSectionTitlePane.height
+            //            height: parent.height - folderSectionTitlePane.height
             anchors {
                 top: folderSectionTitlePane.bottom
                 left: parent.left
@@ -231,33 +215,62 @@ Loader {
                 bottom: parent.bottom
             }
 
-            cacheBuffer: Math.max(contentHeight, 9999)
-            ScrollBar.vertical: ScrollBar {}
-            clip: true
-
-            model: appControl.folderModel
-            delegate: Item {
+            Column {
                 width: parent.width
-                height: childrenRect.height
+                clip: true
 
-                DelegateModel {
-                    id: visualModel
-                    model: entries
-                    delegate: FsEntryDelegate {
-                        property var fsProxy: entries
-                        modelIndex: visualModel.modelIndex(index)
-                        parentIndex: visualModel.parentModelIndex()
+                Repeater {
+                    anchors.fill: parent
+                    //                    model: appControl.folderModel
+                    Binding on model {
+//                        value: appControl.folderModel
+                        value: appControl.folderList.length
                     }
-                }
 
-                ListView {
-                    width: parent.width
-                    height: childrenRect.height
-                    interactive: false
+                    delegate: Column {
+                        id: colgate
+                        width: parent.width
 
-                    model: visualModel
-                }
-            }
+                        property var modelIndex: appControl.folderModel.index(index,0)
+                        property int rowCount: appControl.folderModel.rowCount(modelIndex)
+
+                        property var entries: appControl.folderModel.data(modelIndex, appControl.folderModel.roleFromString("entries"))
+                        property var rootIndex: entries.index(0,0)
+                        property var rootEntry: entries.data(rootIndex, entries.roleFromString("entry"))
+
+                        onModelIndexChanged: {
+                            print(this + "model index changed")
+                        }
+                        onRowCountChanged: {
+                            print(this + "rowCount changed")
+                        }
+                        onEntriesChanged: {
+                            print(this + "entries Changed")
+                        }
+                        onRootIndexChanged: {
+                            print(this + "rootIndex changed")
+                        }
+                        onRootEntryChanged: {
+                            print(this + "rootEntry changed")
+                        }
+
+                        Loader {
+                            id: loader
+                            width: parent.width
+                            sourceComponent: FsEntryDelegate2 {}
+
+                            Binding {
+                                target: loader.item
+                                when: loader.item
+                                property: "itemData"
+                                value: colgate.rootEntry
+                            }
+
+                        } // Loader
+                    } // delegate: Column
+                } // Repeater
+            } // Column
+
         } // ListView
 
         IconButton {
@@ -370,6 +383,10 @@ Loader {
             }
         }
     }
+
+    // ---------------------------------------------------------------
+    // States & Transitions
+    // ---------------------------------------------------------------
     states: [
         State {
             name: "open"
@@ -388,19 +405,19 @@ Loader {
     ]
     state: "open"
 
-//    transitions: Transition {
-//        from: "open"
-//        to: "closed"
-//        reversible: true
+    //    transitions: Transition {
+    //        from: "open"
+    //        to: "closed"
+    //        reversible: true
 
-//        SmoothedAnimation {
-//            properties: "x"
-////            easing.type: Easing.InOutQuad
-//            easing.type: Easing.Linear
-//            duration: 350
-//            reversingMode: SmoothedAnimation.Immediate
-//        }
-//    }
+    //        SmoothedAnimation {
+    //            properties: "x"
+    ////            easing.type: Easing.InOutQuad
+    //            easing.type: Easing.Linear
+    //            duration: 350
+    //            reversingMode: SmoothedAnimation.Immediate
+    //        }
+    //    }
 
     function toggle() {
         state = (state == "open" ? "closed" : "open")

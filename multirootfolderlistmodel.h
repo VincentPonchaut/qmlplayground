@@ -40,6 +40,8 @@ public:
     Q_INVOKABLE void expandAll();
     Q_INVOKABLE void collapseAll();
 
+    Q_INVOKABLE int roleFromString(QString roleName);
+
 signals:
     void updateNeeded();
 
@@ -82,6 +84,11 @@ class FsEntry: public QObject
     PROPERTY(FsEntry*, parent, setParent)
     PROPERTY(bool, expandable, setExpandable)
     PROPERTY(bool, expanded, setExpanded)
+    PROPERTY(bool, visible, setVisible)
+    Q_PROPERTY(QVariantList entries READ entries NOTIFY entriesChanged)
+
+    friend class FsEntryModel;
+    friend class FsProxyModel;
 
 public:
     FsEntry();
@@ -93,6 +100,16 @@ public:
     int row() const;
 
     QVector<FsEntry*> children;
+
+    QVariantList entries() const
+    {
+        QVariantList res;
+        for (auto&& child: children)
+            res << QVariant::fromValue(child);
+        return res;
+    }
+signals:
+    void entriesChanged(QVariantList entries);
 };
 
 Q_DECLARE_METATYPE(FsEntry);
@@ -190,7 +207,7 @@ signals:
 
 protected:
     // QSortFilterProxyModel interface
-    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+//    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 
 private:
     QString m_filterText;

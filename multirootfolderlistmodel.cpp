@@ -2,7 +2,9 @@
 
 #include <QDebug>
 #include <QQmlEngine>
+
 #include <functional>
+#include <chrono>
 
 MultiRootFolderListModel::MultiRootFolderListModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -91,6 +93,19 @@ void MultiRootFolderListModel::collapseAll()
     {
         flm->collapseAll();
     }
+}
+
+int MultiRootFolderListModel::roleFromString(QString roleName)
+{
+    auto rn = roleNames();
+    QHashIterator<int, QByteArray> it(rn);
+    while (it.hasNext())
+    {
+        it.next();
+        if (it.value() == roleName)
+            return it.key();
+    }
+    return -1;
 }
 
 int MultiRootFolderListModel::rowCount(const QModelIndex &parent) const
@@ -229,6 +244,7 @@ FsEntry::FsEntry(const FsEntry &other)
     setParent(other.parent());
     setExpanded(other.expanded());
     setExpandable(other.expandable());
+    setVisible(other.visible());
     children = other.children;
 }
 
@@ -242,6 +258,7 @@ FsEntry::FsEntry(const QFileInfo &fileInfo, FsEntry *parent)
     setExpandable(fileInfo.isDir() || fileInfo.isSymLink());
     setExpanded(expandable()); // TODO: read from settings
     setParent(parent);
+    setVisible(true);
 
 //    qDebug() << "Creating entry for " << path();
 
@@ -309,6 +326,21 @@ inline void recursiveCallback(FsEntry* root, const std::function<void(FsEntry*)>
         recursiveCallback(c, callback);
     }
 }
+inline void upHierarchyCallback(FsEntry* leaf, const std::function<void(FsEntry*)>& callback)
+{
+    if (!leaf)
+        return;
+
+    callback(leaf);
+
+    FsEntry* parent = leaf->parent();
+    while (parent)
+    {
+        callback(parent);
+        parent = parent->parent();
+    }
+}
+
 inline bool fuzzymatch(QString str, QString filter)
 {
     bool allFound = true;
@@ -630,11 +662,44 @@ void FsProxyModel::setFilterText(QString filterText)
 
     m_filterText = filterText;
 
-    beginResetModel();
-//    layoutAboutToBeChanged();
-    invalidateFilter();
-//    layoutChanged();
-    endResetModel();
+//    beginResetModel();
+////    layoutAboutToBeChanged();
+//    invalidateFilter();
+////    layoutChanged();
+//    endResetModel();
+
+    if (filterText.isEmpty())
+    {
+        recursiveCallback(root(), [](FsEntry* e) { e->setVisible(true); });
+        return;
+    }
+    else {
+
+
+        auto start = std::chrono::system_clock::now();
+
+        recursiveCallback(root(), [](FsEntry* e)
+        {
+            //        e->m_visible = false;
+            e->setVisible(false);
+        });
+        recursiveCallback(root(), [&filterText](FsEntry* e)
+        {
+            if (!e->expandable() && fuzzymatch(e->name(), filterText))
+            {
+                upHierarchyCallback(e, [](FsEntry* ee) { ee->setVisible(true); });
+            }
+        });
+
+        // TODO: make another pass to make folder with matching name visible
+        // rationale: Folder is "MyListView", has only "main.qml", I want to be able
+        // to look for "MyListView" then
+
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+
+        qDebug() << "filtering done in " << elapsed_seconds.count() << "s";
+    }
 
     emit filterTextChanged(m_filterText);
 }
@@ -669,18 +734,18 @@ void FsProxyModel::collapseAll()
     fsModel->collapseAll();
 }
 
-bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
-{
-    const QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    if (!index.isValid())
-        return false;
+//bool FsProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+//{
+//    const QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+//    if (!index.isValid())
+//        return false;
 
-    const FsEntry* entry = static_cast<const FsEntry*>(index.internalPointer());
-    if (!entry)
-        return false;
+//    const FsEntry* entry = static_cast<const FsEntry*>(index.internalPointer());
+//    if (!entry)
+//        return false;
 
-    if (entry->expandable())
-        return false;
+//    if (entry->expandable())
+//        return false;
 
-    return fuzzymatch(entry->name(), m_filterText);
-}
+//    return fuzzymatch(entry->name(), m_filterText);
+//}
