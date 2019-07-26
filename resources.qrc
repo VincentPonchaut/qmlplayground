@@ -67,5 +67,7 @@
         <file>fonts/product-sans/Product Sans Italic.ttf</file>
         <file>fonts/product-sans/Product Sans Regular.ttf</file>
         <file>lottie/happycomputer.json</file>
+        <file>FileCreationPopup.qml</file>
+        <file>FolderCreationPopup.qml</file>
     </qresource>
 </RCC>
