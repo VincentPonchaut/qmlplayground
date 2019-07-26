@@ -1,7 +1,6 @@
 # v1 Qmlplayground
 ## Important 
 + Navigation clavier apres recherche (fleche du bas et haut pour naviguer dans les fichiers resultats) -> reutiliser le currentIndex
-+ Performance de la recherche (indexer sous forme de liste a plat et activer les elements dans le modele, et dans la listview mettre height:0 visible:false)
 + Mettre a jour les liens vers le client windows et android
 + Permettre de visualiser une liste filtrable d'exemples de QML, et de les "cloner" en local
 + Ameliorer le wizard de creation de dossier (définir une racine commune aux projets QML ?)
