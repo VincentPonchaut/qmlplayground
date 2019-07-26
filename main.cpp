@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Material");
 
 
-#ifdef QT_NO_DEBUG
+//#ifdef QT_NO_DEBUG
+#if 1
     appControl.start("qrc:/main.qml", &engine);
 #else
     QDirIterator it(":",

@@ -223,46 +223,51 @@ Loader {
 //                    }
 
                     Binding on model {
-//                        value: appControl.folderModel
-                        value: appControl.folderList.length
+                        value: appControl.folderModel
+//                        value: appControl.folderList.length
                     }
 
                     delegate: Column {
                         id: colgate
                         width: parent.width
 
-                        onHeightChanged: {
-                            print("\ncolgate %1 height is now ".arg(index) + height + " crh is now " + childrenRect.height)
-                        }
+//                        onHeightChanged: {
+//                            print("\ncolgate %1 height is now ".arg(index) + height + " crh is now " + childrenRect.height)
+//                        }
 
                         property var modelIndex: appControl.folderModel.index(index,0)
                         property int rowCount: appControl.folderModel.rowCount(modelIndex)
 
-                        property var entries: appControl.folderModel.data(modelIndex, appControl.folderModel.roleFromString("entries"))
-                        property var rootIndex: entries.index(0,0)
-                        property var rootEntry: entries.data(rootIndex, entries.roleFromString("entry"))
+                        property var theEntries;
+                        property var rootIndex;
+                        property var rootEntry;
 
                         onModelIndexChanged: {
-                            print(this + "model index changed")
+//                            print(this + "model index changed")
+                            theEntries = appControl.folderModel.data(modelIndex, appControl.folderModel.roleFromString("entries"))
+                            rootIndex = theEntries.index(0,0)
+                            rootEntry = theEntries.data(rootIndex, theEntries.roleFromString("entry"))
                         }
-                        onRowCountChanged: {
-                            print(this + "rowCount changed")
-                        }
-                        onEntriesChanged: {
-                            print(this + "entries Changed")
-                        }
-                        onRootIndexChanged: {
-                            print(this + "rootIndex changed")
-                        }
-                        onRootEntryChanged: {
-                            print(this + "rootEntry changed")
-                        }
+
+//                        onRowCountChanged: {
+//                            print(this + "rowCount changed")
+//                        }
+//                        onEntriesChanged: {
+//                            print(this + "entries Changed")
+//                        }
+//                        onRootIndexChanged: {
+//                            print(this + "rootIndex changed")
+//                        }
+//                        onRootEntryChanged: {
+//                            print(this + "rootEntry changed")
+//                        }
 
                         Loader {
                             id: loader
                             width: parent.width
                             height: item ? item.height : 0
                             sourceComponent: FsEntryDelegate2 {}
+//                            asynchronous: true
 
                             Binding {
                                 target: loader.item
