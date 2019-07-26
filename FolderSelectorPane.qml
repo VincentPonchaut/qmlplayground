@@ -73,6 +73,7 @@ Loader {
     Material.elevation: 10
     z: contentPage.z + 10
     //    padding: 0
+    asynchronous: true
 
     focus: state == "open"
 
@@ -85,7 +86,6 @@ Loader {
         listView.incrementCurrentIndex()
     }
 
-//    asynchronous: true
     sourceComponent: Page {
 
         property Item filterItem: filterTextField
