@@ -70,5 +70,7 @@
         <file>FileCreationPopup.qml</file>
         <file>FolderCreationPopup.qml</file>
         <file>FsEntryDelegate2.qml</file>
+        <file>lottie/coffeecup.json</file>
+        <file>LoadingOverlay.qml</file>
     </qresource>
 </RCC>

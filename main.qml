@@ -2,6 +2,8 @@ import QtQuick 2.6
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
+
+import Qt.labs.lottieqt 1.0
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
 
@@ -182,30 +184,13 @@ ApplicationWindow {
     // Other Views
     // -----------------------------------------------------------------------------
 
-    Pane {
+    LoadingOverlay {
         id: loadingOverlay
-
         anchors.fill: parent
-        visible: folderSelectorPane.loading
+        z: 99999
 
-        Material.theme: Material.Dark
-        background: Rectangle { color: Qt.rgba(0,0,0, 1.0) }
-        z: 999999999
-
-        BusyIndicator {
-            id: busyIndicator
-            anchors.centerIn: parent
-            width: 100
-            height: 100
-            running: visible
-        }
-
-        Label {
-            anchors.top: busyIndicator.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "QmlPlayground is loading..."
-            font.pointSize: 18
-        }
+        loading: folderSelectorPane.loading
+        minTimeMs: 1000
     }
 
     Labs.FolderDialog {
