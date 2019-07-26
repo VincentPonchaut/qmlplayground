@@ -3,8 +3,10 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
+
 import Qt.labs.settings 1.0
 import Qt.labs.platform 1.0 as Labs
+import Qt.labs.lottieqt 1.0
 
 //Page {
 ToolBar {
@@ -414,6 +416,37 @@ ToolBar {
                 text: "The ID will be used to recognize this host on the local network"
                 wrapMode: Label.Wrap
             }
+
+            Rectangle {
+                width: parent.width * 0.3
+                height: width
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                LottieAnimation {
+                    anchors.centerIn: parent
+                    loops: Animation.Infinite
+    //                width: parent.width * 0.5
+    //                height: width
+                    height: 40
+                    scale: 0.5
+                    layer.enabled: true
+                    layer.mipmap: true
+    //                source: "qrc:///animations/filetransfer.json"
+                    source: ":/lottie/happycomputer.json"
+                    frameRate: 60
+//                    autoPlay: true
+                    onStatusChanged: {
+                        if (status == LottieAnimation.Ready)
+                        {
+                            gotoAndPlay(0)
+                        }
+                        else {
+                            print("lottie status changed " + status)
+                        }
+                    }
+                }
+            }
+
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
