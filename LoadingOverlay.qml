@@ -33,6 +33,12 @@ Pane {
     }
 
     visible: minTimer.running
+    onVisibleChanged: {
+        if (visible)
+            lottie.play()
+        else
+            lottie.stop()
+    }
 
     Material.theme: Material.Dark
     background: Rectangle { color: Qt.rgba(0,0,0, 1.0) }
@@ -44,10 +50,11 @@ Pane {
         height: 200
         
         LottieAnimation {
+            id: lottie
             anchors.centerIn: parent
 
             source: ":/lottie/coffeecup.json"
-            autoPlay: true
+//            autoPlay: true
             loops: Animation.Infinite
             frameRate: 120
 
