@@ -80,7 +80,7 @@ ItemDelegate {
         anchors.right: parent.right
         height: _.rowHeight
         visible: itemDelegate.hovered && itemData && itemData.expandable
-//        spacing: -7
+        spacing: -8 * dp
 
         IconButton {
             id: newFileButton
@@ -136,7 +136,7 @@ ItemDelegate {
         anchors.top: parent.top
         anchors.right: parent.right
         height: _.rowHeight
-//        spacing: -7
+        spacing: -8 * dp
 
         visible: itemDelegate.hovered && itemData && !itemData.expandable
 
@@ -178,7 +178,6 @@ ItemDelegate {
         // TODO: clone file
         // TODO: remove file
     }
-
 
     // Children
     Column {
