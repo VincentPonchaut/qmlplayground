@@ -87,6 +87,7 @@ Loader {
     }
 
     sourceComponent: Page {
+        width: parent.width
 
         property Item filterItem: filterTextField
         padding: 0
@@ -229,7 +230,7 @@ Loader {
 
                     delegate: Column {
                         id: colgate
-                        width: parent.width
+                        width: listView.width
 
 //                        onHeightChanged: {
 //                            print("\ncolgate %1 height is now ".arg(index) + height + " crh is now " + childrenRect.height)
