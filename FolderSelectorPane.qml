@@ -260,12 +260,15 @@ Loader {
             }
         } // ListView
 
-        RoundButton {
+        IconButton {
             id: addFolderButton
             width: 60
             height: width
             anchors.bottom: parent.bottom
             anchors.right: parent.right
+
+            backgroundColor: Qt.rgba(0,0,0,0.8)
+            ToolTip.visible: false
 
             //        text: checked ? "x" : "+"
             Image {
@@ -308,6 +311,7 @@ Loader {
             IconButton {
                 id: createNewFolderButton
 
+                backgroundColor: Qt.rgba(0,0,0,0.8)
                 ToolTip.visible: false
                 imageSource: "qrc:///img/newFolder.svg"
 
@@ -338,6 +342,8 @@ Loader {
                 id: watchAnotherFolderButton
                 ToolTip.visible: false
                 imageSource: "qrc:///img/eye.svg"
+
+                backgroundColor: Qt.rgba(0,0,0,0.8)
 
                 onClicked: {
                     addFolderButton.checked = false
