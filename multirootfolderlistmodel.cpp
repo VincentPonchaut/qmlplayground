@@ -685,7 +685,7 @@ void FsProxyModel::setFilterText(QString filterText)
         });
         recursiveCallback(root(), [&filterText](FsEntry* e)
         {
-            if (!e->expandable() && fuzzymatch(e->name(), filterText))
+            if (!e->expandable() && fuzzymatch(e->path(), filterText))
             {
                 upHierarchyCallback(e, [](FsEntry* ee) { ee->setVisible(true); });
             }
