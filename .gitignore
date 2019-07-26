@@ -12,3 +12,9 @@ object_script.QmlPlayground.*
 *.autosave
 resources_qmlcache.qrc
 *.opt
+installerdata/QmlPlaygroundSetup.exe
+qmlcomposer
+qmldebug
+qmldesigner
+*.code-workspace
+*.pro.user.*
