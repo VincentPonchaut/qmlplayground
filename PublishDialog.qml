@@ -287,7 +287,7 @@ Item {
         var vWindowWidth = windowSize().x
         var vWindowHeight = windowSize().y
 
-        var vFolder = get_folder(currentFile)
+        var vFolder = get_folder(appControl.currentFile)
         print("publish start in " + vFolder)
 
         // List all QML files
