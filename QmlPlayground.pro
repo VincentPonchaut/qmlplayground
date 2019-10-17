@@ -11,7 +11,8 @@ QT += \
     webview \
     webengine \
     charts \
-    concurrent
+    concurrent \
+    printsupport
 
 #QMAKE_CXXFLAGS += -O2
 
