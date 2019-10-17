@@ -9,6 +9,7 @@
 #include <QQuickStyle>
 #include <QtWebEngine>
 #include <QtWebView>
+#include <QMessageBox>
 
 #include "tools/maskedmousearea.h"
 #include "applicationcontrol.h"
@@ -43,6 +44,23 @@ void registerQmlTypes(QQmlApplicationEngine& pEngine)
     SvgImageItem::registerQmlTypes("QmlPlayground");
 }
 
+bool copyFile(QString srcPath, QString dstPath)
+{
+    QFile srcFile(srcPath);
+    if (!srcFile.open(QIODevice::ReadOnly))
+        return false;
+
+    QFile dstFile(dstPath);
+    if (!dstFile.open(QIODevice::WriteOnly))
+        return false;
+
+    auto bytesWritten = dstFile.write(srcFile.readAll());
+    if (bytesWritten == -1)
+        return false;
+
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
     // Install a custom handler for qDebug etc...
@@ -73,16 +91,65 @@ int main(int argc, char *argv[])
     QQuickStyle::setStyle("Material");
 
 
-//#ifdef QT_NO_DEBUG
-#if 1
+#ifdef QT_NO_DEBUG
+//#if 1
     appControl.start("qrc:/main.qml", &engine);
 #else
+    QStringList nameFilters = QStringList() << "*.qml" << "*.js" << "*.png" << "*.svg";
     QDirIterator it(":",
-                    QStringList() << "*.qml" << "*.js" << "*.png" << "*.svg",
+                    nameFilters,
                     QDir::NoFilter,
                     QDirIterator::Subdirectories);
 
     QDir appDir = QDir::current();
+    QString thePath = appDir.absoluteFilePath("qmldebug/");
+    QUrl url(thePath);
+
+    // If files already exists, ask whether or not to copy them
+    QDir qmldebugDir(thePath);
+    if (qmldebugDir.exists())
+    {
+        auto answer = QMessageBox::question(nullptr,
+                                            "Hello",
+                                            "qmldebug folder already exists, do you want to copy its content back to sources ?");
+        if (answer == QMessageBox::Yes)
+        {
+            auto sourcesFolder = QFileDialog::getExistingDirectory(nullptr,
+                                                                   "Select the sources folder",
+                                                                   QDir::currentPath());
+            QDir sourceDir(sourcesFolder);
+            assert(sourceDir.exists());
+
+            // Copy the files
+
+            QDirIterator oldFiles(thePath,
+                                  nameFilters,
+                                  QDir::NoFilter,
+                                  QDirIterator::Subdirectories);
+            while (oldFiles.hasNext())
+            {
+                auto oldFile = oldFiles.next();
+
+                QFileInfo oldFileInfo(oldFile);
+                assert(oldFileInfo.exists());
+
+                QString oldFileRelativePath = oldFileInfo.absoluteFilePath().remove(qmldebugDir.absolutePath());
+                if (oldFileRelativePath.startsWith("/"))
+                    oldFileRelativePath.remove(0,1);
+
+                QString srcFile(sourceDir.absolutePath() + "/" + oldFileRelativePath);
+                QFileInfo srcFileInfo(srcFile);
+                //assert(srcFileInfo.exists());
+                // if the file does not exist, it does not come from our sources
+                if (!srcFileInfo.exists())
+                    continue;
+
+                auto success = copyFile(oldFileInfo.absoluteFilePath(), srcFileInfo.absoluteFilePath());
+                assert(success);
+            }
+
+        }
+    }
 
     // Generate actual files from QRC
     QStringList toBeWatched;
@@ -130,6 +197,7 @@ int main(int argc, char *argv[])
 //            delete rootObject;
         }
         engine.clearComponentCache();
+
         appControl.start("qmldebug/main.qml", &engine);
     };
     QObject::connect(&watcher, &QFileSystemWatcher::fileChanged, loadApp);
@@ -137,7 +205,8 @@ int main(int argc, char *argv[])
 
     watcher.addPaths(toBeWatched);
 
-    loadApp("");
+    loadApp("");    
+    QDesktopServices::openUrl(url);
 #endif
 
     return app.exec();
