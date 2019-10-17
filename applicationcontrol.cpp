@@ -304,12 +304,12 @@ void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &
         case QtMsgType::QtWarningMsg:
         {
             emit warningMessage(msg, file, context.line);
-            break;
+            return;
         }
         default:
         {
             emit logMessage(msg, file, context.line);
-            break;
+            return;
         }
         }
     }
@@ -317,9 +317,9 @@ void ApplicationControl::onLogMessage(QtMsgType type, const QMessageLogContext &
     // The message comes from the author's qml files (console.log)
     if (category == "qml" && !file.startsWith("qrc:"))
     {
-    emit logMessage(msg, file, context.line);
+        emit logMessage(msg, file, context.line);
         return;
-}
+    }
 
     // Otherwise, print the message to debug
     std::cout << msg.toStdString() << std::endl;
