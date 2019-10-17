@@ -14,6 +14,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QtConcurrent>
+#include <QPrinter>
 #include <private/qzipreader_p.h>
 #include <private/qzipwriter_p.h>
 
@@ -21,6 +22,9 @@
 #include <QMutexLocker>
 #include <iostream>
 #include <QDesktopServices>
+#include <QPrintDialog>
+#include <QPainter>
+#include <QFileDialog>
 
 // --------------------------------------------------------------------------------
 
@@ -970,6 +974,179 @@ QString ApplicationControl::newFolderChangeMessage()
 QObject *ApplicationControl::quickRootObject() const
 {
     return mQuickRootObject;
+}
+
+bool ApplicationControl::printToA4(QUrl pImage, double pSizeCm)
+{
+    QString filePath = pImage.toString();
+    filePath = filePath.contains("file:///") ? filePath.remove("file:///") :
+                                               filePath;
+    QFileInfo fileInfo(filePath);
+
+    if (!fileInfo.exists())
+        return false;
+
+    QPrinter printer;
+    printer.setPageSize(QPrinter::A4);
+    QRectF paperRectPx = printer.paperRect(QPrinter::DevicePixel);
+    QRectF paperRectMm = printer.paperRect(QPrinter::Millimeter);
+    double fPxToMM = paperRectMm.width() / paperRectPx.width();
+    int imgWidthPx = 10.0 * pSizeCm / fPxToMM;
+
+    QImage img(fileInfo.absoluteFilePath());
+    img = img.scaledToWidth(imgWidthPx);
+
+    QPrintDialog *dlg = new QPrintDialog(&printer,0);
+    if(dlg->exec() == QDialog::Accepted)
+    {
+        QPainter painter(&printer);
+
+
+        //painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.drawImage(QPoint(0,0),img);
+        printer.setFullPage(true);
+        painter.end();
+    }
+
+    return true;
+}
+
+bool ApplicationControl::addToPrintQueue(QUrl pImage, double pSizeCm, QString pLabel)
+{
+    PrintEntry p;
+    p.url = pImage;
+    p.sizeCm = QSizeF(pSizeCm, pSizeCm);
+    p.label = pLabel;
+
+    printEntries.append(p);
+    return true;
+}
+
+bool ApplicationControl::removeFromPrintQueue(QUrl pImage)
+{
+    for (int i = 0; i < printEntries.length(); ++i)
+    {
+        if (printEntries.at(i).url == pImage)
+        {
+            printEntries.removeAt(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ApplicationControl::printAllFromPrintQueue(bool pdf)
+{
+    QPrinter printer;
+    printer.setPageSize(QPrinter::A4);
+
+    QString pathToOpenAfterExport;
+
+    QRectF paperRectPx = printer.paperRect(QPrinter::DevicePixel);
+    QRectF paperRectMm = printer.paperRect(QPrinter::Millimeter);
+    double fPxToMM = paperRectMm.width() / paperRectPx.width();
+//    int imgWidthPx = 10.0 * pSizeCm / fPxToMM;
+
+//    QImage img(fileInfo.absoluteFilePath());
+//    img = img.scaledToWidth(imgWidthPx);
+
+    if (pdf)
+    {
+        printer.setOutputFormat(QPrinter::PdfFormat);
+//        printer.setResolution(QPrinter::HighResolution);
+
+        QString fileName = QFileDialog::getSaveFileName(nullptr, "Export PDF", QString(), "*.pdf");
+        if (QFileInfo(fileName).suffix().isEmpty()) { fileName.append(".pdf"); }
+
+        QFile file(fileName);
+        if (!file.remove())
+        {
+            qDebug() << "Could not remove file: " << fileName;
+            return false;
+        }
+
+        printer.setOutputFileName(fileName);
+        pathToOpenAfterExport = fileName;
+    }
+    else
+    {
+        QPrintDialog *dlg = new QPrintDialog(&printer, nullptr);
+        if (dlg->exec() != QDialog::Accepted)
+            return false;
+    }
+
+    QPainter painter(&printer);
+    QPoint drawPos(0,0);
+
+
+    int pages = 0;
+    for (auto&& printEntry: printEntries)
+    {
+        QString filePath = printEntry.url.toString();
+        filePath = filePath.contains("file:///") ? filePath.remove("file:///") :
+                                                   filePath;
+
+        // Get file
+        QFileInfo fileInfo(filePath);
+        if (!fileInfo.exists())
+        {
+            qDebug() << "file does not exist " << filePath;
+            continue;
+        }
+
+        // Resize
+        QImage img(filePath);
+        int imgWidth = (10.0 * printEntry.sizeCm.width()) / fPxToMM;
+        img = img.scaledToWidth(imgWidth);
+
+        // If it fits, print
+        int nextContentWidth = img.width() + (printEntry.label.isEmpty() ? 0 : 2.0 * painter.fontMetrics().boundingRect(printEntry.label).width());
+        int nextContentHeight = img.height() + (printEntry.label.isEmpty() ? 0 : 2.0 * painter.fontMetrics().height());
+
+//        int remainingWidth =  paperRectPx.width() - drawPos.x();
+//        if (nextContentWidth > remainingWidth)
+//        {
+//            // newline
+//            drawPos.setX(0);
+//            drawPos.setY(nextContentHeight);
+//        }
+
+        int remainingHeight = paperRectPx.height() - drawPos.y();
+        if (nextContentHeight > remainingHeight)
+        {
+            printer.newPage();
+            pages++;
+            drawPos.setX(0);
+            drawPos.setY(0);
+        }
+
+        painter.drawImage(drawPos, img);
+//        int yBeforeImgDraw = drawPos.y();
+        drawPos.setY(drawPos.y() + img.height() + painter.fontMetrics().height());
+
+        if (!printEntry.label.isEmpty()) {
+            painter.drawText(drawPos, printEntry.label + " " + QString::number(printEntry.sizeCm.width()) + "cm");
+            drawPos.setY(drawPos.y() + painter.fontMetrics().height());
+        }
+//        drawPos.setX(drawPos.x() + nextContentWidth);
+//        drawPos.setY(yBeforeImgDraw);
+
+    }
+
+    printer.setFullPage(true);
+    painter.end();
+
+    if (!pathToOpenAfterExport.isEmpty())
+    {
+        QDesktopServices::openUrl(QUrl(pathToOpenAfterExport));
+    }
+
+    return true;
+}
+
+void ApplicationControl::clearPrintQueue()
+{
+    printEntries.clear();
 }
 
 void ApplicationControl::setCurrentFileAndFolder(QString folder, QString file)

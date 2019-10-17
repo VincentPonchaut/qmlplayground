@@ -103,6 +103,13 @@ public:
 
     QObject *quickRootObject() const;
 
+    Q_INVOKABLE bool printToA4(QUrl pImage, double pSizeCm);
+
+    Q_INVOKABLE bool addToPrintQueue(QUrl pImage, double pSizeCm, QString pLabel = "");
+    Q_INVOKABLE bool removeFromPrintQueue(QUrl pImage);
+    Q_INVOKABLE bool printAllFromPrintQueue(bool pdf = false);
+    Q_INVOKABLE void clearPrintQueue();
+
 signals:
     void fileChanged(const QString& pFilePath);
     void directoryChanged(const QString& pDirectoryPath);
@@ -144,6 +151,14 @@ private:
     QFuture<QByteArray> mFuture;
     QFutureWatcher<QByteArray> mFutureWatcher;
     QStringList m_folderList;
+
+    // Printing
+    struct PrintEntry {
+        QString label;
+        QUrl url;
+        QSizeF sizeCm;
+    };
+    QList<PrintEntry> printEntries;
 };
 
 #endif // APPLICATIONCONTROL_H
