@@ -630,6 +630,13 @@ bool ApplicationControl::writeFileContents(const QString &pFilePath, const QStri
     return true;
 }
 
+QString ApplicationControl::getSaveFileName(QString pCaption)
+{
+    return QFileDialog::getSaveFileName(nullptr,
+                                        pCaption,
+                                        m_currentFolder);
+}
+
 void ApplicationControl::addContextProperty(const QString &pKey, QVariant pData)
 {
     mEngine->rootContext()->setContextProperty(pKey, pData);

@@ -84,6 +84,7 @@ public:
 
     Q_INVOKABLE QString readFileContents(const QString& pFilePath);
     Q_INVOKABLE bool writeFileContents(const QString& pFilePath, const QString& pFileContents);
+    Q_INVOKABLE QString getSaveFileName(QString pCaption = "Save file");
 
     Q_INVOKABLE void addContextProperty(const QString& pKey, QVariant pData);
 
