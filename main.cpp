@@ -7,9 +7,11 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QQuickStyle>
-#include <QtWebEngine>
-#include <QtWebView>
+//#include <QtWebEngine>
+//#include <QtWebView>
+#include <QDesktopServices>
 #include <QMessageBox>
+#include <QSslSocket>
 
 #include "tools/maskedmousearea.h"
 #include "applicationcontrol.h"
@@ -77,8 +79,8 @@ int main(int argc, char *argv[])
 
     QSettings::setDefaultFormat(QSettings::IniFormat);
 
-    QtWebView::initialize();
-    QtWebEngine::initialize();
+//    QtWebView::initialize();
+//    QtWebEngine::initialize();
 
     // Prepare the QML engine
     QQmlApplicationEngine engine;
@@ -89,6 +91,12 @@ int main(int argc, char *argv[])
 
     // Set style for QtQuickControls 2
     QQuickStyle::setStyle("Material");
+
+    // Log SSL info
+    qDebug()
+        << (QSslSocket::supportsSsl() ? "SSL : OK" : "OpenSSL is not installed.") << "\n"
+        << QSslSocket::sslLibraryBuildVersionString() // la version utilisee pour compiler Qt
+        << QSslSocket::sslLibraryVersionString(); // la version disponible
 
 
 #ifdef QT_NO_DEBUG

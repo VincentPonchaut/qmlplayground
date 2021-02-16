@@ -9,8 +9,11 @@ import QtQuick.Window 2.12
 
 Page {
     id: contentPage
-
+//    property int avelebleWidth: width - (folderSelectorPane.visible ? folderSelectorPane.width : 0) - (quickEditor.visible ? quickEditor.width : 0)
     property int reloadCount: 0;
+    property alias actualWidth: contentPane.width
+    property alias actualHeight: contentPane.height
+
     function reload()
     {
         contentLoader.active = false;
@@ -26,6 +29,7 @@ Page {
     }
     function load() { reload() }
 
+    padding: 0
     background: Rectangle {
         color: "#4f4f4f"
         
@@ -39,56 +43,123 @@ Page {
     }
     
     Pane {
-        id: contentPane
-        
-        width: parent.width * settings.contentXRatio / 100
-        height: parent.height * settings.contentYRatio / 100
+      id: contentPane
+
+      property int targetHeight: parent.width * 0.95 * settings.selectedAspectRatio["h"] / settings.selectedAspectRatio["w"]
+      property int targetWidth: parent.height * 0.95 * settings.selectedAspectRatio["w"] / settings.selectedAspectRatio["h"]
+
+      height: {
+        if (!settings.applyContentRatio)
+          return parent.height * settings.contentYRatio / 100;
+
+        if (targetWidth / parent.width > 1)
+          return targetHeight
+        else
+          return parent.height * 0.95
+//        if (parent.width > parent.height)
+//          return parent.height * 0.95;
+//        else
+//          return width * settings.selectedAspectRatio["h"] / settings.selectedAspectRatio["w"]
+      }
+      width: {
+        if (!settings.applyContentRatio)
+          return parent.width * settings.contentXRatio / 100
+
+        if (targetWidth / parent.width > 1)
+          return parent.width * 0.95
+        else
+          return targetWidth
+//        if (parent.width > parent.height)
+//          return height * settings.selectedAspectRatio["w"] / settings.selectedAspectRatio["h"]
+//        else
+//          return parent.width * 0.95
+      }
+
+      anchors.centerIn: parent
+
+      clip: true
+
+      padding: 3
+      property color borderColor: Material.accent
+      SequentialAnimation on borderColor {
+        running: true
+        loops: Animation.Infinite
+        ColorAnimation {
+          duration: 2000
+          from: Material.accent
+          to: "orange"
+        }
+        ColorAnimation {
+          duration: 2000
+          from: "orange"
+          to: Material.accent
+        }
+      }
+      background: Rectangle {
+        color: settings.showContentBorder ? Material.background : "transparent";
+
+//        border.color: contentPane.borderColor
+//        border.width: 3
+
+
+      }
+
+      Loader {
+        id: contentLoader
+        anchors.fill: parent
+        visible: status == Loader.Ready
+        //            source: targetFile()
+        //            asynchronous: true
+
+        property string errorText;
+
+        onStatusChanged:
+        {
+          if (source.length <= 0)
+            return;
+
+          if (status == Loader.Error) {
+            contentLoader.errorText = "" + contentLoader.sourceComponent.errorString()
+            contentLoader.errorText = contentLoader.errorText.replace(new RegExp(appControl.currentFolder, 'g'), "");
+          }
+          else {
+            contentLoader.errorText = ""
+          }
+        }
+      }
+      BusyIndicator {
         anchors.centerIn: parent
-        
-        clip: true
-        
-        background: Rectangle {
-            color: settings.showContentBackground ? Material.background : "transparent";
-            border.color: Material.accent
-            border.width: 3
-        }
-        
-        Loader {
-            id: contentLoader
-            anchors.fill: parent
-            visible: status == Loader.Ready
-//            source: targetFile()
-//            asynchronous: true
+        running: contentLoader.status == Loader.Loading
+      }
+      Text {
+        id: errorText
+        anchors.fill: parent
+        color: "red"
+        visible: contentLoader.errorText.length > 0
+        text: "Errors in the QML file !\n%1".arg(contentLoader.errorText)
+        wrapMode: Text.Wrap
 
-            property string errorText;
-            
-            onStatusChanged:
-            {
-                if (source.length <= 0)
-                    return;
+        font.pointSize: 10
+      }
 
-                if (status == Loader.Error) {
-                    contentLoader.errorText = "" + contentLoader.sourceComponent.errorString()
-                    contentLoader.errorText = contentLoader.errorText.replace(new RegExp(appControl.currentFolder, 'g'), "");
-                }
-                else {
-                    contentLoader.errorText = ""
-                }
-            }
-        }
-        BusyIndicator {
-            anchors.centerIn: parent
-            running: contentLoader.status == Loader.Loading
-        }
-        Text {
-            id: errorText
-            anchors.fill: parent
-            color: "red"
-            visible: contentLoader.errorText.length > 0
-            text: "Errors in the QML file !\n%1".arg(contentLoader.errorText)
-            wrapMode: Text.Wrap
+      Rectangle {
+        id: contentBorder
+        visible: settings.showContentBorder
 
-            font.pointSize: 10
-        }
+        anchors.fill: parent
+//        anchors.margins: -parent.padding
+        anchors.margins: -3
+        color: "transparent";
+
+        border.color: contentPane.borderColor
+        border.width: 3
+
+
+      }
+    }
+
+    FpsItem {
+      anchors.top: parent.top
+      anchors.right: parent.right
     }
 }

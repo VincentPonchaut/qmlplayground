@@ -185,14 +185,14 @@ Page {
             name: "open"
             PropertyChanges {
                 target: quickEditor
-                width: contentRow.width / 2
+                visible: true
             }
         },
         State {
             name: "closed"
             PropertyChanges {
                 target: quickEditor
-                width: 0
+                visible: false
             }
         }
     ]

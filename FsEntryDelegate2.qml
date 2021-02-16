@@ -260,7 +260,7 @@ ItemDelegate {
     QtObject {
         id: _
 
-        property int rowHeight: 50 * dp
+        property int rowHeight: 40 * dp
 
         function icon()
         {

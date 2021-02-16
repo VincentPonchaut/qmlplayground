@@ -72,5 +72,6 @@
         <file>FsEntryDelegate2.qml</file>
         <file>lottie/coffeecup.json</file>
         <file>LoadingOverlay.qml</file>
+        <file>FpsItem.qml</file>
     </qresource>
 </RCC>
