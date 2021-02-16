@@ -176,7 +176,8 @@ Loader {
 
             anchors.verticalCenter: parent.verticalCenter
 
-            text: "-"
+//            text: "-"
+            imageSource: "qrc:///img/collapse.svg"
             ToolTip.text: "Fold all"
 
             onClicked: {
@@ -191,7 +192,8 @@ Loader {
             width: height
             anchors.verticalCenter: parent.verticalCenter
 
-            text: "+"
+            imageSource: "qrc:///img/expand.svg"
+//            text: "+"
             ToolTip.text: "Unfold all"
 
             onClicked: {

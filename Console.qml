@@ -152,7 +152,8 @@ Pane {
   Connections {
     target: appControl
 
-    onLogMessage: {
+    //onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    function onLogMessage(type, context, msg) {
       if (String(file).startsWith("qrc:"))
         return;
       pushMessage({
@@ -163,7 +164,9 @@ Pane {
                     "type": "user"
                   });
     }
-    onWarningMessage: {
+
+    //void warningMessage(const QString& message, const QString& file, int line);
+    function onWarningMessage(message, file, line) {
       pushMessage({
                     "msg" : String(message).replace(file, ""),
                     "file": String(file).replace(appControl.currentFolder, ""),
@@ -173,10 +176,19 @@ Pane {
                   });
     }
 
-    onCurrentFileChanged: reload()
-    onCurrentFolderChanged: reload()
-    onFileChanged: reload()
-    onDirectoryChanged: reload()
+    function onCurrentFileChanged(pFilePath) {
+      reload();
+    }
+    function onCurrentFolderChanged(folder) {
+      reload();
+    }
+    function onFileChanged() {
+      reload();
+    }
+    function onDirectoryChanged() {
+      reload();
+    }
+
   }
 
   // ------------------------------------------------------

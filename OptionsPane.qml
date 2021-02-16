@@ -38,6 +38,8 @@ Pane {
       font.pointSize: 12
       width: 200 * dp
 
+      font.pixelSize: 13 * dp
+
       ToolTip.visible: aspectRatioCombo.hovered
       ToolTip.text: "Change content's aspect ratio"
 
@@ -49,13 +51,20 @@ Pane {
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.bottom
+        anchors.top: parent.background.bottom
 
-        text: String("current: %1x%2 %3").arg(contentPage.actualWidth.toFixed(0)).arg(contentPage.actualHeight.toFixed(0))
-        color: "yellow"
-        font.pixelSize: 10 * dp
+        text: String("current: %1x%2").arg(contentPage.actualWidth.toFixed(0)).arg(contentPage.actualHeight.toFixed(0))
+        color: "lightgrey"
+        font.pixelSize: 12 * dp
       }
-
+      delegate: ItemDelegate {
+        width: parent.width
+        text: modelData[aspectRatioCombo.textRole]
+        font.pixelSize: 13 * dp
+        font.italic: index === aspectRatioCombo.currentIndex
+        opacity: index === aspectRatioCombo.currentIndex ? 0.5 : 1.0
+        highlighted: index === aspectRatioCombo.currentIndex
+      }
       popup: Popup {
           y: aspectRatioCombo.height - 1
           width: aspectRatioCombo.width
@@ -85,14 +94,9 @@ Pane {
           "h" : -1
         },
         {
-          "name": "HD (720p)",
+          "name": "16:9",
           "w" : 1280,
           "h" : 720
-        },
-        {
-          "name": "Full HD (1080p)",
-          "w" : 1920,
-          "h" : 1080
         },
         {
           "name": "iPhone X, XS, 11 Pro",
@@ -117,47 +121,54 @@ Pane {
       ]
     }
 
-    Column {
-      id: sizeRatioColumn
+    Control {
+      width: sizeRatioColumn.childrenRect.width
       height: 50 * dp
-//      height: parent.height
-      //visible: !settings.applyContentRatio
-      enabled: !settings.applyContentRatio
 
-      Row {
-        height: parent.height * 0.5
-        Label {
-          text: "Width "
-          anchors.verticalCenter: parent.verticalCenter
+      ToolTip.visible: !sizeRatioColumn.enabled && hovered
+      ToolTip.text: "Select 'Responsive' to enable"
+
+      Column {
+        id: sizeRatioColumn
+        height: parent.height
+        //visible: !settings.applyContentRatio
+        enabled: !settings.applyContentRatio
+
+        Row {
+          height: parent.height * 0.5
+          Label {
+            text: "Width "
+            anchors.verticalCenter: parent.verticalCenter
+          }
+          Slider {
+            id: xRatioSlider
+            anchors.verticalCenter: parent.verticalCenter
+            from: 0
+            to: 100
+            stepSize: 5
+          }
+          Label {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "%1\%".arg(Math.floor(xRatioSlider.value))
+          }
         }
-        Slider {
-          id: xRatioSlider
-          anchors.verticalCenter: parent.verticalCenter
-          from: 0
-          to: 100
-          stepSize: 5
-        }
-        Label {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "%1\%".arg(Math.floor(xRatioSlider.value))
-        }
-      }
-      Row {
-        height: parent.height * 0.5
-        Label {
-          text: "Height"
-          anchors.verticalCenter: parent.verticalCenter
-        }
-        Slider {
-          id: yRatioSlider
-          anchors.verticalCenter: parent.verticalCenter
-          from: 0
-          to: 100
-          stepSize: 5
-        }
-        Label {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "%1\%".arg(Math.floor(yRatioSlider.value))
+        Row {
+          height: parent.height * 0.5
+          Label {
+            text: "Height"
+            anchors.verticalCenter: parent.verticalCenter
+          }
+          Slider {
+            id: yRatioSlider
+            anchors.verticalCenter: parent.verticalCenter
+            from: 0
+            to: 100
+            stepSize: 5
+          }
+          Label {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "%1\%".arg(Math.floor(yRatioSlider.value))
+          }
         }
       }
     }

@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.3
 
 import Qt.labs.lottieqt 1.0
 import Qt.labs.settings 1.0
-import Qt.labs.platform 1.0 as Labs
+import Qt.labs.platform 1.1 as Labs
 
 ApplicationWindow {
   id: root
@@ -41,10 +41,11 @@ ApplicationWindow {
     property alias quickEditorState: quickEditor.state
 
     // Window position and size
-    //        property alias windowX: root.x
-    //        property alias windowY: root.y
+    property alias windowX: root.x
+    property alias windowY: root.y
     property alias windowWidth: root.width
     property alias windowHeight: root.height
+    property alias windowState: root.visibility
 
     // Publish dialog
     property alias qtBinPath: publishDialogItem.qtBinPath
@@ -66,6 +67,21 @@ ApplicationWindow {
     property FontLoader productSans: FontLoader {
       source: "qrc:/fonts/product-sans/Product Sans Regular.ttf"
     }
+  }
+
+  Labs.SystemTrayIcon {
+    visible: true
+    iconSource: "qrc:///img/console.svg"
+    menu: Labs.Menu {
+      Labs.MenuItem {
+          text: qsTr("Center window")
+          onTriggered: {
+            root.x = 0
+            root.y = 0
+            root.showMaximized()
+          }
+      }
+  }
   }
 
   // ------------------------------------------------------------------
@@ -315,26 +331,18 @@ ApplicationWindow {
   Connections {
     target: appControl
 
-    //        onFileChanged: handleExternalChanges()
-    //        onDirectoryChanged: handleExternalChanges()
-    ///onLogMessage: consoleText.text += "\n" + message
-    onReloadRequest: {
-      //            contentPage.load()
+    function onReloadRequest() {
       handleExternalChanges()
     }
 
-    onCurrentFileChanged: {
+    function onCurrentFileChanged(pFilePath) {
       print("current file changed " + appControl.currentFile)
       root.currentFileContents = readFileContents(appControl.currentFile)
       contentPage.load()
-
-      //            appControl.sendFolderToClients("");
     }
 
-    onCurrentFolderChanged: {
+    function onCurrentFolderChanged() {
       print("current folder changed " + appControl.currentFolder)
-
-      //            appControl.sendZippedFolderToClients(appControl.currentFolder)
     }
   }
   onCurrentFileContentsChanged: {

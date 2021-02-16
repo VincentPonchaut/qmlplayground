@@ -53,17 +53,6 @@ ToolBar {
             Layout.fillWidth: true
             height: parent.height
             
-            IconButton {
-                id: openCurrentFolderButton
-
-                flat: true
-                imageSource: "qrc:///img/folder.svg"
-                onClicked: Qt.openUrlExternally(appControl.currentFolder)
-
-                ToolTip.visible: hovered
-                ToolTip.text: "Open in explorer"
-            }
-
             ClickableLabel {
                 id: folderLabel
                 anchors.verticalCenter: parent.verticalCenter
@@ -81,6 +70,17 @@ ToolBar {
             }
             
 
+        }
+
+        IconButton {
+            id: openCurrentFolderButton
+
+            flat: true
+            imageSource: "qrc:///img/folder.svg"
+            onClicked: Qt.openUrlExternally(appControl.currentFolder)
+
+            ToolTip.visible: hovered
+            ToolTip.text: "Open in explorer"
         }
 
         IconButton {
@@ -215,7 +215,7 @@ ToolBar {
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
                 anchors.margins: 5
-                source: "qrc:///img/gear.png"
+                source: "qrc:///img/gear.svg"
                 mipmap: true
             }
 

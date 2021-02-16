@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+  <g id="newFile" transform="translate(-2 -2)">
+    <path id="base_1_1_1" data-name="base 1 1 1" d="M2,24A22,22,0,1,1,24,46,22,22,0,0,1,2,24Z" fill="none"/>
+    <g id="Group_11" data-name="Group 11" transform="translate(-10738.73 1418.27)">
+      <g id="create" transform="translate(10750 -1407)">
+        <path id="Path_68" data-name="Path 68" d="M29.961,20.059v7.072a2.829,2.829,0,0,1-2.829,2.829H7.329A2.829,2.829,0,0,1,4.5,27.132V7.329A2.829,2.829,0,0,1,7.329,4.5H14.4V7.329H7.329v19.8h19.8V20.059Z" transform="translate(-4.5 -4.5)" fill="#fff"/>
+        <path id="Path_69" data-name="Path 69" d="M30.645,10.158H24.987V4.5H22.158v5.658H16.5v2.829h5.658v5.658h2.829V12.987h5.658" transform="translate(-5.184 -4.5)" fill="#fff"/>
+      </g>
+      <g id="create-2" data-name="create" transform="translate(10761.316 -1407)">
+        <path id="Path_69-2" data-name="Path 69" d="M30.645,10.158H24.987V4.5H22.158v5.658H16.5v2.829h5.658v5.658h2.829V12.987h5.658" transform="translate(-16.5 -4.5)" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+</svg>

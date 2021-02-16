@@ -15,7 +15,6 @@
         <file>img/edit.svg</file>
         <file>img/folder.svg</file>
         <file>img/folderOpen.svg</file>
-        <file>img/gear.png</file>
         <file>img/help.svg</file>
         <file>img/menu.svg</file>
         <file>img/newFile.svg</file>
@@ -73,5 +72,9 @@
         <file>lottie/coffeecup.json</file>
         <file>LoadingOverlay.qml</file>
         <file>FpsItem.qml</file>
+        <file>img/gear.svg</file>
+        <file>img/collapse.svg</file>
+        <file>img/expand.svg</file>
+        <file>img/newFile2.svg</file>
     </qresource>
 </RCC>

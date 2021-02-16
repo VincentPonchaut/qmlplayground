@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+  <g id="collapse" transform="translate(-2 -2)">
+    <path id="base_1_1_1" data-name="base 1 1 1" d="M2,24A22,22,0,1,1,24,46,22,22,0,0,1,2,24Z" fill="none"/>
+    <g id="bx-duplicate" transform="translate(7.922 7.922)">
+      <path id="Path_65" data-name="Path 65" d="M12.923,18.923H9v2.616H19.462V18.923H12.923Z" transform="translate(-0.769 -1.538)" fill="#fff"/>
+      <path id="Path_66" data-name="Path 66" d="M5.616,29.925H21.309a2.618,2.618,0,0,0,2.616-2.616V11.616A2.618,2.618,0,0,0,21.309,9H5.616A2.618,2.618,0,0,0,3,11.616V27.309A2.618,2.618,0,0,0,5.616,29.925Zm-1-19.309H22.309l0,17.694H4.616Z" transform="translate(0 -0.769)" fill="#fff"/>
+      <path id="Path_67" data-name="Path 67" d="M27.694,3H12V4.616H28.694V21.309h1.616V5.616A2.618,2.618,0,0,0,27.694,3Z" transform="translate(-1.153)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

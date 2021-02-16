@@ -43,6 +43,29 @@ ItemDelegate {
     highlighted: isCurrentFolder || isCurrentFile
     padding: 0
 
+    background: Item {
+      implicitWidth: 100
+      implicitHeight: 40
+
+      Rectangle {
+        anchors.fill: parent
+
+
+        color: "white"
+        opacity: itemDelegate.hovered ? 0.075 : itemDelegate.down ? 0.5 : 0.035;
+      }
+
+      Rectangle {
+        visible: itemData.parent === null
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: 1
+
+        color: "cyan"
+        opacity: 0.4
+      }
+    }
+
     // Top row
     Row {
         id: contentRow
@@ -83,6 +106,27 @@ ItemDelegate {
         spacing: -8 * dp
 
         IconButton {
+            id: collapsoButtonu
+            visible: itemData && itemData.entries.length > 0 && itemData.entries.some((e) => e.expandable && e.expanded)
+//            visible: itemData && itemData.expandable && itemData.expanded
+
+            height: parent.height
+            width: height
+            anchors.verticalCenter: parent.verticalCenter
+
+            onClicked: {
+              itemData.entries.forEach((e) => {
+                                         if (e.expandable)
+                                          e.expanded = false;
+                                       });
+            }
+
+            imageSource: "qrc:///img/collapse.svg"
+            margins: 10
+            ToolTip.text: "Fold children"
+        }
+
+        IconButton {
             id: newFileButton
 
             height: parent.height
@@ -90,7 +134,8 @@ ItemDelegate {
             anchors.verticalCenter: parent.verticalCenter
 
             onClicked: fileCreationPopup.openForFolder(fp(itemData.path))
-            imageSource: "qrc:///img/newFile.svg"
+            imageSource: "qrc:///img/newFile2.svg"
+            margins: 10
             ToolTip.text: "New file"
         }
 
@@ -286,7 +331,8 @@ ItemDelegate {
 
             if (itemDelegate.isCurrentFolder)
             {
-                return Material.accent
+              return "#26D8CE"
+//                return Material.accent
             }
             else if (itemDelegate.isCurrentFile)
             {
