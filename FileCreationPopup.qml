@@ -10,8 +10,8 @@ import Qt.labs.lottieqt 1.0
 Popup {
     id: fileCreationPopup
     
-    width: parent.width * 0.33
-    height: parent.height * 0.33
+    width: Math.max(parent.width * 0.33, 400)
+    height: Math.max(parent.height * 0.33, 300)
     x: root.width / 2 - width / 2
     y: root.height / 2 - height / 2
     
