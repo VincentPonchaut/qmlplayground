@@ -53,7 +53,8 @@ ApplicationWindow {
     property alias publishDir: publishDialogItem.publishDir
 
     // Split view
-    property var splitViewState
+//    property var splitViewState // does not seem to work with .ini format
+    property alias spwFolderSelector: folderSelectorPane.width
   }
 
   DataManager {
@@ -69,33 +70,36 @@ ApplicationWindow {
     }
   }
 
-  Labs.SystemTrayIcon {
-    visible: true
-    iconSource: "qrc:///img/console.svg"
-    menu: Labs.Menu {
-      Labs.MenuItem {
-          text: qsTr("Center window")
-          onTriggered: {
-            root.x = 0
-            root.y = 0
-            root.showMaximized()
-          }
-      }
-  }
   QtObject {
     id: executionData
     property var expandedState: ({});
   }
+
+//  Labs.SystemTrayIcon {
+//    visible: true
+//    iconSource: "qrc:///img/console.svg"
+//    menu: Labs.Menu {
+//      Labs.MenuItem {
+//        text: qsTr("Center window")
+//        onTriggered: {
+//          root.x = 0
+//          root.y = 0
+//          root.showMaximized()
+//        }
+//      }
+//    }
+//  }
 
   // ------------------------------------------------------------------
   // Behavior
   // ------------------------------------------------------------------
 
   Component.onCompleted: {
-    splitView.restoreState() // TODO
+//    splitView.restoreState(settings.splitViewState) // TODO
   }
   Component.onDestruction: {
-    settings.splitViewState = splitView.saveState()
+//    settings.spwFolderSelector = folderSelectorPane.width
+//    settings.splitViewState = splitView.saveState()
   }
 
   // -----------------------------------------------------------------------------
@@ -119,16 +123,10 @@ ApplicationWindow {
     FolderSelectorPane {
       id: folderSelectorPane
 
-      //            implicitWidth: parent.width * 1 / 4
       SplitView.minimumWidth: parent.width * 0.2
       SplitView.maximumWidth: parent.width * 0.5
+      SplitView.preferredWidth: settings.spwFolderSelector
       height: parent.height
-
-      anchors {
-        bottom: parent.bottom
-        left: parent.left
-        top: parent.top
-      }
 
       Label {
         anchors.fill: parent
@@ -355,6 +353,10 @@ ApplicationWindow {
 
   function handleExternalChanges() {
     print("handleExternalChanges")
+
+    if (settings.clearConsoleOnReload)
+      theConsole.clearMessages();
+
     root.currentFileContents = readFileContents(appControl.currentFile)
     contentPage.load()
   }

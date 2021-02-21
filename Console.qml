@@ -11,12 +11,12 @@ Pane {
     id: messages
   }
 
-  Connections {
-    target: appControl
-    onCurrentFileChanged: {
-      clearMessages()
-    }
-  }
+//  Connections {
+//    target: appControl
+//    function onCurrentFileChanged() {
+//      clearMessages()
+//    }
+//  }
 
   background: Rectangle {
     color: "black"
@@ -153,7 +153,8 @@ Pane {
     target: appControl
 
     //onLogMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-    function onLogMessage(type, context, msg) {
+//    function onLogMessage(type, context, msg) {
+    onLogMessage: {
       if (String(file).startsWith("qrc:"))
         return;
       pushMessage({
@@ -166,7 +167,8 @@ Pane {
     }
 
     //void warningMessage(const QString& message, const QString& file, int line);
-    function onWarningMessage(message, file, line) {
+//    function onWarningMessage(message, file, line) {
+    onWarningMessage: {
       pushMessage({
                     "msg" : String(message).replace(file, ""),
                     "file": String(file).replace(appControl.currentFolder, ""),
@@ -176,18 +178,22 @@ Pane {
                   });
     }
 
-    function onCurrentFileChanged(pFilePath) {
-      reload();
-    }
-    function onCurrentFolderChanged(folder) {
-      reload();
-    }
-    function onFileChanged() {
-      reload();
-    }
-    function onDirectoryChanged() {
-      reload();
-    }
+//    onCurrentFileChanged: reload()
+//    onCurrentFolderChanged: reload()
+//    onFileChanged: reload()
+//    onDirectoryChanged: reload()
+//    function onCurrentFileChanged(pFilePath) {
+//      reload();
+//    }
+//    function onCurrentFolderChanged(folder) {
+//      reload();
+//    }
+//    function onFileChanged() {
+//      reload();
+//    }
+//    function onDirectoryChanged() {
+//      reload();
+//    }
 
   }
 
@@ -226,6 +232,7 @@ Pane {
   }
 
   function clearMessages() {
+    print("clearing messages...")
     messages.clear()
     unreadMessages = 0
   }

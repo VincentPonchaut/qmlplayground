@@ -68,11 +68,9 @@ Loader {
   // ---------------------------------------------------------------
   // View
   // ---------------------------------------------------------------
-  width: parent.width * 1 / 4
   Material.theme: Material.Dark
   Material.elevation: 10
   z: contentPage.z + 10
-  //    padding: 0
   asynchronous: true
 
   focus: state == "open"
@@ -96,7 +94,7 @@ Loader {
       id: folderSectionTitlePane
 
       width: parent.width
-//      height: optionsPane.height
+      //      height: optionsPane.height
       height: 74 * dp
 
       Material.elevation: parent.Material.elevation + 1
@@ -176,7 +174,7 @@ Loader {
 
             anchors.verticalCenter: parent.verticalCenter
 
-//            text: "-"
+            //            text: "-"
             imageSource: "qrc:///img/collapse.svg"
             ToolTip.text: "Fold all"
 
@@ -193,7 +191,7 @@ Loader {
             anchors.verticalCenter: parent.verticalCenter
 
             imageSource: "qrc:///img/expand.svg"
-//            text: "+"
+            //            text: "+"
             ToolTip.text: "Unfold all"
 
             onClicked: {
@@ -247,7 +245,7 @@ Loader {
             property var rootEntry;
 
             onModelIndexChanged: {
-              //                            print(this + "model index changed")
+//              print(this + "model index changed")
               theEntries = appControl.folderModel.data(modelIndex, appControl.folderModel.roleFromString("entries"))
               rootIndex = theEntries.index(0,0)
               rootEntry = theEntries.data(rootIndex, theEntries.roleFromString("entry"))

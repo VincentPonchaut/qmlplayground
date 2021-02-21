@@ -96,7 +96,7 @@ Page {
         }
       }
       background: Rectangle {
-        color: settings.showContentBorder ? Material.background : "transparent";
+        color: Material.background
 
 //        border.color: contentPane.borderColor
 //        border.width: 3

@@ -62,7 +62,7 @@ Item {
     // Send data to clients as soon as connected
     Connections {
         target: serverControl
-        onActiveClientsChanged: {
+        function onActiveClientsChanged() {
             appControl.sendDataMessage(readFileContents(dataManager.currentDataFile));
         }
     }
