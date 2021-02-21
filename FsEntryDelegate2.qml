@@ -9,6 +9,7 @@ import QtQml.Models 2.2
 //Page {
 ItemDelegate {
     id: itemDelegate
+    enabled: appControl !== null
 
     property var itemData;
     property bool isCurrentFolder: itemData && itemData.expandable && fp(itemData.path) === appControl.currentFolder
@@ -32,12 +33,26 @@ ItemDelegate {
         }
     }
 
+    onItemDataChanged: {
+      if (!itemData || typeof(itemData) == "undefined")
+        return;
+
+//      print("Yes", itemData.name, "NOPE", itemData.path)
+      // read or write
+      if (itemData.expandable && Object.keys(executionData.expandedState).indexOf(itemData.path) !== -1) {
+        itemData.expanded = executionData.expandedState[itemData.path]
+      }
+    }
+    property bool expandeded: itemData.expanded
+    onExpandededChanged: {
+      executionData.expandedState[itemData.path] = expandeded
+    }
+
     // ---------------------------------------------------------------
     // View
     // ---------------------------------------------------------------
 
     width: parent.width
-//    height: _.rowHeight
     clip: true
 
     highlighted: isCurrentFolder || isCurrentFile

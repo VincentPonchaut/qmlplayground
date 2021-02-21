@@ -82,6 +82,9 @@ ApplicationWindow {
           }
       }
   }
+  QtObject {
+    id: executionData
+    property var expandedState: ({});
   }
 
   // ------------------------------------------------------------------
